@@ -1,0 +1,36 @@
+.hash {
+  display: inline-block;
+  width: 88px;
+  font-family: var(--font-data);
+  font-size: var(--t-data-s-size);
+  line-height: var(--t-data-s-line);
+  letter-spacing: var(--t-data-s-tracking);
+  color: var(--ink-62);
+  white-space: nowrap;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  text-align: left;
+}
+
+.flash {
+  background: var(--ink-06);
+  transition: background 0.2s var(--ease-out);
+}
+
+/* Reads as interactive without becoming a button-looking thing in a table. */
+.hash {
+  border-bottom: 1px dotted var(--ink-24);
+}
+.hash:hover {
+  border-bottom-color: var(--indigo);
+  color: var(--indigo);
+}
+
+.live {
+  font-family: var(--font-body);
+  font-size: var(--t-body-s-size);
+  color: var(--green);
+  padding-left: var(--sp-2);
+}

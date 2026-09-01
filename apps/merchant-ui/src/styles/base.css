@@ -1,0 +1,134 @@
+/* Self-hosted faces (R9 — no runtime CDN). font-display: swap per §6.1. */
+@font-face {
+  font-family: "Fraunces";
+  src: url("../assets/fonts/Fraunces-Variable.woff2") format("woff2-variations");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "General Sans";
+  src: url("../assets/fonts/GeneralSans-Regular.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "General Sans";
+  src: url("../assets/fonts/GeneralSans-Medium.woff2") format("woff2");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "General Sans";
+  src: url("../assets/fonts/GeneralSans-Semibold.woff2") format("woff2");
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "IBM Plex Mono";
+  src: url("../assets/fonts/IBMPlexMono-Regular.woff2") format("woff2");
+  font-weight: 100 449;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  /* Serves the §6.2 "450" data weight too — see fonts/LICENSES.md DECISION. */
+  font-family: "IBM Plex Mono";
+  src: url("../assets/fonts/IBMPlexMono-Medium.woff2") format("woff2");
+  font-weight: 450 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  color-scheme: light;
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+}
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: var(--t-body-m-size);
+  line-height: var(--t-body-m-line);
+  -webkit-font-smoothing: antialiased;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+h1,
+h2,
+h3,
+p {
+  margin: 0;
+}
+
+button,
+input {
+  font: inherit;
+  color: inherit;
+}
+
+button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+}
+
+/* R8 — every money-bearing number is tabular. */
+.tabular-nums {
+  font-variant-numeric: tabular-nums lining;
+  font-feature-settings:
+    "tnum" 1,
+    "lnum" 1;
+}
+
+/* R1 focus rule (§7.4) — never removed, only ever restyled by outline-offset. */
+:focus-visible {
+  outline: 2px solid var(--indigo);
+  outline-offset: 2px;
+}
+
+::selection {
+  background: var(--indigo-24);
+}
+
+/* Scrollbars in the house style: thin, quiet, no track. The OS default
+   grey pillar was the loudest element on several screens. */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--ink-24) transparent;
+}
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+*::-webkit-scrollbar-thumb {
+  background: var(--ink-24);
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+*::-webkit-scrollbar-thumb:hover {
+  background: var(--ink-40);
+  border: 2px solid transparent;
+  background-clip: content-box;
+}

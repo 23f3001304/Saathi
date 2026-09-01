@@ -1,0 +1,19 @@
+.lane {
+  min-width: 0;
+  height: 100%;
+}
+
+/* §2.1 — empty: a single hairline, no box, no copy. Silence is the point. */
+.hairline {
+  width: 1px;
+  height: 100%;
+  background: var(--ink-12);
+  margin: 0 auto;
+}
+
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+  padding: var(--sp-3);
+}

@@ -1,0 +1,133 @@
+import type { Env } from "../sdk/model.js";
+import { DEFAULT_AGENT_MODEL, MODEL_ENV_KEY } from "../sdk/model.js";
+
+/** The providers a Covenant agent can run on. `claude` stays the default. */
+export const AGENT_PROVIDERS = ["claude", "openai", "gemini", "sarvam"] as const;
+
+export type AgentProviderId = (typeof AGENT_PROVIDERS)[number];
+
+export const PROVIDER_ENV_KEY = "COVENANT_AGENT_PROVIDER";
+
+export const DEFAULT_AGENT_PROVIDER: AgentProviderId = "claude";
+
+export interface ProviderSpec {
+  readonly id: AgentProviderId;
+  /** Read off the provider's live docs, never from memory — see the tests. */
+  readonly defaultModel: string;
+  /** Checked in order; the first non-empty one wins. */
+  readonly apiKeyEnvKeys: readonly string[];
+  /** Empty for `claude`: the Agent SDK owns its own transport. */
+  readonly baseUrl: string;
+}
+
+export const PROVIDER_SPECS: Readonly<Record<AgentProviderId, ProviderSpec>> = {
+  claude: {
+    id: "claude",
+    defaultModel: DEFAULT_AGENT_MODEL,
+    apiKeyEnvKeys: ["ANTHROPIC_API_KEY"],
+    baseUrl: "",
+  },
+  openai: {
+    id: "openai",
+    defaultModel: "gpt-5.6",
+    apiKeyEnvKeys: ["OPENAI_API_KEY"],
+    baseUrl: "https://api.openai.com/v1",
+  },
+  gemini: {
+    id: "gemini",
+    defaultModel: "gemini-3.7-flash",
+    // GOOGLE_API_KEY first: the Gemini docs say it wins when both are set.
+    apiKeyEnvKeys: ["GOOGLE_API_KEY", "GEMINI_API_KEY"],
+    baseUrl: "https://generativelanguage.googleapis.com/v1beta",
+  },
+  sarvam: {
+    id: "sarvam",
+    defaultModel: "sarvam-105b",
+    apiKeyEnvKeys: ["SARVAM_API_KEY"],
+    baseUrl: "https://api.sarvam.ai/v1",
+  },
+};
+
+/**
+ * A configuration failure, not a verdict. `DomainError` carries a `ReasonCode`
+ * from a closed taxonomy owned by `@covenant/domain`, and "you forgot an env
+ * var" is not one of them. Naming the variable is the entire point of the
+ * type: the operator has to be told which one to set.
+ */
+export class ProviderConfigError extends Error {
+  readonly provider: string;
+  readonly envVars: readonly string[];
+
+  constructor(
+    message: string,
+    provider: string,
+    envVars: readonly string[] = [],
+  ) {
+    super(message);
+    this.name = "ProviderConfigError";
+    this.provider = provider;
+    this.envVars = envVars;
+  }
+}
+
+function isProviderId(value: string): value is AgentProviderId {
+  return (AGENT_PROVIDERS as readonly string[]).includes(value);
+}
+
+function nonEmpty(env: Env, key: string): string | null {
+  const value = env[key];
+  return typeof value === "string" && value.length > 0 ? value : null;
+}
+
+export function resolveProviderId(env: Env): AgentProviderId {
+  const configured = nonEmpty(env, PROVIDER_ENV_KEY);
+  if (configured === null) {
+    return DEFAULT_AGENT_PROVIDER;
+  }
+  if (!isProviderId(configured)) {
+    throw new ProviderConfigError(
+      `${PROVIDER_ENV_KEY}="${configured}" is not a known provider. ` +
+        `Expected one of: ${AGENT_PROVIDERS.join(", ")}.`,
+      configured,
+      [PROVIDER_ENV_KEY],
+    );
+  }
+  return configured;
+}
+
+/** `COVENANT_AGENT_MODEL_<PROVIDER>` pins one provider; `COVENANT_AGENT_MODEL`
+ *  moves them all. The narrower key wins, so a mixed-provider demo can override
+ *  one leg without disturbing the others. */
+export function providerModelEnvKey(id: AgentProviderId): string {
+  return `${MODEL_ENV_KEY}_${id.toUpperCase()}`;
+}
+
+export function resolveProviderModel(env: Env, id: AgentProviderId): string {
+  return (
+    nonEmpty(env, providerModelEnvKey(id)) ??
+    nonEmpty(env, MODEL_ENV_KEY) ??
+    PROVIDER_SPECS[id].defaultModel
+  );
+}
+
+export function resolveProviderApiKey(env: Env, id: AgentProviderId): string {
+  const spec = PROVIDER_SPECS[id];
+  for (const key of spec.apiKeyEnvKeys) {
+    const value = nonEmpty(env, key);
+    if (value !== null) {
+      return value;
+    }
+  }
+  throw new ProviderConfigError(
+    `No API key for provider "${id}": set ${spec.apiKeyEnvKeys.join(" or ")}.`,
+    id,
+    spec.apiKeyEnvKeys,
+  );
+}
+
+/** Absent credentials gate a live smoke test; they never fail a suite. */
+export function hasProviderApiKey(env: Env, id: AgentProviderId): boolean {
+  return PROVIDER_SPECS[id].apiKeyEnvKeys.some(
+    (key) => nonEmpty(env, key) !== null,
+  );
+}

@@ -1,0 +1,31 @@
+/* §3.2 frame 5 — arrives as a block, never typed: a typewriter would make
+   an authoritative statement look like the agent thinking it over. */
+.statement {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--sp-3);
+  padding: var(--sp-4);
+  background: var(--ink-06);
+  max-width: var(--measure-chat);
+  animation: arrive 0.14s var(--ease-out) both;
+}
+
+@keyframes arrive {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.glyph {
+  flex-shrink: 0;
+  color: var(--ink-55);
+}
+
+.text {
+  font-size: var(--t-body-l-size);
+  line-height: var(--t-body-l-line);
+  color: var(--ink);
+}

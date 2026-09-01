@@ -1,0 +1,69 @@
+/* A visible target. It was `background: none; border: none` on blank paper,
+   so the one control the whole product turns on looked like nothing at all. */
+.wrap {
+  position: relative;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-3);
+  padding: var(--sp-4);
+  cursor: pointer;
+  background: var(--paper-raised);
+  border: 1px solid var(--ink-24);
+  border-radius: var(--r-1);
+  transition:
+    border-color 0.18s var(--ease-out),
+    background 0.18s var(--ease-out);
+}
+.wrap:hover {
+  border-color: var(--indigo);
+}
+.wrap:active {
+  background: var(--paper-sunk);
+}
+
+.seal {
+  position: relative;
+  width: 96px;
+  height: 96px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.wrap:focus-visible {
+  outline: 2px solid var(--indigo);
+  outline-offset: 4px;
+}
+
+.ring {
+  position: absolute;
+  inset: 0;
+}
+
+.progress {
+  fill: none;
+  stroke: var(--indigo);
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+
+/* In normal flow: absolutely positioned at bottom:-24px it rendered struck
+   through by the next section's rule. */
+.label {
+  font-family: var(--font-body);
+  font-size: var(--t-body-s-size);
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--ink-70);
+  white-space: nowrap;
+}
+
+.wrap:disabled {
+  cursor: default;
+  border-color: var(--ink-12, var(--ink-24));
+  opacity: 0.5;
+}
+.wrap:disabled:hover {
+  border-color: var(--ink-12, var(--ink-24));
+}

@@ -1,0 +1,47 @@
+.tile {
+  border: 1px solid var(--ink-12);
+  padding: var(--sp-4);
+  position: relative;
+  overflow: hidden;
+}
+
+.recomputing {
+  animation: border-flash 0.3s var(--ease-out);
+}
+@keyframes border-flash {
+  from {
+    border-color: var(--indigo);
+  }
+  to {
+    border-color: var(--ink-12);
+  }
+}
+
+.sweep {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 1px;
+  height: 100%;
+  background: var(--indigo);
+  animation: sweep 0.22s linear;
+}
+@keyframes sweep {
+  from {
+    left: 0;
+  }
+  to {
+    left: 100%;
+  }
+}
+
+.headline {
+  font-family: var(--font-data);
+  font-size: var(--t-data-l-size);
+  font-variant-numeric: tabular-nums lining;
+}
+
+.detail {
+  font-size: var(--t-body-s-size);
+  color: var(--ink-55);
+}

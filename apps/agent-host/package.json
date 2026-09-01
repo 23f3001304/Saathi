@@ -1,0 +1,38 @@
+{
+  "name": "@covenant/agent-host",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "default": "./dist/src/index.js"
+    }
+  },
+  "scripts": {
+    "start": "node dist/src/index.js",
+    "dev:agents": "pnpm exec tsc -b . && node dist/src/index.js",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@anthropic-ai/claude-agent-sdk": "^0.3.251",
+    "@covenant/agents": "workspace:*",
+    "@covenant/browser-drive": "workspace:*",
+    "@covenant/domain": "workspace:*",
+    "@covenant/mandates": "workspace:*",
+    "@covenant/memory": "workspace:*",
+    "@hono/node-server": "^1.19.9",
+    "@hono/node-ws": "^1.3.1",
+    "hono": "^4.13.5",
+    "pino": "^10.1.0",
+    "zod": "^4.5.4"
+  },
+  "devDependencies": {
+    "@covenant/gateway-svc": "workspace:*",
+    "@types/node": "^26.4.0",
+    "@types/ws": "^8.18.1",
+    "vitest": "^4.1.11"
+  }
+}

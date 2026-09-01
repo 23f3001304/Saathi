@@ -1,0 +1,146 @@
+.card {
+  border: var(--rule);
+  border-radius: var(--r-1);
+  padding: var(--sp-4) var(--sp-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+}
+
+.draft {
+  border: 1px dashed var(--ink-40);
+}
+
+.expired .rule {
+  border-top-style: dotted;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  font-family: var(--font-body);
+  font-size: var(--t-body-s-size);
+  color: var(--ink-55);
+}
+
+.seal {
+  color: var(--indigo);
+}
+
+.banner {
+  font-size: var(--t-body-s-size);
+  color: var(--ink-55);
+  background: var(--paper-sunk);
+  padding: var(--sp-3);
+}
+
+.chips {
+  display: flex;
+  gap: var(--sp-2);
+  flex-wrap: wrap;
+}
+
+.chip {
+  background: none;
+  border: 1px solid var(--ink-12);
+  border-radius: var(--r-1);
+  padding: var(--sp-1) var(--sp-3);
+  font-family: var(--font-body);
+  font-size: var(--t-body-s-size);
+  color: var(--ink-70);
+  cursor: pointer;
+}
+
+.expiry {
+  font-family: var(--font-data);
+  font-size: var(--t-data-s-size);
+}
+.expiryDanger {
+  color: var(--crimson);
+}
+
+.draftButton {
+  align-self: flex-start;
+  border: 1px solid var(--ink-40);
+  border-radius: var(--r-1);
+  padding: var(--sp-2) var(--sp-4);
+  background: none;
+  cursor: pointer;
+  font-size: var(--t-body-s-size);
+}
+
+/* The opening statement. Display face, generous, one idea. */
+.covenant {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+}
+
+.eyebrow {
+  margin: 0;
+  font-family: var(--font-body);
+  font-size: var(--t-body-s-size);
+  color: var(--ink-40);
+}
+
+.statement {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--t-display-l-size);
+  line-height: var(--t-display-l-line);
+  letter-spacing: var(--t-display-l-tracking);
+  font-weight: 400;
+  color: var(--ink);
+  text-wrap: balance;
+}
+
+.support {
+  margin: 0;
+  max-width: 46ch;
+  font-family: var(--font-body);
+  font-size: var(--t-body-m-size);
+  line-height: var(--t-body-m-line);
+  color: var(--ink-55);
+}
+
+.provenance {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-4);
+  margin: var(--sp-2) 0 0;
+  font-family: var(--font-data);
+  font-size: var(--t-data-s-size);
+  color: var(--ink-40);
+}
+
+.amend {
+  border: none;
+  background: none;
+  padding: 0;
+  cursor: pointer;
+  font-family: var(--font-body);
+  font-size: var(--t-body-s-size);
+  color: var(--indigo);
+}
+.amend:hover {
+  text-decoration: underline;
+}
+
+/* A wash of the same sunrise sits behind the opening statement, fading out
+   before it reaches the text so nothing is ever read through colour. */
+.covenant {
+  position: relative;
+  padding-top: var(--sp-6);
+}
+.covenant::before {
+  content: "";
+  position: absolute;
+  inset: -12px -24px auto -24px;
+  height: 120px;
+  z-index: -1;
+  border-radius: var(--r-1);
+  background: var(--sunrise);
+  opacity: 0.09;
+  filter: blur(18px);
+}

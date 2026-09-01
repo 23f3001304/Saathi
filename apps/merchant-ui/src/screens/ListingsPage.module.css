@@ -1,0 +1,81 @@
+.add {
+  padding: var(--sp-4) var(--sp-7);
+  background: var(--indigo);
+  color: var(--paper);
+  border-radius: var(--r-1);
+  font-family: var(--font-body);
+  font-size: var(--t-body-m-size);
+}
+
+.add:disabled {
+  background: var(--ink-24);
+  cursor: not-allowed;
+}
+
+.editing {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-5);
+}
+
+.editingTitle {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--t-display-s-size);
+  line-height: var(--t-display-s-line);
+  letter-spacing: var(--t-display-s-tracking);
+  font-weight: 400;
+  color: var(--ink);
+}
+
+.won {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+  padding: var(--sp-5) 0;
+  border-top: var(--rule-strong);
+  border-bottom: var(--rule);
+}
+
+.wonTitle {
+  margin: 0;
+  font-family: var(--font-body);
+  font-size: var(--t-label-size);
+  line-height: var(--t-label-line);
+  letter-spacing: var(--t-label-tracking);
+  text-transform: uppercase;
+  font-weight: 500;
+  color: var(--ink-40);
+}
+
+.failure {
+  margin: 0;
+  padding: var(--sp-5);
+  border-left: 2px solid var(--crimson);
+  background: var(--crimson-08);
+  font-family: var(--font-body);
+  font-size: var(--t-body-m-size);
+  line-height: var(--t-body-m-line);
+  color: var(--ink);
+}
+
+.note {
+  margin: 0;
+  max-width: var(--measure-prose);
+  font-family: var(--font-body);
+  font-size: var(--t-body-s-size);
+  line-height: var(--t-body-s-line);
+  color: var(--ink-55);
+}
+
+.audit {
+  padding-top: var(--sp-6);
+  border-top: var(--rule);
+}
+
+.summary {
+  cursor: pointer;
+  font-family: var(--font-body);
+  font-size: var(--t-body-m-size);
+  color: var(--indigo);
+}

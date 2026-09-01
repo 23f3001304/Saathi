@@ -1,0 +1,11 @@
+# Keeps build context small and stops host-platform artifacts (Windows-built native
+# bindings, git history) from leaking into the Linux build stages.
+node_modules
+**/node_modules
+dist
+**/dist
+.git
+*.db
+.env
+coverage
+**/*.tsbuildinfo

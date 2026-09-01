@@ -1,0 +1,104 @@
+// The sandbox key, and every fetch that has to carry it. Split out of
+// liveBrowser.ts so the transport reads as the transport: what to poll and
+// when, not how the host is persuaded to answer.
+const KEY_HEADER = "X-Covenant-Browser-Key";
+const SESSION_HEADER = "X-Covenant-Browser-Session";
+
+/** Every header this page adds to a sandbox call. The host has to allow all of
+ *  them through the preflight or the card cannot read the window at all. */
+export const SANDBOX_HEADERS: readonly string[] = [KEY_HEADER, SESSION_HEADER];
+
+/**
+ * The session key, fetched once from the host that minted it. It is held in a
+ * module variable rather than in storage: it belongs to one agent-host process,
+ * and a key that outlived the tab it was handed to would be a key that outlived
+ * the window it protects.
+ */
+let sessionKey: string | null = null;
+
+/**
+ * Which window this page believes it is driving. The key alone cannot say
+ * that — it is minted once per agent-host boot and outlives any number of
+ * sandbox sessions, so a tab left open across two errands would hold a valid
+ * key for a container that no longer exists. Sending the id along is what
+ * makes the host able to refuse rather than quietly re-aim the keystrokes at
+ * whatever window happens to be open now.
+ */
+let openSession: string | null = null;
+
+export function rememberSession(id: string): void {
+  openSession = id === "" ? null : id;
+}
+
+/** The host answered and said no. Distinct from "the host is not there". */
+export class Refused extends Error {}
+
+function keyed(extra: Record<string, string> = {}): Record<string, string> {
+  const headers = { ...extra };
+  if (sessionKey !== null) headers[KEY_HEADER] = sessionKey;
+  if (openSession !== null) headers[SESSION_HEADER] = openSession;
+  return headers;
+}
+
+/** Appends the key where a header cannot go: `EventSource` sends none. */
+export function streamUrl(base: string): string {
+  const key = sessionKey ?? "";
+  return `${base}/browser/frames?key=${encodeURIComponent(key)}`;
+}
+
+/**
+ * Only 401 and 403 are the host saying no to this page. Everything else that
+ * is not a key — a 503, a 404 from a host that is listening but has not wired
+ * its routes yet — is the host not being there, and the two must not be
+ * conflated: a refusal is terminal for the sandbox card and being mid-restart
+ * is the case it is supposed to climb back out of. Answering a restart with
+ * `Refused` is what stranded the card on "no session key" for the rest of the
+ * session while agent-host was up and serving frames.
+ */
+export async function handshake(base: string): Promise<void> {
+  const res = await fetch(`${base}/browser/handshake`);
+  if (res.status === 401 || res.status === 403)
+    throw new Refused(`handshake → ${res.status}`);
+  if (!res.ok) throw new Error(`handshake → ${res.status}`);
+  const body = (await res.json()) as { key?: unknown };
+  sessionKey = typeof body.key === "string" ? body.key : null;
+  if (sessionKey === null) throw new Error("handshake carried no key");
+}
+
+/**
+ * A 401 usually means the key went stale, not that this page was never trusted:
+ * the key is minted when agent-host boots, so every restart invalidates the one
+ * an open tab is holding. Ask once for a new one before believing the refusal —
+ * otherwise a routine restart leaves the sandbox card reading as locked out for
+ * the rest of the session.
+ */
+async function withFreshKey(base: string, send: () => Promise<Response>) {
+  const first = await send();
+  if (first.status !== 401) return first;
+  await handshake(base);
+  return await send();
+}
+
+export async function get(base: string, path: string): Promise<Response> {
+  const res = await withFreshKey(base, () =>
+    fetch(`${base}${path}`, { headers: keyed() }),
+  );
+  if (res.status === 401) throw new Refused(path);
+  return res;
+}
+
+export async function post(
+  base: string,
+  path: string,
+  body?: unknown,
+): Promise<unknown> {
+  const res = await withFreshKey(base, () =>
+    fetch(`${base}${path}`, {
+      method: "POST",
+      headers: keyed({ "content-type": "application/json" }),
+      body: JSON.stringify(body ?? {}),
+    }),
+  );
+  if (res.status === 401) throw new Refused(path);
+  return (await res.json()) as unknown;
+}

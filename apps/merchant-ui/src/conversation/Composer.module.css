@@ -1,0 +1,243 @@
+.dock {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+  padding: var(--sp-5) var(--sp-7);
+  border-top: var(--rule);
+}
+
+/* Quick replies for whatever is currently on the table. They change with the
+   conversation, which is the point: this dock is never the same twice. */
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-3);
+}
+
+.chip {
+  padding: var(--sp-2) var(--sp-5);
+  border: var(--rule);
+  border-radius: var(--r-full);
+  background: var(--paper-raised);
+  cursor: pointer;
+  font-family: var(--font-body);
+  font-size: var(--t-body-s-size);
+  color: var(--ink-70);
+  transition:
+    border-color 0.16s var(--ease-out),
+    color 0.16s var(--ease-out);
+}
+.chip:hover {
+  border-color: var(--ink-40);
+  color: var(--ink);
+}
+.chip:disabled {
+  color: var(--ink-40);
+  cursor: default;
+}
+
+.row {
+  display: flex;
+  align-items: stretch;
+  gap: var(--sp-4);
+}
+
+/* One field, one enclosure: the send affordance lives inside it rather than
+   floating alongside as a second button. */
+.field {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  min-width: 0;
+  gap: var(--sp-2);
+  padding: 0 var(--sp-2) 0 var(--sp-5);
+  /* The one control the whole product runs through. A hairline field on warm
+     paper read as a caption; it now carries a real edge and a real height. */
+  border: 1px solid var(--ink-40);
+  border-radius: var(--r-1);
+  background: var(--paper-raised);
+  box-shadow: 0 1px 0 var(--ink-12);
+  transition:
+    border-color 0.16s var(--ease-out),
+    box-shadow 0.16s var(--ease-out);
+}
+.field:hover {
+  border-color: var(--ink-55);
+}
+.field:focus-within {
+  border-color: var(--indigo);
+  box-shadow: 0 0 0 3px color-mix(in oklab, var(--indigo) 12%, transparent);
+}
+
+.input {
+  flex: 1;
+  min-width: 0;
+  padding: var(--sp-5) 0;
+  border: none;
+  background: none;
+  font-family: var(--font-body);
+  font-size: var(--t-body-l-size);
+  color: var(--ink);
+}
+.input:focus {
+  outline: none;
+}
+.input::placeholder {
+  color: var(--ink-40);
+}
+.input:disabled {
+  color: var(--ink-40);
+}
+
+.send {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+  border: none;
+  border-radius: var(--r-1);
+  background: var(--indigo);
+  color: var(--paper);
+  cursor: pointer;
+  transition:
+    background 0.16s var(--ease-out),
+    color 0.16s var(--ease-out);
+}
+.send:disabled {
+  background: var(--ink-12);
+  color: var(--ink-40);
+  cursor: default;
+}
+
+/* What the dock is asking for right now. One line, ink, no decoration —
+   the question the buyer is being asked, above the means of answering it. */
+.prompt {
+  margin: 0;
+  font-family: var(--font-body);
+  font-size: var(--t-body-m-size);
+  line-height: var(--t-body-m-line);
+  color: var(--ink);
+}
+
+/* The part of the dock that changes between steps; morphs as one block. */
+.ask {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+}
+.ask:empty {
+  display: none;
+}
+
+/* The escape hatch while the dock is asking something specific. Quiet: the
+   question already on screen is the expected answer, not this. */
+.askInstead {
+  align-self: center;
+  padding: var(--sp-3) 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-family: var(--font-body);
+  font-size: var(--t-body-s-size);
+  color: var(--ink-55);
+}
+.askInstead:hover {
+  color: var(--ink);
+  text-decoration: underline;
+}
+
+/* Attachments: what the buyer hands the agent. Named honestly as
+   references; nothing an attachment says can raise a limit. */
+.files {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.file {
+  display: inline-flex;
+  align-items: baseline;
+  gap: var(--sp-3);
+  padding: var(--sp-2) var(--sp-4);
+  border: var(--rule);
+  border-radius: var(--r-1);
+  background: var(--paper-raised);
+  font-size: var(--t-body-s-size);
+}
+
+.fileName {
+  font-family: var(--font-body);
+  color: var(--ink);
+  max-width: 24ch;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.fileNote {
+  font-family: var(--font-body);
+  color: var(--ink-40);
+}
+
+.fileRemove {
+  border: none;
+  background: none;
+  cursor: pointer;
+  color: var(--ink-55);
+  font-size: 14px;
+  line-height: 1;
+  padding: 0 2px;
+}
+.fileRemove:hover {
+  color: var(--crimson);
+}
+
+.clip {
+  display: inline-flex;
+  align-items: center;
+  border: none;
+  background: none;
+  cursor: pointer;
+  color: var(--ink-40);
+  padding: var(--sp-2);
+}
+.clip:hover {
+  color: var(--ink);
+}
+
+.fileInput {
+  display: none;
+}
+
+/* Each reply chip carries one pulli of pigment; colour names the choice
+   without shouting it. */
+.chip::before {
+  content: "";
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  margin-right: var(--sp-2);
+  border-radius: var(--r-full);
+  background: var(--chip-pigment, var(--indigo));
+  vertical-align: 1px;
+}
+.chip:nth-child(5n + 1) {
+  --chip-pigment: #e9a23b;
+}
+.chip:nth-child(5n + 2) {
+  --chip-pigment: #1b857e;
+}
+.chip:nth-child(5n + 3) {
+  --chip-pigment: #d95b2b;
+}
+.chip:nth-child(5n + 4) {
+  --chip-pigment: #363499;
+}
+.chip:nth-child(5n + 5) {
+  --chip-pigment: #b23a63;
+}

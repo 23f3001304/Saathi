@@ -1,0 +1,44 @@
+{
+  "name": "@covenant/gateway-svc",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "default": "./dist/src/index.js"
+    }
+  },
+  "scripts": {
+    "start": "node dist/src/index.js",
+    "merchant:onboard": "node ./dist/src/merchant/onboard-cli.js",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@covenant/domain": "workspace:*",
+    "@covenant/gateway": "workspace:*",
+    "@covenant/ledger": "workspace:*",
+    "@covenant/mandates": "workspace:*",
+    "@covenant/memory": "workspace:*",
+    "@covenant/razorpay": "workspace:*",
+    "@covenant/recs": "workspace:*",
+    "@hono/node-server": "^1.19.9",
+    "@opentelemetry/api": "^1.9.0",
+    "@opentelemetry/core": "^2.2.0",
+    "@opentelemetry/resources": "^2.2.0",
+    "@opentelemetry/sdk-trace-node": "^2.2.0",
+    "@opentelemetry/semantic-conventions": "^1.39.0",
+    "better-sqlite3": "^13.0.3",
+    "hono": "^4.13.5",
+    "pino": "^10.1.0",
+    "zod": "^4.5.4"
+  },
+  "devDependencies": {
+    "@covenant/agents": "workspace:*",
+    "@types/better-sqlite3": "^9.6.0",
+    "@types/node": "^26.4.0",
+    "vitest": "^4.1.11"
+  }
+}

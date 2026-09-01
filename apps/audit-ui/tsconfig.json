@@ -1,0 +1,43 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    // Root `pnpm build` (`tsc -b`) type-checks this project via composite
+    // references; the real production output is Vite's `dist` (Dockerfile-
+    // pinned). tsc's own emit is a throwaway type-check artifact, routed
+    // into node_modules so it can't collide with `dist` and so the repo's
+    // `**/node_modules/**` eslint ignore (not `**/dist-tsc/**`, which
+    // wouldn't match) keeps it out of `pnpm lint` too.
+    "outDir": "../../node_modules/.tsc-cache/audit-ui",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "lib": ["ES2023", "DOM", "DOM.Iterable"],
+    "jsx": "react-jsx",
+    "allowJs": false,
+    "resolveJsonModule": true,
+    "types": ["vite/client"],
+    // DECISION: every relative import spells out its real .ts/.tsx
+    // extension (Vite/esbuild resolve these natively). The root
+    // dependency-cruiser config's resolver — a file this app may not edit —
+    // lacks .tsx in its extensions list, so an extension-less specifier
+    // like "../primitives/Money" reads as unresolvable there even though
+    // tsc and Vite both resolve it fine; a fully-specified path bypasses
+    // that guesswork entirely. `allowImportingTsExtensions` requires
+    // noEmit or emitDeclarationOnly — the latter, since composite:true
+    // (inherited from tsconfig.base) forbids noEmit, and nothing consumes
+    // this leaf app's tsc output anyway (see outDir above).
+    "allowImportingTsExtensions": true,
+    "emitDeclarationOnly": true,
+    // DECISION: two base strictness flags relaxed for this package only.
+    // noPropertyAccessFromIndexSignature/noUncheckedIndexedAccess turn every
+    // `styles.foo` CSS-Modules lookup (vite/client's CSSModuleClasses is a
+    // bare index signature) into forced `| undefined` handling with no real
+    // typo-safety benefit — the ambient type accepts any string key either
+    // way. exactOptionalPropertyTypes fights the routine "pass an optional
+    // field through to an optional prop" shape of UI code. Both remain load-
+    // bearing in the payment/mandate packages this app never imports from.
+    "noPropertyAccessFromIndexSignature": false,
+    "noUncheckedIndexedAccess": false,
+    "exactOptionalPropertyTypes": false
+  },
+  "include": ["src"]
+}

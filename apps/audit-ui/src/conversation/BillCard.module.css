@@ -1,0 +1,291 @@
+/* A bill drawn into the thread: ledger double-rule border, dashed item
+   rules, a total line that draws itself. Polish is in the drawing, not in
+   decoration. */
+.bill {
+  position: relative;
+  width: min(480px, 100%);
+  padding: var(--sp-6) var(--sp-7) var(--sp-6);
+  background: var(--paper-raised);
+  border: var(--rule);
+  border-radius: var(--r-1);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+}
+
+/* The inner hairline that makes it a ledger page, not a card. */
+.bill::before {
+  content: "";
+  position: absolute;
+  inset: 4px;
+  border: 1px solid var(--ink-06);
+  border-radius: var(--r-1);
+  pointer-events: none;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-2);
+  font-family: var(--font-display);
+  font-size: var(--t-body-m-size);
+  color: var(--ink-70);
+}
+.brand::before,
+.brand::after {
+  content: "";
+  flex: 1;
+  border-top: 1px dashed var(--ink-24);
+}
+.brand::before {
+  margin-right: var(--sp-4);
+}
+.brand::after {
+  margin-left: var(--sp-4);
+}
+
+.title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--t-display-s-size);
+  line-height: var(--t-display-s-line);
+  font-weight: 400;
+  color: var(--ink);
+}
+
+.lines {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+  margin: 0;
+}
+
+.line {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--sp-5);
+  font-family: var(--font-body);
+  font-size: var(--t-body-m-size);
+  color: var(--ink-90);
+}
+.line dt {
+  margin: 0;
+}
+.line dd {
+  margin: 0;
+  font-variant-numeric: tabular-nums lining;
+  font-weight: 600;
+}
+
+.total {
+  position: relative;
+  padding-top: var(--sp-3);
+  font-weight: 600;
+}
+/* The total's rule draws itself left to right when the bill arrives. */
+.total::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  border-top: 1px dashed var(--ink-24);
+  transform-origin: left center;
+}
+
+.memo {
+  margin: 0;
+  font-family: var(--font-body);
+  font-size: var(--t-body-s-size);
+  color: var(--ink-55);
+}
+
+.signRow {
+  display: flex;
+  padding-top: var(--sp-2);
+}
+
+.signedRow {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  margin: 0;
+  padding-top: var(--sp-2);
+  font-family: var(--font-body);
+  font-size: var(--t-body-s-size);
+  color: var(--ink-70);
+}
+
+.tick {
+  width: 12px;
+  height: 12px;
+  fill: none;
+  stroke: var(--green);
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.key {
+  font-family: var(--font-data);
+  font-size: var(--t-data-s-size);
+  color: var(--ink-40);
+}
+
+/* Arrival: the bill rises, then its lines land one by one, then the rule
+   draws, then the pen is offered. One sequence, no scatter. */
+@media (prefers-reduced-motion: no-preference) {
+  .bill {
+    animation: billIn 0.38s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+  .brand,
+  .title,
+  .line,
+  .memo,
+  .signRow {
+    opacity: 0;
+    animation: lineIn 0.3s var(--ease-out) forwards;
+  }
+  .brand {
+    animation-delay: 0.1s;
+  }
+  .title {
+    animation-delay: 0.18s;
+  }
+  .line:nth-of-type(1) {
+    animation-delay: 0.28s;
+  }
+  .line:nth-of-type(2) {
+    animation-delay: 0.36s;
+  }
+  .line:nth-of-type(3) {
+    animation-delay: 0.44s;
+  }
+  .memo {
+    animation-delay: 0.54s;
+  }
+  .signRow {
+    animation-delay: 0.62s;
+  }
+  .total::before {
+    transform: scaleX(0);
+    animation: ruleDraw 0.4s var(--ease-out) 0.48s forwards;
+  }
+  .signedRow .tick {
+    stroke-dasharray: 20;
+    stroke-dashoffset: 20;
+    animation: tickDraw 0.35s var(--ease-out) 0.05s forwards;
+  }
+}
+
+@keyframes billIn {
+  from {
+    opacity: 0;
+    transform: translateY(44px);
+  }
+}
+@keyframes lineIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes ruleDraw {
+  to {
+    transform: scaleX(1);
+  }
+}
+@keyframes tickDraw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+/* The signed bill at rest: one quiet line in the thread, the full page a
+   click away. Finished things fold. */
+.record {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-3);
+  padding: var(--sp-3) var(--sp-5);
+  border: var(--rule);
+  border-radius: var(--r-1);
+  background: var(--paper-raised);
+  cursor: pointer;
+  font-family: var(--font-body);
+  font-size: var(--t-body-s-size);
+  color: var(--ink-70);
+}
+.record:hover {
+  border-color: var(--ink-24);
+}
+
+.recordTitle {
+  color: var(--ink);
+}
+
+.recordAmount {
+  font-variant-numeric: tabular-nums lining;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.recordMeta {
+  color: var(--ink-55);
+}
+
+.fold {
+  margin-left: auto;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-family: var(--font-body);
+  font-size: var(--t-body-s-size);
+  color: var(--ink-55);
+}
+.fold:hover {
+  color: var(--ink);
+}
+
+/* The dock bill: full width, lifted, crowned with the one sunrise line the
+   app allows itself. Signing is the hero moment; this is where the warmth
+   goes. */
+.dock {
+  position: relative;
+  z-index: 1;
+  width: min(560px, 100%);
+  box-shadow: 0 -12px 32px -20px rgba(30, 30, 30, 0.35);
+}
+.dock::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  border-radius: var(--r-1) var(--r-1) 0 0;
+  background: var(--sunrise);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .dock {
+    animation: dockRise 0.46s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+}
+@keyframes dockRise {
+  from {
+    transform: translateY(110%);
+  }
+}
+
+/* The covenant, restated inside the one popup that asks for a signature —
+   what you are agreeing to and the key that will say so, on the same card. */
+.limitNote {
+  color: var(--ink-55);
+  font-size: var(--font-size-xs, 0.75rem);
+}

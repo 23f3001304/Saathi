@@ -1,0 +1,155 @@
+.history {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: var(--sp-7);
+  z-index: 10;
+  min-width: 340px;
+  max-height: 60vh;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  padding: var(--sp-2);
+  background: var(--paper-raised);
+  border: var(--rule);
+  border-radius: var(--r-1);
+  box-shadow: 0 12px 32px -18px rgba(30, 30, 30, 0.3);
+}
+
+.group {
+  margin: 0;
+  padding: var(--sp-3) var(--sp-4) var(--sp-2);
+  font-family: var(--font-body);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-40);
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  border-radius: var(--r-1);
+}
+.row:hover {
+  background: var(--paper-sunk);
+}
+.rowOn {
+  background: var(--indigo-12);
+}
+
+.open {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: baseline;
+  gap: var(--sp-4);
+  padding: var(--sp-3) var(--sp-4);
+  border: none;
+  background: none;
+  cursor: pointer;
+  text-align: left;
+  font-family: var(--font-body);
+  font-size: var(--t-body-s-size);
+  color: var(--ink-70);
+}
+.rowOn .open {
+  color: var(--ink);
+}
+
+.title {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.status {
+  flex-shrink: 0;
+  padding: 1px var(--sp-3);
+  border-radius: var(--r-full);
+  font-size: 10px;
+}
+.status_new {
+  background: var(--ink-06);
+  color: var(--ink-55);
+}
+.status_in-progress {
+  background: var(--indigo-12);
+  color: var(--indigo);
+}
+.status_signed {
+  background: var(--green-12);
+  color: var(--green);
+}
+
+.time {
+  flex-shrink: 0;
+  font-size: 10px;
+  color: var(--ink-40);
+}
+
+/* Row actions stay out of the way until the row is under the cursor: the
+   list is for finding a chat, not for administering one. */
+.actions {
+  display: flex;
+  gap: var(--sp-2);
+  padding-right: var(--sp-3);
+  opacity: 0;
+  transition: opacity 0.14s var(--ease-out);
+}
+.row:hover .actions,
+.row:focus-within .actions {
+  opacity: 1;
+}
+
+.action {
+  border: none;
+  background: none;
+  cursor: pointer;
+  padding: var(--sp-2);
+  font-family: var(--font-body);
+  font-size: 10px;
+  color: var(--ink-55);
+}
+.action:hover {
+  color: var(--ink);
+}
+.danger:hover {
+  color: var(--crimson);
+}
+
+.footer {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--sp-4);
+  padding: var(--sp-3) var(--sp-4) var(--sp-2);
+  border-top: var(--rule);
+  margin-top: var(--sp-2);
+}
+
+.newGroup {
+  border: none;
+  background: none;
+  cursor: pointer;
+  padding: 0;
+  font-family: var(--font-body);
+  font-size: var(--t-body-s-size);
+  color: var(--indigo);
+}
+.newGroup:hover {
+  text-decoration: underline;
+}
+
+.groupInput {
+  margin: var(--sp-3) var(--sp-4);
+  padding: var(--sp-2) var(--sp-3);
+  border: 1px solid var(--indigo);
+  border-radius: var(--r-1);
+  background: var(--paper-raised);
+  font-family: var(--font-body);
+  font-size: var(--t-body-s-size);
+}
+.groupInput:focus {
+  outline: none;
+}

@@ -1,0 +1,28 @@
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+}
+
+.description {
+  font-size: var(--t-body-m-size);
+  color: var(--ink-70);
+  max-width: var(--measure-prose);
+}
+
+.bounds {
+  display: flex;
+  gap: var(--sp-5);
+  align-items: baseline;
+  flex-wrap: wrap;
+  font-family: var(--font-body);
+  font-size: var(--t-body-s-size);
+  color: var(--ink-55);
+  font-variant-numeric: tabular-nums lining;
+}
+
+.skeletons {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+}

@@ -1,0 +1,36 @@
+.instrument {
+  display: flex;
+  min-height: 0;
+  background: var(--paper);
+  border: none;
+  flex: 1;
+  overflow: hidden;
+}
+
+.chainColumn {
+  flex: 1;
+  overflow-y: auto;
+  min-width: 0;
+}
+
+.offline {
+  border-top: 2px solid var(--crimson);
+}
+
+.offlineBanner {
+  padding: var(--sp-4) var(--sp-6);
+  color: var(--crimson);
+  font-size: var(--t-body-s-size);
+}
+
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-4);
+  width: 100%;
+  padding: var(--sp-13);
+  color: var(--ink-55);
+  font-size: var(--t-body-s-size);
+}

@@ -1,0 +1,396 @@
+.card {
+  width: 100%;
+  max-width: 560px;
+  overflow: hidden;
+  background: var(--paper-raised);
+  border: var(--rule);
+  border-radius: var(--r-1);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .card {
+    animation: cardIn 0.32s var(--ease-out) both;
+  }
+}
+@keyframes cardIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+}
+
+/* Browser chrome, quoted rather than imitated: enough to read as a window,
+   not so much that it pretends to be one. */
+.chrome {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-4);
+  padding: var(--sp-3) var(--sp-4);
+  border-bottom: var(--rule);
+  background: var(--paper-sunk);
+}
+
+.dots {
+  display: inline-flex;
+  gap: 4px;
+  flex-shrink: 0;
+}
+.dots i {
+  width: 7px;
+  height: 7px;
+  border-radius: var(--r-full);
+  background: var(--ink-24);
+}
+
+.url {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: var(--font-data);
+  font-size: var(--t-data-s-size);
+  color: var(--ink-55);
+}
+
+.driver {
+  flex-shrink: 0;
+  padding: 1px var(--sp-3);
+  border-radius: var(--r-full);
+  background: var(--indigo-12);
+  font-family: var(--font-body);
+  font-size: 10px;
+  color: var(--indigo);
+}
+/* Control has moved: colour alone never carries it, the words change too. */
+.yours {
+  background: var(--green-12);
+  color: var(--green);
+}
+
+.viewport {
+  position: relative;
+  min-height: 132px;
+  display: flex;
+}
+
+.frame {
+  width: 100%;
+  display: block;
+}
+
+.placeholder {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: var(--sp-3);
+  padding: var(--sp-6) var(--sp-6);
+}
+
+.pageTitle {
+  font-family: var(--font-display);
+  font-size: var(--t-display-s-size);
+  color: var(--ink);
+}
+
+.sandboxNote {
+  max-width: 44ch;
+  font-family: var(--font-body);
+  font-size: var(--t-body-s-size);
+  line-height: var(--t-body-s-line);
+  color: var(--ink-55);
+}
+
+/* While it is your turn, the page recedes — the agent is not working here. */
+.dim {
+  position: absolute;
+  inset: 0;
+  background: color-mix(in oklab, var(--paper) 60%, transparent);
+}
+
+.handoff {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  padding: var(--sp-5) var(--sp-6);
+  border-top: 2px solid var(--green);
+  background: var(--paper);
+}
+
+.handoffTitle {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--t-display-s-size);
+  color: var(--ink);
+}
+
+.handoffAsk {
+  margin: 0;
+  max-width: 52ch;
+  font-family: var(--font-body);
+  font-size: var(--t-body-m-size);
+  line-height: var(--t-body-m-line);
+  color: var(--ink-90);
+}
+
+.readiness {
+  margin: 0;
+  font-family: var(--font-body);
+  font-size: var(--t-body-s-size);
+  color: var(--ink-55);
+}
+
+.resume {
+  align-self: flex-start;
+  margin-top: var(--sp-2);
+  padding: var(--sp-3) var(--sp-6);
+  border: 1px solid var(--indigo);
+  border-radius: var(--r-1);
+  background: var(--indigo);
+  color: var(--paper);
+  cursor: pointer;
+  font-family: var(--font-body);
+  font-size: var(--t-body-m-size);
+}
+.resume:hover {
+  filter: brightness(1.12);
+}
+
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  margin: 0;
+  padding: var(--sp-5) var(--sp-6);
+  border-top: var(--rule);
+  list-style: none;
+}
+
+.action {
+  display: flex;
+  align-items: baseline;
+  gap: var(--sp-3);
+  font-family: var(--font-body);
+  font-size: var(--t-body-s-size);
+  color: var(--ink-70);
+}
+
+.mark {
+  flex-shrink: 0;
+  color: var(--green);
+  font-size: 11px;
+}
+.refused .mark {
+  color: var(--crimson);
+}
+
+/* The refusal sentence is the product speaking; give it room. */
+.reason {
+  display: block;
+  max-width: 52ch;
+  padding-top: 1px;
+  color: var(--ink-55);
+}
+
+/* While the wheel is yours the picture stops being a picture: clicks and keys
+   in here are relayed to the real window, so it gets a focus ring and a cursor
+   that says so. */
+.surface {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.yourTurn {
+  cursor: crosshair;
+  outline-offset: -2px;
+}
+.yourTurn:focus-visible {
+  outline: 2px solid var(--green);
+}
+.yourTurn .frame {
+  cursor: crosshair;
+}
+
+/* Not a caption about privacy — a count of what was actually painted out. */
+.redacted {
+  margin: 0;
+  padding: var(--sp-2) var(--sp-4);
+  border-top: var(--rule);
+  background: var(--paper-sunk);
+  font-family: var(--font-data);
+  font-size: var(--t-data-s-size);
+  color: var(--ink-55);
+}
+
+.refusal {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  padding: var(--sp-5) var(--sp-6);
+  border-top: 2px solid var(--crimson);
+  background: var(--paper);
+}
+
+.refusalLine {
+  margin: 0;
+  max-width: 52ch;
+  font-family: var(--font-body);
+  font-size: var(--t-body-m-size);
+  line-height: var(--t-body-m-line);
+  color: var(--ink-90);
+}
+
+/* The sentence that is the feature. It gets the emphasis, not an apology. */
+.nativeEntry {
+  margin: 0;
+  max-width: 52ch;
+  font-family: var(--font-body);
+  font-size: var(--t-body-s-size);
+  line-height: var(--t-body-s-line);
+  color: var(--ink-70);
+}
+
+.front {
+  align-self: flex-start;
+  margin-top: var(--sp-2);
+  padding: var(--sp-3) var(--sp-6);
+  border: 1px solid var(--ink-24);
+  border-radius: var(--r-1);
+  background: var(--paper-raised);
+  color: var(--ink);
+  cursor: pointer;
+  font-family: var(--font-body);
+  font-size: var(--t-body-m-size);
+}
+.front:hover {
+  border-color: var(--ink-55);
+}
+
+.byYou {
+  font-family: var(--font-data);
+  font-size: var(--t-data-s-size);
+  color: var(--green);
+}
+
+/* While the wheel is yours you can press anything the page offers, including
+   its own checkout. That purchase happens on the merchant's site with your own
+   payment method — no mandate, no verdict, no ledger row — and the card has to
+   say so at the moment it becomes possible rather than afterwards. */
+.outsideNote {
+  margin: 0;
+  padding: var(--sp-3) var(--sp-4);
+  border-top: 1px solid var(--ink-12, var(--ink-24));
+  font-family: var(--font-body);
+  font-size: var(--t-body-s-size);
+  line-height: var(--t-body-s-line);
+  color: var(--ink-70);
+  background: var(--paper-sunk);
+}
+
+/* Provenance, in the shape TransportNotice already uses. The card imitates a
+   window closely enough that an unlabelled reel reads as a shop the agent
+   visited, so this sits above the chrome and governs everything under it. */
+.sample {
+  display: flex;
+  align-items: baseline;
+  gap: var(--sp-3);
+  margin: 0;
+  padding: var(--sp-3) var(--sp-4);
+  border-bottom: var(--rule);
+  background: var(--crimson-08);
+  font-family: var(--font-body);
+  font-size: var(--t-body-s-size);
+  line-height: var(--t-body-s-line);
+  color: var(--ink-70);
+}
+
+.sampleLabel {
+  flex-shrink: 0;
+  padding: 1px var(--sp-3);
+  border-radius: var(--r-full);
+  background: var(--crimson-12);
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--crimson);
+}
+
+/* Neither indigo nor green: no one is driving, because there is no window. */
+.nobody {
+  background: var(--ink-06);
+  color: var(--ink-55);
+}
+
+/* The wheel, offered while the agent is driving. It sits above the picture
+   with the sentence that says what taking it costs, because the answer to
+   "can I click this?" must be next to the thing being clicked. */
+.takeover {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3, 0.75rem);
+  flex-wrap: wrap;
+  padding: var(--space-2, 0.5rem) var(--space-3, 0.75rem);
+  border-top: 1px solid var(--rule, rgba(0, 0, 0, 0.08));
+}
+
+.takeoverNote {
+  flex: 1 1 16rem;
+  font-size: 0.78rem;
+  line-height: 1.45;
+  color: var(--ink-3, #5b5b57);
+}
+
+/* Fullscreen, while the human drives: the picture is the screen. The chrome
+   shrinks to a slim strip, the disclosure to one quiet line, the action list
+   steps aside (the transcript keeps the record), and the handoff dock rides
+   the bottom edge with the one button that matters. */
+.full {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  max-width: none;
+  width: 100vw;
+  height: 100vh;
+  margin: 0;
+  border-radius: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--paper, #faf6ef);
+  box-shadow: none;
+}
+.full > * {
+  flex: 0 0 auto;
+}
+.full .viewport,
+.full .surface {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #14120f;
+}
+.full img {
+  width: auto;
+  max-width: 100%;
+  height: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+.full .refusal {
+  padding: 4px 16px;
+}
+.full .refusalLine {
+  max-width: none;
+  font-size: 0.72rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.full .actions,
+.full .actionList {
+  display: none;
+}

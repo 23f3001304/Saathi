@@ -1,0 +1,6 @@
+#!/bin/sh
+# Local gate == CI gate (§10.2 hook 4). Enable once with:
+#   git config core.hooksPath .hooks
+set -e
+
+pnpm lint && pnpm depcruise && pnpm test -- --run

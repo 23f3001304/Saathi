@@ -1,0 +1,110 @@
+.list {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.rule {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--sp-6);
+  padding: var(--sp-5) 0;
+  border-bottom: var(--rule);
+}
+.rule:last-child {
+  border-bottom: none;
+}
+
+.sentence {
+  margin: 0;
+  font-family: var(--font-body);
+  font-size: var(--t-body-l-size);
+  line-height: var(--t-body-l-line);
+  color: var(--ink-90);
+}
+
+/* The number you chose is the rule; the words are just its grammar. */
+.value {
+  font-weight: 600;
+  color: var(--indigo);
+  font-variant-numeric: tabular-nums lining;
+}
+
+.amend {
+  flex-shrink: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-family: var(--font-body);
+  font-size: var(--t-body-s-size);
+  color: var(--ink-40);
+}
+.rule:hover .amend {
+  color: var(--indigo);
+}
+.rule:hover .amend:hover {
+  text-decoration: underline;
+}
+
+.amended .amend {
+  color: var(--saffron);
+}
+
+/* Amending happens inside the sentence: the words hold still, only the
+   number opens. */
+.editor {
+  display: inline-flex;
+  align-items: baseline;
+  gap: var(--sp-2);
+}
+
+.input {
+  width: 9ch;
+  padding: 1px var(--sp-2);
+  border: 1px solid var(--indigo);
+  border-radius: var(--r-1);
+  background: var(--paper-raised);
+  font: inherit;
+  font-weight: 600;
+  color: var(--indigo);
+  font-variant-numeric: tabular-nums lining;
+}
+.input:focus {
+  outline: none;
+}
+
+.save,
+.cancel {
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-family: var(--font-body);
+  font-size: var(--t-body-s-size);
+}
+.save {
+  color: var(--indigo);
+}
+.cancel {
+  color: var(--ink-40);
+}
+
+.actions {
+  flex-shrink: 0;
+  display: inline-flex;
+  gap: var(--sp-4);
+}
+
+.remove {
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-family: var(--font-body);
+  font-size: var(--t-body-s-size);
+  color: var(--ink-40);
+}
+.remove:hover {
+  color: var(--crimson);
+}

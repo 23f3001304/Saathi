@@ -1,0 +1,80 @@
+/* Changes asked for in words, waiting on the same page as the ones typed
+   into a field. The section carries the sunrise hairline the product spends
+   only on the covenant — this is the moment the page exists for. */
+.section {
+  margin-bottom: var(--sp-9);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-5);
+}
+
+.head {
+  padding-top: var(--sp-4);
+  border-top: 2px solid transparent;
+  border-image: var(--sunrise) 1;
+}
+
+.title {
+  margin: 0 0 var(--sp-2);
+  font-family: var(--font-display);
+  font-size: var(--t-display-s-size);
+  line-height: var(--t-display-s-line);
+  font-weight: 400;
+  color: var(--ink);
+}
+
+.note {
+  margin: 0;
+  max-width: 56ch;
+  font-family: var(--font-body);
+  font-size: var(--t-body-m-size);
+  line-height: var(--t-body-m-line);
+  color: var(--ink-55);
+}
+
+.amendment {
+  padding: var(--sp-5) var(--sp-6);
+  border: var(--rule);
+  border-radius: var(--r-1);
+  background: var(--paper-raised);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+}
+
+.loosens {
+  border-color: var(--crimson-24);
+}
+
+.amendmentHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--sp-5);
+}
+
+.summary {
+  margin: 0;
+  font-family: var(--font-body);
+  font-size: var(--t-body-l-size);
+  line-height: var(--t-body-l-line);
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.withdraw {
+  flex: none;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-family: var(--font-body);
+  font-size: var(--t-body-s-size);
+  color: var(--ink-55);
+  text-decoration: underline;
+  text-decoration-color: var(--ink-24);
+  text-underline-offset: 3px;
+}
+.withdraw:hover {
+  color: var(--ink);
+}

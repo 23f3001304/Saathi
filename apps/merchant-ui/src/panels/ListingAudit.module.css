@@ -1,0 +1,79 @@
+.audit {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-6);
+}
+
+.lede,
+.summary,
+.moral {
+  margin: 0;
+  max-width: 66ch;
+  font-family: var(--font-body);
+  font-size: var(--t-body-s-size);
+  line-height: var(--t-body-l-line);
+  color: var(--ink-55);
+}
+
+.summary {
+  font-size: var(--t-body-m-size);
+  font-variant-numeric: tabular-nums lining;
+  color: var(--ink-90);
+}
+
+.moral {
+  padding-top: var(--sp-5);
+  border-top: var(--rule);
+}
+
+.listing {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-5);
+  padding-top: var(--sp-5);
+  border-top: var(--rule);
+}
+
+.name {
+  margin: 0;
+  font-family: var(--font-body);
+  font-size: var(--t-body-l-size);
+  font-weight: 400;
+  color: var(--ink);
+}
+
+.cue {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  padding-left: var(--sp-5);
+  border-left: 2px solid var(--crimson);
+}
+
+.cueHead {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-4);
+  flex-wrap: wrap;
+}
+
+/* The merchant's own words, quoted. Nothing else on the page is in quotes. */
+.phrase {
+  font-family: var(--font-data);
+  font-size: var(--t-data-s-size);
+  color: var(--ink-90);
+}
+
+.bias,
+.counter {
+  margin: 0;
+  max-width: 62ch;
+  font-family: var(--font-body);
+  font-size: var(--t-body-s-size);
+  line-height: var(--t-body-m-line);
+  color: var(--ink-70);
+}
+
+.counter {
+  color: var(--ink-55);
+}

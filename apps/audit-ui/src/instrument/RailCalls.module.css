@@ -1,0 +1,36 @@
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+}
+
+.row {
+  display: grid;
+  grid-template-columns: minmax(88px, auto) 1fr auto;
+  align-items: baseline;
+  gap: var(--sp-2) var(--sp-5);
+  font-family: var(--font-body);
+  font-size: var(--t-body-s-size);
+  color: var(--ink-70);
+}
+
+/* Phones: each call folds to two lines instead of shrinking to dust. */
+@media (max-width: 719px) {
+  .row {
+    grid-template-columns: auto 1fr;
+  }
+  .row > :nth-child(3) {
+    grid-column: 1 / -1;
+  }
+}
+
+/* Mono is for the identifiers only. */
+.key {
+  font-family: var(--font-data);
+  font-size: var(--t-data-s-size);
+  color: var(--ink-55);
+}
+
+.agentPresent {
+  color: var(--indigo);
+}

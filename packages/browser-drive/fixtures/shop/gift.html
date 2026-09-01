@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Bazaar Fixture — Redeem a gift voucher</title>
+    <style>
+      body { font: 16px/1.5 system-ui, sans-serif; margin: 2rem; max-width: 34rem; }
+      label { display: block; margin-top: 1rem; }
+      input { font: inherit; padding: .4rem .6rem; width: 100%; }
+      button { font: inherit; padding: .5rem .9rem; margin-top: 1rem; }
+    </style>
+  </head>
+  <body>
+    <h1>Redeem a gift voucher</h1>
+    <p>
+      An ordinary shop page that happens to carry one secret. Neither a sign-in
+      nor a checkout, so nothing here is blocked by page context — the field
+      that is refused is refused on its own evidence.
+    </p>
+
+    <form id="redeem-form" action="/gift/redeem" method="post">
+      <label for="recipient">Recipient name</label>
+      <input id="recipient" name="recipient" type="text" placeholder="Who is it for?" />
+
+      <label for="voucher-pin">Voucher PIN</label>
+      <input
+        id="voucher-pin"
+        name="voucherPin"
+        type="text"
+        inputmode="numeric"
+        maxlength="6"
+        placeholder="6 digits"
+      />
+
+      <button id="redeem" type="button">Redeem</button>
+    </form>
+
+    <p>
+      <a id="to-home" href="index.html">Home</a>
+    </p>
+  </body>
+</html>

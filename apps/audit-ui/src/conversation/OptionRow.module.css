@@ -1,0 +1,143 @@
+/* §2.1 invariant, rendered: every card is the same size, same weight, same
+   order. No badge class exists in this stylesheet — there is nowhere to
+   attach one, and nothing here varies by rank. Selection is a state the
+   buyer put the card in, not a ranking the system applied. */
+.card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--sp-2);
+  min-width: 0;
+  overflow: hidden;
+  padding: 0 0 var(--sp-5);
+  background: var(--paper-raised);
+  border: var(--rule);
+  border-radius: var(--r-1);
+  text-align: left;
+  cursor: pointer;
+  transition:
+    border-color 0.16s var(--ease-out),
+    background 0.16s var(--ease-out);
+}
+.card:hover {
+  border-color: var(--ink-24);
+}
+.card:focus-visible {
+  outline: 2px solid var(--indigo);
+  outline-offset: 2px;
+}
+
+/* The chosen card holds an indigo hairline. Colour is not the only channel:
+   the evidence panel below names the selection in words. */
+.selected {
+  border-color: var(--indigo);
+  box-shadow: inset 0 0 0 1px var(--indigo-24);
+}
+
+/* A woven band keyed to the SKU. Short on purpose: it gives the card a face
+   without outshouting the price and the evidence, which are the payload. */
+.plate {
+  display: block;
+  width: 100%;
+  aspect-ratio: 5 / 2;
+  object-fit: cover;
+  border-bottom: var(--rule);
+  margin-bottom: var(--sp-4);
+}
+
+/* Everything below the band shares the card's inner gutter. */
+.top,
+.title,
+.price,
+.evidence {
+  padding-inline: var(--sp-5);
+}
+
+.top {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--sp-4);
+  width: 100%;
+  min-width: 0;
+}
+
+/* Catalogue plate number, not a rank: the letter the buyer says out loud.
+   Sits on the band so the type below starts with the product, not a label. */
+.id {
+  position: absolute;
+  top: var(--sp-3);
+  left: var(--sp-3);
+  z-index: 1;
+  min-width: 17px;
+  padding: 0 4px;
+  border-radius: var(--r-1);
+  background: var(--paper-raised);
+  font-family: var(--font-data);
+  font-size: var(--t-data-s-size);
+  line-height: 15px;
+  text-align: center;
+  color: var(--ink-55);
+}
+
+.merchant {
+  font-family: var(--font-body);
+  font-size: var(--t-body-s-size);
+  color: var(--ink-55);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.title {
+  font-family: var(--font-display);
+  font-size: var(--t-display-s-size);
+  line-height: var(--t-display-s-line);
+  letter-spacing: var(--t-display-s-tracking);
+  font-weight: 400;
+  color: var(--ink);
+}
+
+.price {
+  font-variant-numeric: tabular-nums lining;
+  font-size: var(--t-data-l-size);
+  color: var(--ink);
+}
+
+/* Text in ink at both tiers — only the mark is coloured (R5/§7.4). */
+.evidence {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+  margin-top: var(--sp-1);
+  font-family: var(--font-body);
+  font-size: var(--t-body-s-size);
+  color: var(--ink-70);
+}
+.evidenceMark {
+  display: inline-flex;
+  color: var(--green);
+}
+.evidenceWeak {
+  color: var(--ink-55);
+}
+
+/* The weave draws itself as the card arrives — the reveal is the image. */
+@media (prefers-reduced-motion: no-preference) {
+  .plate path {
+    stroke-dasharray: 6 3;
+    animation: weaveIn 0.7s var(--ease-out) both;
+    animation-delay: 0.12s;
+  }
+}
+@keyframes weaveIn {
+  from {
+    opacity: 0;
+    stroke-dashoffset: 18;
+  }
+  to {
+    opacity: 0.62;
+    stroke-dashoffset: 0;
+  }
+}

@@ -1,0 +1,20 @@
+.panel {
+  background: none;
+  border: none;
+  border-top: var(--rule);
+  border-radius: 0;
+  padding: var(--sp-6) 0 var(--sp-2);
+}
+
+.sunk {
+  background: var(--paper-sunk);
+}
+
+.title {
+  font-family: var(--font-display);
+  font-size: var(--t-display-s-size);
+  line-height: var(--t-display-s-line);
+  letter-spacing: var(--t-display-s-tracking);
+  font-weight: 400;
+  margin: 0 0 var(--sp-4);
+}

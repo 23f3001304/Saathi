@@ -1,0 +1,58 @@
+/* §3.2 Moment (ii) / §5.5 — the break, expressed as CSS keyframes for the
+   secondary flourishes (see thread's own crimson flood + recoil, driven by
+   Motion One in ThreadBreak.tsx for the two primary beats). */
+.settled {
+  fill: none;
+  stroke: var(--ink);
+  stroke-opacity: var(--kolam-stroke-opacity);
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  vector-effect: non-scaling-stroke;
+}
+
+.crimsonFlood {
+  fill: none;
+  stroke: var(--crimson);
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  vector-effect: non-scaling-stroke;
+  clip-path: inset(0 0 0% 0);
+}
+
+.below {
+  opacity: 0.45;
+}
+
+.fray {
+  stroke: var(--crimson);
+  stroke-width: 1.25;
+  animation: fray-in 0.12s var(--ease-out) both;
+}
+
+@keyframes fray-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.gate {
+  stroke: var(--crimson);
+  stroke-width: 2;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: gate-snap 0.14s var(--ease-snap) both;
+}
+
+@keyframes gate-snap {
+  from {
+    stroke: var(--ink-55);
+    transform: rotate(0deg);
+  }
+  to {
+    stroke: var(--crimson);
+    transform: rotate(90deg);
+  }
+}

@@ -1,0 +1,7 @@
+/* §2.1 IntentPanel loading state: "hairline skeletons, no shimmer." */
+.skeleton {
+  height: 12px;
+  background: var(--ink-06);
+  border: 1px solid var(--ink-12);
+  border-radius: var(--r-0);
+}

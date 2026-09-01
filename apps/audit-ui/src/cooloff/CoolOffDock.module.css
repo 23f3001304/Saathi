@@ -1,0 +1,43 @@
+.dock {
+  border-top: var(--rule-strong);
+  background: var(--paper-raised);
+}
+
+.collapsedBar {
+  height: var(--dim-dock-collapsed);
+  display: flex;
+  align-items: center;
+  gap: var(--sp-4);
+  padding: 0 var(--sp-6);
+  background: none;
+  border: none;
+  width: 100%;
+  cursor: pointer;
+  font-family: var(--font-data);
+  font-size: var(--t-data-s-size);
+}
+
+.chevron {
+  margin-left: auto;
+}
+.chevronOpen {
+  transform: rotate(180deg);
+}
+
+.panel {
+  max-height: var(--dim-dock-expanded);
+  overflow-y: auto;
+  padding: var(--sp-4) var(--sp-6);
+}
+
+.panelHeader {
+  display: flex;
+  justify-content: space-between;
+  font-family: var(--font-body);
+  font-size: var(--t-label-size);
+  letter-spacing: var(--t-label-tracking);
+  text-transform: uppercase;
+  color: var(--ink-55);
+  padding-bottom: var(--sp-3);
+  border-bottom: var(--rule-strong);
+}

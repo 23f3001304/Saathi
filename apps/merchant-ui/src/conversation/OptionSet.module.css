@@ -1,0 +1,20 @@
+/* Cards abreast, evenly weighted — the comparison is the point, so nothing
+   here sizes, orders or tints one card differently from another. */
+.set {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-5);
+  width: 100%;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--sp-5);
+}
+
+@media (max-width: 620px) {
+  .grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

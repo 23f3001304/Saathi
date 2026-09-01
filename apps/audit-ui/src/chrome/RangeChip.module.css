@@ -1,0 +1,41 @@
+.chip {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  padding: var(--sp-1) var(--sp-3);
+  border-radius: var(--r-full);
+  border: 1px solid var(--ink-24);
+  font-family: var(--font-body);
+  font-size: var(--t-body-s-size);
+  color: var(--ink-55);
+  font-variant-numeric: tabular-nums lining;
+  background: none;
+  cursor: pointer;
+  transition: background-color 0.3s var(--ease-out);
+}
+
+.blocked {
+  border-color: var(--crimson);
+  color: var(--crimson);
+}
+
+.flash {
+  background-color: var(--crimson-12);
+}
+
+.chip:hover {
+  border-color: var(--ink-55);
+  color: var(--ink-70);
+}
+.blocked:hover {
+  border-color: var(--crimson);
+  color: var(--crimson);
+}
+
+/* A shield, so the number reads as something the gate did rather than as an
+   unread count. Never filled: this is a record, not an alarm bell. */
+.shield {
+  flex: none;
+  width: 12px;
+  height: 13px;
+}

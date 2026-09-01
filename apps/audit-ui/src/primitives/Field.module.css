@@ -1,0 +1,27 @@
+.display {
+  background: none;
+  border: none;
+  border-bottom: 1px dashed transparent;
+  font: inherit;
+  color: inherit;
+  cursor: text;
+  padding: 0;
+}
+.display:hover {
+  border-bottom-color: var(--ink-24);
+}
+
+/* §2.2 ConstraintRow "amended-unsigned" — value renders indigo until sealed. */
+.amended {
+  color: var(--indigo);
+}
+
+.input {
+  font: inherit;
+  color: var(--indigo);
+  background: var(--paper-sunk);
+  border: 1px solid var(--indigo-24);
+  border-radius: var(--r-1);
+  padding: var(--sp-1) var(--sp-2);
+  width: 100%;
+}

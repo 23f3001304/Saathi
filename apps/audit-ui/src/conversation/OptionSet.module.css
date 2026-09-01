@@ -1,0 +1,66 @@
+/* Three cards abreast, evenly weighted — the comparison is the point, so
+   nothing here sizes, orders or tints one card differently from another. */
+.set {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-5);
+}
+
+/* One strip, side-scrolled: every card reachable without scrolling the
+   conversation itself. Web errands return four or five rows and a vertical
+   grid pushed the composer off screen. */
+.grid {
+  display: flex;
+  gap: var(--sp-4);
+  overflow-x: auto;
+  padding-bottom: var(--sp-2);
+  scroll-snap-type: x proximity;
+}
+.grid > * {
+  flex: 0 0 220px;
+  scroll-snap-align: start;
+}
+
+@media (max-width: 620px) {
+  .grid > * {
+    flex-basis: 180px;
+  }
+}
+
+/* The evidence for whichever card is open. It sits under the row rather
+   than inside a card so the three stay the same size as each other. */
+.evidence {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  padding-left: var(--sp-4);
+  border-left: 2px solid var(--indigo-24);
+}
+
+.why {
+  margin: 0;
+  font-family: var(--font-body);
+  font-size: var(--t-body-m-size);
+  line-height: var(--t-body-m-line);
+  color: var(--ink-90);
+}
+
+.honesty {
+  margin: 0;
+  font-family: var(--font-body);
+  font-size: var(--t-body-s-size);
+  line-height: var(--t-body-s-line);
+  color: var(--ink-62);
+  font-variant-numeric: tabular-nums lining;
+}
+
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-2) var(--sp-5);
+  margin: 0;
+  font-family: var(--font-body);
+  font-size: var(--t-body-s-size);
+  color: var(--ink-55);
+  font-variant-numeric: tabular-nums lining;
+}

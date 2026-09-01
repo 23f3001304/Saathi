@@ -1,0 +1,10 @@
+.chain {
+  display: flex;
+  flex-direction: column;
+  /* A reading measure, not a spreadsheet: rows never span the window. */
+  padding: 0 var(--sp-6);
+}
+
+.envelopes {
+  padding-top: var(--sp-4);
+}

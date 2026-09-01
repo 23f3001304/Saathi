@@ -1,0 +1,28 @@
+{
+  "name": "covenant",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=24"
+  },
+  "packageManager": "pnpm@11.2.2",
+  "scripts": {
+    "lint": "eslint . --max-warnings 0",
+    "depcruise": "depcruise packages apps tools --config .dependency-cruiser.cjs",
+    "test": "vitest run",
+    "build": "tsc -b",
+    "docker:up": "docker compose up --build -d",
+    "docker:down": "docker compose down",
+    "reset": "node tools/reset.mjs"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "dependency-cruiser": "^18.2.0",
+    "eslint": "^10.9.1",
+    "prettier": "^3.6.2",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.68.0",
+    "vitest": "^4.1.11"
+  }
+}

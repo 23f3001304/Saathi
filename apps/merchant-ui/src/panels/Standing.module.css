@@ -1,0 +1,100 @@
+.standing {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-5);
+}
+
+.headline {
+  display: flex;
+  align-items: baseline;
+  gap: var(--sp-5);
+}
+
+.score {
+  font-family: var(--font-data);
+  font-size: var(--t-display-l-size);
+  line-height: var(--t-display-l-line);
+  font-variant-numeric: tabular-nums lining;
+  color: var(--ink);
+}
+
+.caption {
+  font-family: var(--font-body);
+  font-size: var(--t-body-s-size);
+  font-variant-numeric: tabular-nums lining;
+  color: var(--ink-55);
+}
+
+.terms {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  margin: 0;
+}
+
+.term {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--sp-5);
+  align-items: baseline;
+}
+
+.termLabel {
+  font-family: var(--font-body);
+  font-size: var(--t-body-s-size);
+  color: var(--ink-70);
+}
+
+.termValue {
+  margin: 0;
+  font-family: var(--font-data);
+  font-size: var(--t-data-m-size);
+  font-variant-numeric: tabular-nums lining;
+  color: var(--ink-90);
+}
+
+.termOf {
+  color: var(--ink-55);
+}
+
+.reasons {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+}
+
+/* The three tones differ by the weight of a left rule, not by a colour ramp:
+   what a merchant keeps, what it costs them, and what is merely noted. */
+.keeps,
+.costs,
+.aside {
+  font-family: var(--font-body);
+  font-size: var(--t-body-m-size);
+  line-height: var(--t-body-m-line);
+  padding-left: var(--sp-5);
+  border-left: 2px solid var(--ink-24);
+  color: var(--ink-90);
+}
+
+.costs {
+  border-left-color: var(--crimson);
+}
+
+.aside {
+  border-left-color: var(--ink-12);
+  color: var(--ink-55);
+}
+
+.rule {
+  margin: 0;
+  padding-top: var(--sp-4);
+  border-top: var(--rule);
+  max-width: 62ch;
+  font-family: var(--font-body);
+  font-size: var(--t-body-s-size);
+  line-height: var(--t-body-l-line);
+  color: var(--ink-55);
+}

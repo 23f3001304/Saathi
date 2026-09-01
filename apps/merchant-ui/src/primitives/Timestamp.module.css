@@ -1,0 +1,10 @@
+.timestamp {
+  font-family: var(--font-data);
+  font-size: var(--t-data-s-size);
+  line-height: var(--t-data-s-line);
+  letter-spacing: var(--t-data-s-tracking);
+  font-variant-numeric: tabular-nums lining;
+  color: var(--ink-62);
+  text-align: right;
+  white-space: nowrap;
+}

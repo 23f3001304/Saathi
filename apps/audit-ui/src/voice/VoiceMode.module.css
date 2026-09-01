@@ -1,0 +1,145 @@
+/* The whole viewport, on the app's own paper. Nothing here is a scrim over
+   the conversation: voice mode is a place you go, not a sheet you open. */
+.surface {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-8);
+  padding: var(--sp-10) var(--sp-7);
+  background: var(--paper);
+}
+.surface:focus {
+  outline: none;
+}
+
+/* The same kolam tile the app shell lays down, so the ground does not change
+   underfoot when the surface opens. */
+.surface::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  opacity: 0.018;
+  background-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='64' height='64' viewBox='0 0 64 64'><g fill='none' stroke='%231E1E1E' stroke-width='1.2' stroke-linecap='round'><path d='M16 0 A16 16 0 0 1 32 16 M0 16 A16 16 0 0 0 16 32'/><path d='M32 48 A16 16 0 0 1 48 64 M48 32 A16 16 0 0 0 64 48'/><path d='M48 0 A16 16 0 0 0 32 16 M64 16 A16 16 0 0 1 48 32'/><path d='M0 48 A16 16 0 0 1 16 32 M16 64 A16 16 0 0 0 32 48'/></g></svg>");
+  background-size: 68px 68px;
+}
+
+/* The app's sunrise edge, redrawn: the surface covers the shell's own. */
+.surface::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  pointer-events: none;
+  background: var(--sunrise);
+}
+
+/* The state in words, above the words themselves. Small and steady — it is
+   the one line on this screen that never says anything surprising. */
+.status {
+  position: relative;
+  font-family: var(--font-body);
+  font-size: var(--t-label-size);
+  line-height: var(--t-label-line);
+  letter-spacing: var(--t-label-tracking);
+  text-transform: uppercase;
+  color: var(--ink-55);
+}
+
+/* One measure, centred. Display face, because at this size and this distance
+   the sentence is the interface. */
+.line {
+  position: relative;
+  margin: 0;
+  min-height: calc(var(--t-display-l-line) * 2);
+  max-width: var(--measure-chat);
+  text-align: center;
+  font-family: var(--font-display);
+  font-size: var(--t-display-l-size);
+  line-height: var(--t-display-l-line);
+  letter-spacing: var(--t-display-l-tracking);
+  font-variation-settings: "SOFT" 40;
+}
+
+/* Still a guess. */
+.quiet {
+  color: var(--ink-40);
+}
+
+/* What was actually said. */
+.ink {
+  color: var(--ink);
+}
+
+.fault {
+  position: relative;
+  margin: 0;
+  max-width: var(--measure-chat);
+  text-align: center;
+  font-family: var(--font-body);
+  font-size: var(--t-body-s-size);
+  line-height: var(--t-body-s-line);
+  color: var(--crimson);
+}
+
+.controls {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-5);
+}
+
+.control {
+  padding: var(--sp-4) var(--sp-7);
+  border: var(--rule);
+  border-radius: var(--r-full);
+  background: var(--paper-raised);
+  cursor: pointer;
+  font-family: var(--font-body);
+  font-size: var(--t-body-s-size);
+  color: var(--ink-70);
+  transition:
+    border-color 0.16s var(--ease-out),
+    color 0.16s var(--ease-out);
+}
+.control:hover {
+  border-color: var(--ink-40);
+  color: var(--ink);
+}
+
+/* A muted microphone is a state worth seeing without reading: nothing said
+   here is being heard. */
+.muted {
+  border-color: var(--crimson-24);
+  background: var(--crimson-08);
+  color: var(--crimson);
+}
+
+@media (max-width: 560px) {
+  .surface {
+    gap: var(--sp-7);
+    padding: var(--sp-8) var(--sp-5);
+  }
+  .line {
+    font-size: var(--t-display-s-size);
+    line-height: var(--t-display-s-line);
+    min-height: calc(var(--t-display-s-line) * 2);
+  }
+}
+
+/* What the conversation has on the table, laid out for a surface read from
+   further away than a chat is: one measure, larger cards, nothing cramped. */
+.stage {
+  width: min(880px, 92vw);
+  margin: var(--sp-6) auto 0;
+  max-height: 42vh;
+  overflow-y: auto;
+  text-align: left;
+}

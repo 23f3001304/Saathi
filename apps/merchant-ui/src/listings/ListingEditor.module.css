@@ -1,0 +1,176 @@
+/* Two columns: what you are writing, and what it is being read as. They sit
+   side by side because the whole point is that the second is a consequence of
+   the first, not a report filed about it later. */
+.editor {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 280px);
+  gap: var(--sp-9);
+  padding: var(--sp-7) 0;
+  border-top: var(--rule);
+  border-bottom: var(--rule);
+}
+
+.fields {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-6);
+  min-width: 0;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+}
+
+.label {
+  font-family: var(--font-body);
+  font-size: var(--t-label-size);
+  line-height: var(--t-label-line);
+  letter-spacing: var(--t-label-tracking);
+  text-transform: uppercase;
+  color: var(--ink-40);
+}
+
+.input,
+.textarea {
+  width: 100%;
+  padding: var(--sp-4) var(--sp-5);
+  background: var(--paper);
+  border: 1px solid var(--ink-24);
+  border-radius: var(--r-1);
+  font-family: var(--font-body);
+  font-size: var(--t-body-m-size);
+  line-height: var(--t-body-m-line);
+  color: var(--ink);
+}
+
+.textarea {
+  resize: vertical;
+}
+
+.input:focus-visible,
+.textarea:focus-visible {
+  border-color: var(--indigo);
+}
+
+.note {
+  max-width: 58ch;
+  font-family: var(--font-body);
+  font-size: var(--t-body-s-size);
+  line-height: var(--t-body-s-line);
+  color: var(--ink-55);
+}
+
+/* Short and wide, the same band the buyer's card gives it, so what a
+   shopkeeper approves here is the crop a buyer will actually see. */
+.preview {
+  display: block;
+  width: 100%;
+  max-width: 320px;
+  aspect-ratio: 5 / 2;
+  object-fit: cover;
+  border: 1px solid var(--ink-24);
+  border-radius: var(--r-1);
+}
+
+.link {
+  font-family: var(--font-data);
+  font-size: var(--t-data-s-size);
+  letter-spacing: var(--t-data-s-tracking);
+  color: var(--indigo);
+}
+
+.toggle {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--sp-4);
+  font-family: var(--font-body);
+  font-size: var(--t-body-s-size);
+  line-height: var(--t-body-s-line);
+  color: var(--ink-70);
+}
+
+.audit {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+  min-width: 0;
+  padding-left: var(--sp-7);
+  border-left: var(--rule);
+  align-self: start;
+}
+
+.auditTitle {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--t-display-s-size);
+  line-height: var(--t-display-s-line);
+  letter-spacing: var(--t-display-s-tracking);
+  font-weight: 400;
+  color: var(--ink);
+}
+
+.auditLede {
+  margin: 0;
+  font-family: var(--font-body);
+  font-size: var(--t-body-s-size);
+  line-height: var(--t-body-s-line);
+  color: var(--ink-55);
+}
+
+.actions {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-5);
+  flex-wrap: wrap;
+  padding-top: var(--sp-5);
+  border-top: var(--rule);
+}
+
+.submit {
+  padding: var(--sp-4) var(--sp-8);
+  border: 1px solid var(--indigo);
+  background: var(--indigo);
+  color: var(--paper);
+  border-radius: var(--r-1);
+  font-family: var(--font-body);
+  font-size: var(--t-body-m-size);
+}
+.submit:hover:enabled {
+  filter: brightness(1.12);
+}
+.submit:disabled {
+  border-color: var(--ink-24);
+  background: var(--ink-24);
+  cursor: not-allowed;
+}
+
+.cancel {
+  font-family: var(--font-body);
+  font-size: var(--t-body-m-size);
+  color: var(--ink-70);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.problem {
+  font-family: var(--font-body);
+  font-size: var(--t-body-s-size);
+  line-height: var(--t-body-s-line);
+  color: var(--crimson);
+  max-width: 52ch;
+}
+
+@media (max-width: 900px) {
+  .editor {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.keyLink {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}

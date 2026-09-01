@@ -1,0 +1,45 @@
+.wrap {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-1);
+}
+
+.svg {
+  overflow: visible;
+}
+
+.band {
+  fill: var(--ink-12);
+}
+
+.line {
+  fill: none;
+  stroke: var(--indigo);
+  stroke-width: 1;
+}
+
+.mrp {
+  stroke: var(--crimson);
+  stroke-width: 1;
+  stroke-dasharray: 2 2;
+}
+
+.today {
+  fill: var(--indigo);
+}
+
+.crosshair {
+  stroke: var(--ink-24);
+  stroke-width: 1;
+}
+
+.caption {
+  font-size: var(--t-body-s-size);
+  color: var(--ink-55);
+}
+
+.readout {
+  font-family: var(--font-data);
+  font-size: var(--t-data-s-size);
+  fill: var(--ink);
+}

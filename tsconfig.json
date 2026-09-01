@@ -1,0 +1,47 @@
+{
+  "files": [],
+  "references": [
+    {
+      "path": "./packages/domain"
+    },
+    {
+      "path": "./packages/ledger"
+    },
+    {
+      "path": "./packages/memory"
+    },
+    {
+      "path": "./packages/mandates"
+    },
+    {
+      "path": "./packages/gateway"
+    },
+    {
+      "path": "./packages/razorpay"
+    },
+    {
+      "path": "./packages/agents"
+    },
+    {
+      "path": "./packages/recs"
+    },
+    {
+      "path": "./packages/browser-drive"
+    },
+    {
+      "path": "./apps/gateway-svc"
+    },
+    {
+      "path": "./apps/audit-ui"
+    },
+    {
+      "path": "./apps/merchant-ui"
+    },
+    {
+      "path": "./apps/agent-host"
+    },
+    {
+      "path": "./tools/attacks"
+    }
+  ]
+}

@@ -1,0 +1,135 @@
+.facts {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.fact {
+  display: flex;
+  align-items: baseline;
+  gap: var(--sp-6);
+  padding: var(--sp-5) 0;
+  border-bottom: var(--rule);
+}
+
+.fact dt {
+  flex: 0 0 140px;
+  font-family: var(--font-body);
+  font-size: var(--t-label-size);
+  line-height: var(--t-label-line);
+  letter-spacing: var(--t-label-tracking);
+  text-transform: uppercase;
+  color: var(--ink-40);
+}
+
+.fact dd {
+  margin: 0;
+  min-width: 0;
+  font-family: var(--font-body);
+  font-size: var(--t-body-m-size);
+  color: var(--ink);
+}
+
+.mono {
+  font-family: var(--font-data);
+  font-size: var(--t-data-m-size);
+  color: var(--ink-70);
+  word-break: break-all;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-5);
+  flex-wrap: wrap;
+}
+
+.held {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+  color: var(--green);
+}
+
+.none {
+  color: var(--ink-55);
+}
+
+.file {
+  display: none;
+}
+
+.primary {
+  padding: var(--sp-2) var(--sp-5);
+  border: 1px solid var(--indigo);
+  border-radius: var(--r-1);
+  background: var(--indigo);
+  color: var(--paper);
+  font-family: var(--font-body);
+  font-size: var(--t-body-s-size);
+}
+
+.primary:disabled {
+  border-color: var(--ink-24);
+  background: var(--ink-24);
+  cursor: not-allowed;
+}
+
+.quiet {
+  align-self: flex-start;
+  font-family: var(--font-body);
+  font-size: var(--t-body-s-size);
+  color: var(--indigo);
+}
+
+.quiet:hover {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.danger {
+  font-family: var(--font-body);
+  font-size: var(--t-body-s-size);
+  color: var(--crimson);
+}
+
+.remember {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+  font-family: var(--font-body);
+  font-size: var(--t-body-s-size);
+  color: var(--ink-55);
+}
+
+.problem {
+  font-family: var(--font-body);
+  font-size: var(--t-body-s-size);
+  color: var(--crimson);
+}
+
+.ring {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.issuer {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-5);
+  flex-wrap: wrap;
+  padding: var(--sp-4) 0;
+  border-bottom: var(--rule);
+}
+
+.note {
+  margin: 0;
+  max-width: var(--measure-prose);
+  font-family: var(--font-body);
+  font-size: var(--t-body-s-size);
+  line-height: var(--t-body-s-line);
+  color: var(--ink-55);
+}

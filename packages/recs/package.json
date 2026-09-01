@@ -1,0 +1,25 @@
+{
+  "name": "@covenant/recs",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "default": "./dist/src/index.js"
+    }
+  },
+  "dependencies": {
+    "@covenant/domain": "workspace:*",
+    "@covenant/ledger": "workspace:*",
+    "@covenant/memory": "workspace:*",
+    "better-sqlite3": "^13.0.3"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^9.6.0",
+    "@types/node": "^26.4.0",
+    "vitest": "^4.1.11"
+  }
+}

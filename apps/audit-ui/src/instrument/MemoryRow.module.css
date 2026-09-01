@@ -1,0 +1,70 @@
+.row {
+  display: grid;
+  grid-template-columns: 84px 32px 44px 1fr 80px;
+  align-items: center;
+  gap: var(--sp-3);
+  height: var(--dim-row);
+  padding: 0 var(--sp-3);
+  border-bottom: var(--rule);
+  font-size: var(--t-body-s-size);
+  background: none;
+  border-left: 2px solid transparent;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+}
+.row:hover {
+  background: var(--ink-06);
+}
+
+.rejected {
+  opacity: 0.6;
+  border-left-color: var(--crimson);
+}
+
+/* §3.2 frame 5 — the constraint row that held, drawn in as a rule. */
+.held {
+  border-left-color: var(--indigo);
+  animation: draw-rule 0.2s var(--ease-draw) both;
+  transform-origin: top;
+}
+@keyframes draw-rule {
+  from {
+    border-left-width: 0;
+  }
+  to {
+    border-left-width: 2px;
+  }
+}
+
+.type {
+  color: var(--ink-70);
+  text-transform: capitalize;
+}
+
+.age {
+  font-family: var(--font-data);
+  font-size: var(--t-data-s-size);
+  color: var(--ink-55);
+  text-align: right;
+}
+
+.content {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--ink);
+}
+
+.expanded {
+  white-space: normal;
+  grid-column: 1 / -1;
+  padding-top: var(--sp-2);
+}
+
+.bitemporal {
+  font-family: var(--font-data);
+  font-size: var(--t-data-s-size);
+  color: var(--ink-55);
+  grid-column: 1 / -1;
+}

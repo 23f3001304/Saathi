@@ -1,0 +1,31 @@
+.message {
+  max-width: var(--measure-chat);
+  font-size: var(--t-body-l-size);
+  line-height: var(--t-body-l-line);
+}
+
+.agent {
+  color: var(--ink);
+}
+
+.meta {
+  font-family: var(--font-data);
+  font-size: var(--t-data-s-size);
+  color: var(--ink-55);
+  margin-bottom: var(--sp-1);
+}
+
+.caret {
+  display: inline-block;
+  width: 2px;
+  height: 1em;
+  background: var(--ink-55);
+  margin-left: 2px;
+  animation: blink 1s step-end infinite;
+  vertical-align: text-bottom;
+}
+@keyframes blink {
+  50% {
+    opacity: 0;
+  }
+}

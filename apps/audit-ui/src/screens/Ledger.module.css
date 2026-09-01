@@ -1,0 +1,67 @@
+.page {
+  max-width: 880px;
+  margin: 0 auto;
+  width: 100%;
+  padding: var(--sp-9) var(--sp-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-6);
+}
+
+.tagline {
+  margin: calc(var(--sp-3) * -1) 0 0;
+  font-size: var(--t-body-l-size);
+  color: var(--ink-70);
+}
+
+.header {
+  display: flex;
+  align-items: baseline;
+  gap: var(--sp-5);
+  font-family: var(--font-body);
+  font-size: var(--t-body-s-size);
+  font-variant-numeric: tabular-nums lining;
+  color: var(--ink-55);
+  padding-bottom: var(--sp-4);
+  border-bottom: var(--rule-strong);
+}
+
+.title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--t-display-xl-size);
+  line-height: var(--t-display-xl-line);
+  letter-spacing: var(--t-display-xl-tracking);
+  font-weight: 400;
+  color: var(--ink);
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--sp-6);
+}
+
+@media (max-width: 1023px) {
+  .row {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* The deep end, folded: the raw stream matters to auditors and reads as
+   noise to everyone else. */
+.auditor {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-6);
+}
+.auditorSummary {
+  cursor: pointer;
+  font-family: var(--font-body);
+  font-size: var(--t-body-m-size);
+  color: var(--ink-55);
+  padding: var(--sp-3) 0;
+}
+.auditorSummary:hover {
+  color: var(--ink);
+}

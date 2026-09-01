@@ -1,0 +1,14 @@
+.countdown {
+  font-family: var(--font-data);
+  font-size: var(--t-data-m-size);
+  line-height: var(--t-data-m-line);
+  font-variant-numeric: tabular-nums lining;
+  color: var(--ink);
+}
+
+/* D2.4/§2.4 — under 60s the digits get a 1px indigo underline. */
+.urgent {
+  text-decoration: underline;
+  text-decoration-color: var(--indigo);
+  text-decoration-thickness: 1px;
+}

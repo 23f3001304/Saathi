@@ -1,0 +1,46 @@
+/* §2.1 TierChip states. Column is a fixed 34px per §6.4 alignment rule. */
+.cell {
+  display: inline-flex;
+  width: 34px;
+  justify-content: center;
+}
+
+.tier {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 26px;
+  padding: 0 var(--sp-2);
+  border-radius: var(--r-1);
+  font-family: var(--font-body);
+  font-size: var(--t-label-size);
+  font-weight: 600;
+  letter-spacing: var(--t-label-tracking);
+}
+
+.p3 {
+  background: var(--ink);
+  color: var(--paper);
+}
+
+.p2 {
+  border: 1px solid var(--ink);
+  color: var(--ink);
+}
+
+.p1 {
+  border: 1px solid var(--ink-40);
+  color: var(--ink-55);
+}
+
+.p0 {
+  border: 1px solid var(--ink-40);
+  color: var(--ink-55);
+  background-image: var(--hatch);
+}
+
+/* Only path to crimson: a memory.write.rejected named this tier (§2.1). */
+.rejected {
+  border-color: var(--crimson);
+  color: var(--crimson);
+}

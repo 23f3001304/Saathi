@@ -1,0 +1,140 @@
+.openers {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--sp-4);
+  padding-bottom: var(--sp-6);
+  width: 100%;
+}
+
+.lede {
+  margin: 0;
+  max-width: 46ch;
+  text-align: center;
+  font-family: var(--font-body);
+  font-size: var(--t-body-s-size);
+  line-height: var(--t-body-s-line);
+  color: var(--ink-55);
+}
+
+/* Three cards, evenly sized, centred as one block. Wrapping a ragged row of
+   different-width pills under a centred greeting read as a layout accident. */
+.row {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--sp-3);
+  margin: 0 auto;
+  padding: 0;
+  max-width: 760px;
+  width: 100%;
+  list-style: none;
+}
+.row > li {
+  display: flex;
+  align-items: stretch;
+}
+
+.pill {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  width: 100%;
+  /* Vertical padding lives on the card; a plate cancels the top of it and
+     bleeds to the edge. Assuming the plate was always there left every
+     plateless card with its title flush against the border. */
+  padding: var(--sp-4) 0;
+  overflow: hidden;
+  text-align: left;
+  cursor: pointer;
+  background: var(--paper-raised);
+  border: 1px solid var(--ink-24);
+  border-radius: var(--r-1);
+  transition:
+    border-color 0.18s var(--ease-out),
+    transform 0.18s var(--ease-out);
+}
+.pill:hover {
+  border-color: var(--indigo);
+  transform: translateY(-1px);
+}
+.pill:focus-visible {
+  outline: 2px solid var(--indigo);
+  outline-offset: 3px;
+}
+
+.plate {
+  display: block;
+  width: 100%;
+  height: 72px;
+  margin-top: calc(-1 * var(--sp-4));
+  object-fit: cover;
+}
+
+.prompt {
+  padding: 0 var(--sp-4);
+  font-family: var(--font-body);
+  font-size: var(--t-body-m-size);
+  line-height: 1.35;
+  color: var(--ink);
+}
+
+/* What the request is bounded by, as tags — the shape of a shopping object
+   without inventing a product we have never seen. */
+.facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-2);
+  padding: 0 var(--sp-4);
+}
+
+.tag {
+  padding: 1px var(--sp-2);
+  border: 1px solid var(--ink-24);
+  border-radius: var(--r-full);
+  font-family: var(--font-body);
+  font-size: var(--t-label-size);
+  color: var(--ink-55);
+  white-space: nowrap;
+}
+
+/* Pushed to the foot so three cards of different title lengths still line
+   their last lines up. */
+.why {
+  margin-top: auto;
+  padding: 0 var(--sp-4);
+  font-family: var(--font-body);
+  font-size: var(--t-body-s-size);
+  line-height: var(--t-body-s-line);
+  color: var(--ink-55);
+}
+
+/* They arrive after the greeting has finished writing itself. */
+@media (prefers-reduced-motion: no-preference) {
+  .lede {
+    opacity: 0;
+    animation: openersIn 0.5s var(--ease-out) 1.6s forwards;
+  }
+  .pill {
+    opacity: 0;
+    animation: openersIn 0.45s var(--ease-out) forwards;
+  }
+  .row li:nth-child(1) .pill {
+    animation-delay: 1.75s;
+  }
+  .row li:nth-child(2) .pill {
+    animation-delay: 1.87s;
+  }
+  .row li:nth-child(3) .pill {
+    animation-delay: 1.99s;
+  }
+}
+@keyframes openersIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

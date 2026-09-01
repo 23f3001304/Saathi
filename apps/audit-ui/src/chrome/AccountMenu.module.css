@@ -1,0 +1,123 @@
+.wrap {
+  position: relative;
+}
+
+/* One initial in one pigment: the person, present but quiet. */
+.avatar {
+  width: 26px;
+  height: 26px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: var(--r-full);
+  background: var(--indigo);
+  color: var(--paper);
+  cursor: pointer;
+  font-family: var(--font-display);
+  font-size: 13px;
+}
+.avatar:hover {
+  filter: brightness(1.12);
+}
+
+.panel {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 40;
+  width: 300px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+  padding: var(--sp-6);
+  background: var(--paper-raised);
+  border: var(--rule);
+  border-radius: var(--r-1);
+  box-shadow: 0 16px 40px -24px rgba(30, 30, 30, 0.35);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .panel {
+    animation: panelIn 0.2s var(--ease-out) both;
+  }
+}
+@keyframes panelIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+}
+
+.name {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--t-display-s-size);
+  color: var(--ink);
+}
+
+.rows {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+  margin: 0;
+}
+
+.row {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+.row dt {
+  font-family: var(--font-body);
+  font-size: 10px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--ink-40);
+}
+.row dd {
+  margin: 0;
+  font-family: var(--font-body);
+  font-size: var(--t-body-s-size);
+  color: var(--ink-90);
+}
+
+.mono {
+  font-family: var(--font-data);
+  font-size: var(--t-data-s-size);
+}
+
+.note {
+  margin: 0;
+  padding-top: var(--sp-2);
+  border-top: var(--rule);
+  font-family: var(--font-body);
+  font-size: var(--t-body-s-size);
+  color: var(--ink-55);
+}
+
+.actions {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--sp-4);
+}
+
+.action {
+  padding: var(--sp-2) var(--sp-4);
+  border: var(--rule);
+  border-radius: var(--r-1);
+  background: none;
+  cursor: pointer;
+  font-family: var(--font-body);
+  font-size: var(--t-body-s-size);
+  color: var(--ink);
+}
+.action:hover {
+  border-color: var(--ink-24);
+}
+.quiet {
+  border: none;
+  color: var(--ink-55);
+}
+.quiet:hover {
+  color: var(--crimson);
+}

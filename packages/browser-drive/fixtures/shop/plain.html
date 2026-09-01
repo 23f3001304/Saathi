@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Bazaar Fixture — Plain listings</title>
+    <style>
+      .row { border: 1px solid #ccc; padding: 1rem; margin: 1rem 0; }
+      .row img { width: 80px; height: 80px; }
+    </style>
+  </head>
+  <body>
+    <!-- A shop that declares nothing at all: no JSON-LD, no microdata, no
+         OpenGraph. Everything a card can say about these rows has to come out
+         of their structure — a picture, a link and a price in one element. -->
+    <h1>Plain listings</h1>
+    <div class="row">
+      <img src="https://img.bazaar.example/dune.jpg" alt="Dune Runner" />
+      <h2>Dune Runner</h2>
+      <p>₹2,799.00</p>
+      <a href="product.html">View product</a>
+    </div>
+    <div class="row">
+      <!-- No picture the reader will render: an http image is dropped, and the
+           card falls back to its woven plate rather than to a broken one. -->
+      <img src="http://img.bazaar.example/salt.jpg" alt="Salt Flat Racer" />
+      <h2>Salt Flat Racer</h2>
+      <p>₹5,150.00</p>
+      <a href="cart.html">View product</a>
+    </div>
+    <div class="row">
+      <img src="https://img.bazaar.example/sock.jpg" alt="Cushioned socks" />
+      <h2>Cushioned socks</h2>
+      <p>20% off</p>
+      <a href="index.html">View product</a>
+    </div>
+  </body>
+</html>

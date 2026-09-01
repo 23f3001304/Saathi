@@ -1,0 +1,108 @@
+.bench {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+}
+
+/* Default: one centred measure with air either side. The whitespace is the
+   layout — there is no panel, no rule, no second column to read. */
+.calm .conversationColumn {
+  width: 100%;
+  max-width: var(--dim-calm);
+  margin: 0 auto;
+  border-right: none;
+}
+
+/* While the drawer is open the conversation keeps its own room: it takes
+   exactly the space the drawer leaves, so nothing is ever sliced mid-word. */
+.inspecting .conversationColumn {
+  width: calc(100% - min(500px, 94vw));
+  max-width: none;
+  margin: 0;
+}
+@media (max-width: 1023px) {
+  .inspecting .conversationColumn {
+    width: 100%;
+  }
+}
+
+.conversationColumn {
+  display: flex;
+  flex-direction: column;
+  /* Fill the route area so the composer sits at the foot of the viewport
+     rather than wherever the transcript happens to end. */
+  align-self: stretch;
+  height: 100%;
+  min-height: 0;
+  min-width: 0;
+}
+
+.instrumentColumn {
+  position: fixed;
+  top: var(--dim-topbar);
+  right: 0;
+  bottom: 0;
+  z-index: 20;
+  width: min(500px, 94vw);
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  background: var(--paper-raised);
+  border-left: var(--rule);
+  box-shadow: -16px 0 40px -28px rgba(30, 30, 30, 0.35);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .instrumentColumn {
+    animation: drawerIn 0.3s var(--ease-out) both;
+  }
+}
+@keyframes drawerIn {
+  from {
+    transform: translateX(40px);
+    opacity: 0;
+  }
+}
+
+@media (max-width: 1023px) {
+  .bench {
+    flex-direction: column;
+  }
+  /* Narrow screens: the drawer is a full takeover, not a half-overlap. */
+  .instrumentColumn {
+    min-width: 0;
+    width: 100%;
+  }
+  .inspecting .conversationColumn {
+    width: 100%;
+    border-right: none;
+  }
+}
+
+.drawerHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-4);
+  padding: var(--sp-5) var(--sp-6);
+  border-bottom: var(--rule);
+}
+
+.drawerTitle {
+  font-family: var(--font-display);
+  font-size: var(--t-display-s-size);
+  color: var(--ink);
+}
+
+.drawerClose {
+  display: inline-flex;
+  padding: var(--sp-2);
+  border: none;
+  border-radius: var(--r-1);
+  background: none;
+  cursor: pointer;
+  color: var(--ink-55);
+}
+.drawerClose:hover {
+  color: var(--ink);
+  background: var(--paper-sunk);
+}

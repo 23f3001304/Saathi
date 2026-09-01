@@ -1,0 +1,150 @@
+/* The centrepiece of voice mode: one kolam bloom, four states, drawn in the
+   app's own ink and indigo rather than a lit sphere borrowed from elsewhere. */
+.orb {
+  display: block;
+  width: clamp(240px, 44vmin, 320px);
+  height: clamp(240px, 44vmin, 320px);
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  border-radius: var(--r-full);
+}
+.orb:focus-visible {
+  outline: 2px solid var(--indigo);
+  outline-offset: var(--sp-4);
+}
+.orb[aria-disabled="true"] {
+  cursor: default;
+}
+
+.figure {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  transform-origin: 50% 50%;
+}
+
+/* At rest: a quiet ring of ink around its pulli. Present, pressable, silent. */
+.stroke {
+  fill: none;
+  stroke: var(--ink-24);
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  vector-effect: non-scaling-stroke;
+  transition: stroke 0.2s var(--ease-out);
+}
+
+.inner {
+  fill: none;
+  stroke: var(--ink-12);
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+  transition: stroke 0.2s var(--ease-out);
+}
+
+.bloom {
+  fill: var(--indigo);
+  opacity: 0;
+  transition: opacity 0.2s var(--ease-out);
+}
+
+.pulli {
+  fill: var(--ink-12);
+  transition: fill 0.2s var(--ease-out);
+}
+
+.core {
+  fill: var(--ink-24);
+  transition: fill 0.2s var(--ease-out);
+}
+
+/* Listening: the app's in-flight pigment, and a form that is being shaped by
+   the room rather than by a clock. */
+.listening .stroke {
+  stroke: var(--indigo);
+}
+.listening .inner {
+  stroke: var(--indigo-24);
+}
+.listening .bloom {
+  opacity: 0.07;
+}
+.listening .pulli {
+  fill: var(--indigo-24);
+}
+.listening .core {
+  fill: var(--indigo);
+}
+
+/* Thinking: heard, not yet understood. The pigment drains and the line goes
+   back to being drawn — a dash pattern, which reads as unfinished even
+   standing perfectly still. */
+.thinking .stroke {
+  stroke: var(--ink-40);
+  stroke-dasharray: 0.035 0.055;
+}
+.thinking .inner {
+  stroke-dasharray: 0.03 0.06;
+}
+
+/* Speaking: the bloom fills. Nothing here is driven by playback — the
+   synthesiser port hands back no amplitude — so it is an honest rhythm
+   rather than a waveform pretending to be one. */
+.speaking .stroke {
+  stroke: var(--indigo);
+  stroke-width: 2;
+}
+.speaking .inner {
+  stroke: var(--indigo-24);
+}
+.speaking .bloom {
+  opacity: 0.13;
+}
+.speaking .pulli {
+  fill: var(--indigo-24);
+}
+.speaking .core {
+  fill: var(--indigo);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .idle .figure {
+    animation: breathe 6s var(--ease-out) infinite;
+  }
+  .speaking .figure {
+    animation: breathe 2.2s var(--ease-out) infinite;
+  }
+  .thinking .stroke {
+    animation: trace 2.4s linear infinite;
+  }
+  .thinking .inner {
+    animation: trace 3.6s linear infinite reverse;
+  }
+}
+
+/* prefers-reduced-motion is honoured by the media query above; this class is
+   the same decision taken in JS, so the surface stays still even where the
+   preference reaches React before it reaches CSS. */
+.still .figure,
+.still .stroke,
+.still .inner {
+  animation: none;
+}
+
+@keyframes breathe {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.035);
+  }
+}
+
+@keyframes trace {
+  to {
+    stroke-dashoffset: -0.09;
+  }
+}

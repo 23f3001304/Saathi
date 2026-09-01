@@ -1,0 +1,42 @@
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  padding: var(--sp-4) 0;
+  border-bottom: var(--rule);
+  transition: opacity 0.2s var(--ease-out);
+}
+.cancelling {
+  opacity: 0.4;
+}
+
+.top {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--sp-4);
+}
+
+.note {
+  font-size: var(--t-body-s-size);
+  color: var(--ink-55);
+}
+
+.flag {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  font-size: var(--t-body-s-size);
+  color: var(--crimson);
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.cancelButton {
+  border: 1px solid var(--ink);
+  border-radius: var(--r-1);
+  padding: var(--sp-1) var(--sp-4);
+  background: none;
+  cursor: pointer;
+}

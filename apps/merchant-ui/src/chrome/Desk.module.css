@@ -1,0 +1,14 @@
+.shell {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background: var(--paper);
+}
+
+/* The conversation owns the room below the bar, the way it does for the
+   shopper: one scrolling thread with the dock pinned under it. */
+.room {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+}

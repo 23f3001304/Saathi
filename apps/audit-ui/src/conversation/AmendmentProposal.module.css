@@ -1,0 +1,152 @@
+/* The amendment as it arrives in the thread: a page of the covenant, drawn
+   into the conversation the way the bill is. Same ledger border, same
+   double rule; the pen is the covenant's 600 ms hold, not the bill's. */
+.card {
+  position: relative;
+  width: min(480px, 100%);
+  padding: var(--sp-6) var(--sp-7);
+  background: var(--paper-raised);
+  border: var(--rule);
+  border-radius: var(--r-1);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+}
+
+.card::before {
+  content: "";
+  position: absolute;
+  inset: 4px;
+  border: 1px solid var(--ink-06);
+  border-radius: var(--r-1);
+  pointer-events: none;
+}
+
+/* A card that would loosen a rule wears its own edge. */
+.loosens {
+  border-color: var(--crimson-24);
+}
+.loosens::before {
+  border-color: var(--crimson-12);
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  font-family: var(--font-body);
+  font-size: var(--t-label-size);
+  letter-spacing: var(--t-label-tracking);
+  text-transform: uppercase;
+  color: var(--ink-55);
+}
+
+.summary {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--t-display-s-size);
+  line-height: var(--t-display-s-line);
+  font-weight: 400;
+  color: var(--ink);
+  text-wrap: balance;
+}
+
+.warning {
+  margin: 0;
+  padding: var(--sp-4) var(--sp-5);
+  border-left: 2px solid var(--crimson);
+  background: var(--crimson-08);
+  font-family: var(--font-body);
+  font-size: var(--t-body-s-size);
+  line-height: var(--t-body-s-line);
+  color: var(--ink-90);
+}
+
+.signRow {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-6);
+  padding-top: var(--sp-2);
+  border-top: 1px dashed var(--ink-12);
+}
+
+.aside {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+}
+
+.note {
+  margin: 0;
+  font-family: var(--font-body);
+  font-size: var(--t-body-s-size);
+  color: var(--ink-55);
+}
+
+.discard {
+  align-self: flex-start;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-family: var(--font-body);
+  font-size: var(--t-body-s-size);
+  color: var(--ink-55);
+  text-decoration: underline;
+  text-decoration-color: var(--ink-24);
+  text-underline-offset: 3px;
+}
+.discard:hover {
+  color: var(--ink);
+}
+
+.signedRow {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  margin: 0;
+  padding-top: var(--sp-4);
+  border-top: 1px dashed var(--ink-12);
+  font-family: var(--font-body);
+  font-size: var(--t-body-s-size);
+  color: var(--ink-70);
+}
+
+.tick {
+  width: 12px;
+  height: 12px;
+  fill: none;
+  stroke: var(--green);
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.key {
+  font-family: var(--font-data);
+  font-size: var(--t-data-s-size);
+  color: var(--ink-40);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .card {
+    animation: amendmentIn 0.38s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+  .signedRow .tick {
+    stroke-dasharray: 20;
+    stroke-dashoffset: 20;
+    animation: tickDraw 0.35s var(--ease-out) 0.05s forwards;
+  }
+}
+
+@keyframes amendmentIn {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+}
+@keyframes tickDraw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}

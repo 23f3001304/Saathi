@@ -1,0 +1,27 @@
+.section {
+  margin-top: var(--sp-9);
+}
+
+.title {
+  font-family: var(--font-body);
+  font-size: var(--t-label-size);
+  letter-spacing: var(--t-label-tracking);
+  text-transform: uppercase;
+  color: var(--ink-55);
+  margin-bottom: var(--sp-3);
+}
+
+.row {
+  display: grid;
+  /* auto columns: the bar takes what the figures leave, never nothing. */
+  grid-template-columns: 84px minmax(48px, 1fr) auto;
+  align-items: center;
+  gap: var(--sp-4);
+  padding: var(--sp-2) 0;
+}
+
+.figures {
+  font-family: var(--font-data);
+  font-size: var(--t-data-m-size);
+  text-align: right;
+}

@@ -1,0 +1,34 @@
+.list {
+  display: flex;
+  flex-direction: column;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: var(--sp-3);
+}
+
+.title {
+  font-family: var(--font-body);
+  font-size: var(--t-label-size);
+  letter-spacing: var(--t-label-tracking);
+  text-transform: uppercase;
+  color: var(--ink-55);
+}
+
+.badge {
+  font-size: var(--t-body-s-size);
+  color: var(--ink-55);
+}
+
+.add {
+  margin-top: var(--sp-3);
+  align-self: flex-start;
+  background: none;
+  border: none;
+  color: var(--ink-55);
+  cursor: pointer;
+  font-size: var(--t-body-s-size);
+}

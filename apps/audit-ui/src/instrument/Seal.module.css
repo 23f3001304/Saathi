@@ -1,0 +1,88 @@
+.seal {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--sp-2);
+}
+
+.ring {
+  fill: none;
+  stroke-width: 1.5;
+}
+.ringPending {
+  stroke: var(--ink-24);
+  stroke-dasharray: 2 3;
+}
+.ringPassed {
+  stroke: var(--green);
+}
+.ringFailed {
+  stroke: var(--crimson);
+}
+.ringHeld {
+  stroke: var(--ink-40);
+  stroke-dasharray: 3 3;
+}
+.ringHatched {
+  fill: url(#seal-hatch);
+}
+
+.fillPassed {
+  fill: var(--green);
+}
+.fillFailed {
+  fill: var(--crimson);
+}
+
+.glyphPending {
+  color: var(--ink-24);
+  opacity: 0.22;
+}
+.glyphPassed {
+  color: var(--green);
+}
+.glyphFailed {
+  color: var(--crimson);
+}
+.glyphHeld {
+  color: var(--ink-55);
+}
+
+/* R5/§7.4 — labels are always ink, never a status colour (contrast at 11px). */
+.label {
+  font-family: var(--font-body);
+  font-size: var(--t-label-size);
+  letter-spacing: var(--t-label-tracking);
+  text-transform: uppercase;
+  color: var(--ink-55);
+  text-align: center;
+}
+.labelActive {
+  color: var(--ink);
+}
+
+.countdownRing {
+  fill: none;
+  stroke: var(--ink-40);
+  stroke-width: 1;
+  stroke-dasharray: 1 2;
+  transform-origin: center;
+  animation: spin 240s linear infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .countdownRing {
+    animation: none;
+  }
+}
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+}

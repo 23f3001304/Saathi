@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Bazaar Fixture — Declared listings</title>
+    <!-- A shop that publishes what it sells the way the web says to: a
+         schema.org/Product graph, the same vocabulary as microdata, and
+         OpenGraph for the page itself. No class name here is load-bearing. -->
+    <meta property="og:type" content="product" />
+    <meta property="og:title" content="Trailfoot Runner" />
+    <meta property="og:url" content="https://bazaar.example/trailfoot" />
+    <meta property="og:image" content="https://img.bazaar.example/trailfoot.jpg" />
+    <meta property="product:price:amount" content="3499.00" />
+    <meta property="product:price:currency" content="INR" />
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "ItemList",
+            "itemListElement": [
+              {
+                "@type": "Product",
+                "name": "Ridgeline Trail 2",
+                "url": "https://bazaar.example/ridgeline-trail-2",
+                "image": "https://img.bazaar.example/ridgeline.jpg",
+                "offers": { "@type": "Offer", "price": "4299.00", "priceCurrency": "INR" }
+              },
+              {
+                "@type": "Product",
+                "name": "Kolam Road 5",
+                "url": "https://bazaar.example/kolam-road-5",
+                "image": { "@type": "ImageObject", "url": "http://img.bazaar.example/kolam.jpg" },
+                "offers": [{ "@type": "Offer", "price": "2599.00", "priceCurrency": "INR" }]
+              }
+            ]
+          }
+        ]
+      }
+    </script>
+  </head>
+  <body>
+    <h1>Declared listings</h1>
+    <div itemscope itemtype="https://schema.org/Product">
+      <span itemprop="name">Marsh Walker</span>
+      <a itemprop="url" href="https://bazaar.example/marsh-walker">View</a>
+      <link itemprop="image" href="https://img.bazaar.example/marsh.jpg" />
+      <div itemprop="offers" itemscope itemtype="https://schema.org/Offer">
+        <meta itemprop="priceCurrency" content="INR" />
+        <span itemprop="price">1899.00</span>
+      </div>
+    </div>
+    <p><a id="to-home" href="index.html">Home</a></p>
+  </body>
+</html>

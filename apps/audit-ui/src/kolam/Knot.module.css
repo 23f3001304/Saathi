@@ -1,0 +1,65 @@
+.knot {
+  cursor: pointer;
+}
+.knot:focus-visible {
+  outline: 2px solid var(--indigo);
+  outline-offset: 2px;
+}
+
+.pulli {
+  fill: none;
+  stroke: var(--ink-55);
+}
+.pulliFail {
+  stroke: var(--crimson);
+  stroke-dasharray: 2 2;
+}
+.seal {
+  fill: none;
+  stroke: var(--indigo);
+}
+.lozengePass {
+  fill: var(--green);
+}
+.lozengeFail {
+  fill: var(--crimson);
+}
+.hex {
+  fill: none;
+  stroke: var(--ink-70);
+}
+.disc {
+  fill: var(--indigo);
+  fill-opacity: 0.7;
+}
+.discRing {
+  fill: none;
+  stroke: var(--indigo);
+}
+.hollowDisc {
+  fill: none;
+  stroke: var(--crimson);
+}
+.open {
+  fill: none;
+  stroke: var(--ink-55);
+}
+.tick {
+  stroke: var(--ink-24);
+}
+.unknown {
+  fill: var(--ink-40);
+}
+
+.label {
+  font-family: var(--font-body);
+  font-size: var(--t-label-size);
+  fill: var(--ink-55);
+  text-anchor: end;
+}
+.labelData {
+  font-family: var(--font-data);
+  font-size: var(--t-data-s-size);
+  fill: var(--ink-40);
+  text-anchor: end;
+}

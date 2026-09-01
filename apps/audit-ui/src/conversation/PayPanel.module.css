@@ -1,0 +1,160 @@
+/* The paying half of the bill. It sits below the total behind a dashed rule,
+   so it reads as the same ledger page continuing rather than a widget bolted
+   under it. */
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+  padding-top: var(--sp-4);
+  border-top: 1px dashed var(--ink-24);
+}
+
+.pay {
+  align-self: stretch;
+  padding: var(--sp-3) var(--sp-5);
+  border: var(--rule);
+  border-radius: var(--r-1);
+  background: var(--ink);
+  color: var(--paper);
+  font-family: var(--font-body);
+  font-size: var(--t-body-m-size);
+  font-weight: 600;
+  cursor: pointer;
+}
+.pay:hover:not(:disabled) {
+  opacity: 0.88;
+}
+.pay:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+/* Scan block: the code, then the words, so the eye lands on the QR first. */
+.phone {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-4);
+}
+
+.qr {
+  flex: none;
+  width: 200px;
+  height: 200px;
+  border: 1px solid var(--ink-06);
+  border-radius: var(--r-1);
+  background: #fff;
+}
+
+.phoneText {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  min-width: 0;
+}
+
+.phoneTitle {
+  font-family: var(--font-body);
+  font-size: var(--t-body-s-size);
+  color: var(--ink-70);
+}
+
+/* The URL stays legible and selectable beside the code: a QR with nothing
+   readable next to it asks for trust it has not earned. */
+.link {
+  font-family: var(--font-data);
+  font-size: var(--t-data-s-size);
+  color: var(--ink-55);
+  overflow-wrap: anywhere;
+}
+.link:hover {
+  color: var(--ink);
+}
+
+.note {
+  margin: 0;
+  font-family: var(--font-body);
+  font-size: var(--t-body-s-size);
+  color: var(--ink-55);
+}
+
+.waiting {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  margin: 0;
+  font-family: var(--font-body);
+  font-size: var(--t-body-s-size);
+  color: var(--ink-55);
+}
+
+.pulse {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--ink-40);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .pulse {
+    animation: waitPulse 1.6s ease-in-out infinite;
+  }
+}
+@keyframes waitPulse {
+  50% {
+    opacity: 0.25;
+  }
+}
+
+.paid {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  margin: 0;
+  font-family: var(--font-body);
+  font-size: var(--t-body-m-size);
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.tick {
+  width: 14px;
+  height: 14px;
+  fill: none;
+  stroke: var(--green);
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .tick {
+    stroke-dasharray: 20;
+    stroke-dashoffset: 20;
+    animation: tickDraw 0.35s var(--ease-out) 0.05s forwards;
+  }
+}
+@keyframes tickDraw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+/* The payment id is evidence, so it is shown, in the data face, not summarised. */
+.id {
+  font-family: var(--font-data);
+  font-size: var(--t-data-s-size);
+  font-weight: 400;
+  color: var(--ink-40);
+}
+
+.failed {
+  margin: 0;
+  font-family: var(--font-body);
+  font-size: var(--t-body-s-size);
+  color: var(--crimson);
+}
+
+@media (max-width: 480px) {
+  .phone {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}

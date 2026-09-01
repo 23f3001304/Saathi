@@ -1,0 +1,28 @@
+{
+  "name": "@covenant/attacks",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "default": "./dist/src/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -b",
+    "t1": "tsc -b && node dist/src/bin/t1.js",
+    "t31": "tsc -b && node dist/src/bin/t31.js",
+    "t27": "tsc -b && node dist/src/bin/t27.js",
+    "fp": "tsc -b && node dist/src/bin/fp.js",
+    "run-all": "tsc -b && node dist/src/bin/run-all.js",
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "@types/node": "^26.4.0",
+    "typescript": "^5.9.3",
+    "vitest": "^4.1.11"
+  }
+}

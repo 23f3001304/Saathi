@@ -1,0 +1,179 @@
+.stream {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+  padding: var(--sp-2) var(--sp-5);
+  border: var(--rule);
+  border-radius: var(--r-full);
+  background: var(--paper-raised);
+  font-family: var(--font-body);
+  font-size: var(--t-body-s-size);
+  color: var(--ink-70);
+  font-variant-numeric: tabular-nums lining;
+  transition:
+    color 0.2s var(--ease-out),
+    border-color 0.2s var(--ease-out);
+}
+
+/* The act in progress: an indigo pulse where the tick will land, and a
+   sheen passing through the pill until the next act arrives. */
+.live {
+  position: relative;
+  overflow: hidden;
+  color: var(--ink);
+  border-color: var(--indigo-24);
+}
+.live::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    100deg,
+    transparent 25%,
+    var(--indigo-12) 50%,
+    transparent 75%
+  );
+  transform: translateX(-100%);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .live::after {
+    animation: sheen 1.6s var(--ease-out) infinite;
+  }
+}
+@keyframes sheen {
+  to {
+    transform: translateX(100%);
+  }
+}
+
+.spark {
+  width: 7px;
+  height: 7px;
+  border-radius: var(--r-full);
+  background: var(--indigo);
+  flex-shrink: 0;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .spark {
+    animation: sparkPulse 1.1s ease-in-out infinite;
+  }
+}
+@keyframes sparkPulse {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(0.6);
+    opacity: 0.5;
+  }
+}
+
+.settled {
+  color: var(--ink-55);
+}
+
+.tick {
+  width: 11px;
+  height: 11px;
+  flex-shrink: 0;
+  fill: none;
+  stroke: var(--green);
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.work {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+  width: 100%;
+}
+
+.workHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--sp-4);
+}
+
+.workLabel {
+  font-family: var(--font-body);
+  font-size: var(--t-body-s-size);
+  color: var(--ink-55);
+}
+
+.modes {
+  display: inline-flex;
+  gap: 2px;
+  padding: 2px;
+  border: var(--rule);
+  border-radius: var(--r-full);
+  background: var(--paper-raised);
+}
+
+.mode {
+  padding: 1px var(--sp-4);
+  border: none;
+  border-radius: var(--r-full);
+  background: none;
+  cursor: pointer;
+  font-family: var(--font-body);
+  font-size: 11px;
+  color: var(--ink-55);
+  text-transform: capitalize;
+}
+.modeOn {
+  background: var(--indigo-12);
+  color: var(--ink);
+}
+
+/* The inner voice: serif, quiet, honest about being a thought. */
+.thinking {
+  margin: 0;
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: var(--t-body-m-size);
+  color: var(--ink-55);
+}
+
+/* Summary mode: the work as one quiet sentence. */
+.digest {
+  margin: 0;
+  font-family: var(--font-body);
+  font-size: var(--t-body-s-size);
+  color: var(--ink-55);
+}
+
+/* The count is the whole affordance: it says how many are folded here, and
+   pressing anywhere on the row opens them. */
+.count {
+  margin-left: var(--sp-2);
+  font-family: var(--font-data);
+  font-size: 0.9em;
+  color: var(--ink-55);
+}
+
+.foldOpen {
+  display: contents;
+  padding: 0;
+  border: none;
+  background: none;
+  font: inherit;
+  cursor: pointer;
+  text-align: left;
+}
+.foldOpen:hover .count {
+  color: var(--indigo);
+}

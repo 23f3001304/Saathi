@@ -1,0 +1,34 @@
+.column {
+  height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.thread {
+  fill: none;
+  stroke: var(--ink);
+  stroke-opacity: var(--kolam-stroke-opacity);
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  vector-effect: non-scaling-stroke;
+}
+
+.live {
+  fill: none;
+  stroke: var(--ink);
+  stroke-opacity: var(--kolam-stroke-opacity);
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  vector-effect: non-scaling-stroke;
+}
+
+.emptyLabel {
+  font-family: var(--font-body);
+  font-size: var(--t-body-s-size);
+  fill: var(--ink-40);
+}
+
+.emptyPulli {
+  fill: none;
+  stroke: var(--ink-24);
+}

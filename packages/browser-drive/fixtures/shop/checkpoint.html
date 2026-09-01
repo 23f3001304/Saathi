@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Bazaar Fixture — Checking your browser</title>
+  </head>
+  <body>
+    <!-- A shop's human-verification interstitial, built the way every one of
+         them is: the shop's own words, and a third-party widget in an iframe
+         this process cannot read into. The `src` points at a vendor host and
+         resolves to nothing — the reader only ever reads where it came from,
+         and nothing here is ever loaded, clicked or answered. -->
+    <h1>Checking your browser</h1>
+    <p>Please confirm you are a human to continue to the shop.</p>
+    <iframe
+      title="widget"
+      src="https://challenges.cloudflare.com/cdn-cgi/challenge-platform/fixture"
+      width="300"
+      height="65"
+    ></iframe>
+    <p><a id="to-home" href="index.html">Home</a></p>
+  </body>
+</html>

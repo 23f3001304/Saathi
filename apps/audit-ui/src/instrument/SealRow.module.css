@@ -1,0 +1,33 @@
+.row {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+}
+
+.core {
+  display: flex;
+  gap: var(--sp-6);
+}
+
+.chainRule {
+  border: none;
+  border-top: 1px dashed var(--ink-24);
+  width: 100%;
+}
+
+.fiduciaryRow {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-6);
+}
+
+.latency {
+  font-family: var(--font-data);
+  font-size: var(--t-data-s-size);
+  color: var(--ink-55);
+  opacity: 0;
+  transition: opacity 0.14s var(--ease-out);
+}
+.latencyShown {
+  opacity: 1;
+}

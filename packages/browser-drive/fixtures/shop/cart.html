@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Bazaar Fixture — Cart</title>
+    <style>
+      body { font: 16px/1.5 system-ui, sans-serif; margin: 2rem; max-width: 46rem; }
+      table { border-collapse: collapse; width: 100%; }
+      td, th { border-bottom: 1px solid #ddd; padding: .5rem; text-align: left; }
+    </style>
+  </head>
+  <body>
+    <h1>Your cart</h1>
+
+    <table>
+      <thead>
+        <tr><th>Item</th><th>Qty</th><th>Price</th></tr>
+      </thead>
+      <tbody>
+        <tr data-cart-row>
+          <td>Trailfoot Runner</td>
+          <td class="qty">Qty: 1</td>
+          <td class="price">₹3,499.00</td>
+        </tr>
+        <tr data-cart-row>
+          <td>Merino trail socks</td>
+          <td class="qty">Qty: 2</td>
+          <td class="price">₹300.00</td>
+        </tr>
+      </tbody>
+      <tfoot>
+        <tr><td colspan="2">Subtotal</td><td>₹3,799.00</td></tr>
+        <tr><td colspan="2">Delivery</td><td>₹0.00</td></tr>
+        <tr data-total><td colspan="2">Order total</td><td>₹3,799.00</td></tr>
+      </tfoot>
+    </table>
+
+    <p>
+      <a id="to-checkout" href="delivery.html">Proceed to checkout</a> ·
+      <a id="to-home" href="index.html">Keep shopping</a>
+    </p>
+  </body>
+</html>

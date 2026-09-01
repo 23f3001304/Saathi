@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Bazaar Fixture — Delivery address</title>
+    <style>
+      body { font: 16px/1.5 system-ui, sans-serif; margin: 2rem; max-width: 40rem; }
+      label { display: block; margin-top: .8rem; }
+      input, button { font: inherit; padding: .4rem .6rem; }
+    </style>
+  </head>
+  <body>
+    <!-- The step a real checkout puts between the basket and the payment page.
+         Ordinary boxes, no credential among them, and a button that moves the
+         wizard rather than committing anything. -->
+    <h1>Where should this go?</h1>
+    <form action="/checkout/address" method="post">
+      <label for="full-name">Full name</label>
+      <input id="full-name" name="fullName" type="text" />
+
+      <label for="address-line-1">Address line 1</label>
+      <input id="address-line-1" name="address-line1" type="text" />
+
+      <label for="city">Town or city</label>
+      <input id="city" name="city" type="text" />
+
+      <label for="pincode">PIN code</label>
+      <input id="pincode" name="pincode" type="text" />
+
+      <label for="phone">Mobile number</label>
+      <input id="phone" name="phone" type="tel" />
+
+      <p><button id="deliver-here" type="submit">Deliver to this address</button></p>
+    </form>
+    <p><a id="to-checkout" href="checkout.html">Payment</a> · <a id="to-cart" href="cart.html">Cart</a></p>
+  </body>
+</html>

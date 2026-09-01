@@ -1,0 +1,43 @@
+.panel {
+  font-family: var(--font-data);
+  font-size: var(--t-data-s-size);
+  background: var(--ink);
+  color: var(--paper);
+  padding: var(--sp-4);
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+.caption {
+  font-family: var(--font-body);
+  font-size: var(--t-body-s-size);
+  color: var(--ink-55);
+  margin-bottom: var(--sp-2);
+}
+
+.wrap {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+}
+
+.lede {
+  margin: 0;
+  max-width: 62ch;
+  font-family: var(--font-body);
+  font-size: var(--t-body-m-size);
+  line-height: var(--t-body-m-line);
+  color: var(--ink-90);
+}
+
+/* The signature is for auditors and integrators; it should not be the first
+   thing a person reads on this panel. */
+.summary {
+  cursor: pointer;
+  font-family: var(--font-body);
+  font-size: var(--t-body-s-size);
+  color: var(--ink-55);
+}
+.summary:hover {
+  color: var(--ink);
+}

@@ -1,0 +1,22 @@
+.strip {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  padding: var(--sp-3) var(--sp-6);
+  background: var(--ink-06);
+  font-size: var(--t-body-s-size);
+  animation: fade-in 0.16s var(--ease-out) both;
+}
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+.undo {
+  background: none;
+  border: none;
+  color: var(--indigo);
+  cursor: pointer;
+  font-weight: 600;
+}

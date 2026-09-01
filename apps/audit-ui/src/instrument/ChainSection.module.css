@@ -1,0 +1,153 @@
+/* A step on a spine. The rail runs behind the markers; each marker names
+   the step's state by shape as well as colour. */
+.step {
+  position: relative;
+  display: grid;
+  grid-template-columns: 20px 1fr;
+  column-gap: var(--sp-4);
+  padding-bottom: var(--sp-5);
+}
+
+.rail {
+  position: absolute;
+  left: 9px;
+  top: 18px;
+  bottom: -2px;
+  width: 1.5px;
+  background: var(--ink-12);
+}
+.step:last-of-type .rail {
+  display: none;
+}
+
+.marker {
+  grid-column: 1;
+  align-self: start;
+  margin-top: 3px;
+  width: 20px;
+  height: 20px;
+  border-radius: var(--r-full);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--paper);
+  border: 1.5px solid var(--ink-24);
+  z-index: 1;
+}
+.marker svg {
+  width: 11px;
+  height: 11px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.done {
+  border-color: var(--green);
+  color: var(--green);
+}
+.blocked {
+  border-color: var(--crimson);
+  color: var(--crimson);
+}
+.active {
+  border-color: var(--indigo);
+}
+.active::after {
+  content: "";
+  width: 7px;
+  height: 7px;
+  border-radius: var(--r-full);
+  background: var(--indigo);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .active::after {
+    animation: stepPulse 1.1s ease-in-out infinite;
+  }
+}
+@keyframes stepPulse {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(0.6);
+    opacity: 0.5;
+  }
+}
+.pending {
+  border-style: dashed;
+}
+
+.head {
+  grid-column: 2;
+  display: flex;
+  align-items: baseline;
+  gap: var(--sp-4);
+  min-width: 0;
+  padding: var(--sp-2) 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  text-align: left;
+}
+
+.title {
+  flex-shrink: 0;
+  font-family: var(--font-body);
+  font-size: var(--t-body-m-size);
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.summary {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: var(--font-body);
+  font-size: var(--t-body-s-size);
+  color: var(--ink-55);
+  font-variant-numeric: tabular-nums lining;
+}
+
+.headRight {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-3);
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+.meta {
+  font-family: var(--font-body);
+  font-size: var(--t-body-s-size);
+  color: var(--ink-40);
+  font-variant-numeric: tabular-nums lining;
+}
+
+.chevron {
+  width: 12px;
+  height: 12px;
+  fill: none;
+  stroke: var(--ink-40);
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: transform 0.18s var(--ease-out);
+}
+.chevronOpen {
+  transform: rotate(180deg);
+}
+.head:hover .chevron {
+  stroke: var(--ink);
+}
+
+.body {
+  grid-column: 2;
+  padding: var(--sp-2) 0 var(--sp-3);
+}

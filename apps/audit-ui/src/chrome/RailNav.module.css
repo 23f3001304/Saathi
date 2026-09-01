@@ -1,0 +1,62 @@
+.rail {
+  width: var(--dim-rail);
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  padding: var(--sp-5) var(--sp-3);
+  border-right: var(--rule);
+  background: var(--paper);
+}
+
+.item {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--sp-2);
+  width: 100%;
+  padding: var(--sp-4) 0;
+  border: none;
+  border-radius: var(--r-1);
+  background: none;
+  cursor: pointer;
+  color: var(--ink-40);
+  transition:
+    color 0.16s var(--ease-out),
+    background 0.16s var(--ease-out);
+}
+.item:hover {
+  background: var(--paper-sunk);
+  color: var(--ink-70);
+}
+.item:focus-visible {
+  outline: 2px solid var(--indigo);
+  outline-offset: -2px;
+}
+
+/* The active route is named by an indigo marker as well as by weight, so the
+   current place is legible without relying on colour alone. */
+.active {
+  color: var(--ink);
+  background: var(--paper-sunk);
+}
+.active::before {
+  content: "";
+  position: absolute;
+  left: calc(var(--sp-3) * -1);
+  top: 50%;
+  width: 2px;
+  height: 18px;
+  margin-top: -9px;
+  border-radius: 0 var(--r-1) var(--r-1) 0;
+  background: var(--indigo);
+}
+
+.caption {
+  font-family: var(--font-body);
+  font-size: var(--t-body-s-size);
+  letter-spacing: 0;
+  text-transform: none;
+  line-height: 1;
+}

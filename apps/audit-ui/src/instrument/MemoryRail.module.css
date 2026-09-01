@@ -1,0 +1,59 @@
+.rail {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+}
+
+/* The rest state: one line, no border, no fill. */
+.digest {
+  display: flex;
+  align-items: baseline;
+  gap: var(--sp-4);
+  padding: 0;
+  background: none;
+  border: none;
+  text-align: left;
+  cursor: pointer;
+  color: var(--ink-70);
+}
+
+.count {
+  font-family: var(--font-body);
+  font-size: var(--t-body-s-size);
+  color: var(--ink);
+}
+
+/* Tier codes are data, so they stay mono — the only mono on this line. */
+.tiers {
+  font-family: var(--font-data);
+  font-size: var(--t-data-s-size);
+  letter-spacing: var(--t-data-s-tracking);
+  color: var(--ink-55);
+}
+
+.more {
+  margin-left: auto;
+  font-family: var(--font-body);
+  font-size: var(--t-body-s-size);
+  color: var(--ink-55);
+}
+.digest:hover .more {
+  color: var(--ink);
+}
+
+.table {
+  display: flex;
+  flex-direction: column;
+}
+
+.header {
+  display: grid;
+  grid-template-columns: 84px 32px 44px 1fr 80px;
+  gap: var(--sp-3);
+  padding: 0 var(--sp-3) var(--sp-2);
+  border-bottom: var(--rule);
+  font-family: var(--font-body);
+  font-size: var(--t-label-size);
+  letter-spacing: var(--t-label-tracking);
+  color: var(--ink-55);
+}

@@ -1,0 +1,116 @@
+/* §2.2 — a document, not a settings page; it does not use the full width. */
+.page {
+  max-width: 880px;
+  margin: 0 auto;
+  /* No bottom padding: the sticky seal owns the foot of the page, and padding
+     under it would unstick it before the scroll actually ends. */
+  padding: var(--sp-9) var(--sp-6) 0;
+}
+
+.title {
+  font-family: var(--font-display);
+  font-size: var(--t-display-xl-size);
+  line-height: var(--t-display-xl-line);
+  letter-spacing: var(--t-display-xl-tracking);
+  font-variation-settings:
+    "WONK" 1,
+    "opsz" 72;
+  margin-bottom: var(--sp-3);
+}
+
+.tagline {
+  font-size: var(--t-body-l-size);
+  color: var(--ink-70);
+  padding-bottom: var(--sp-6);
+  border-bottom: var(--rule-strong);
+  margin-bottom: var(--sp-8);
+}
+
+/* Each body of rules is a page of the covenant: a soft card, one subject,
+   air between them. */
+/* The chat's language: sections sit on the open paper, air does the
+   grouping, nothing wears a box. */
+.card {
+  padding: 0;
+  margin-bottom: var(--sp-9);
+}
+
+.pair {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: var(--sp-6);
+  margin-bottom: var(--sp-6);
+}
+.pair .card {
+  margin-bottom: 0;
+}
+
+.page {
+  max-width: 820px;
+}
+
+/* The page opens in the assistant's voice, exactly like the chat does. */
+.voice {
+  margin: 0 0 var(--sp-7);
+  max-width: 52ch;
+  font-family: var(--font-body);
+  font-size: var(--t-body-l-size);
+  line-height: var(--t-body-l-line);
+  color: var(--ink);
+}
+
+.title {
+  margin: 0 0 var(--sp-4);
+  font-family: var(--font-display);
+  font-size: var(--t-display-l-size);
+  line-height: var(--t-display-l-line);
+  letter-spacing: var(--t-display-l-tracking);
+  font-weight: 400;
+  color: var(--ink);
+  text-wrap: balance;
+}
+
+/* The page opens like a document that matters, not like a settings pane: the
+   sunrise hairline the product spends only on the covenant, a stated name
+   above the title, and the display face at its largest. Rules and the Ledger
+   are what Saathi is; a masthead is how the page says so. */
+.masthead {
+  margin-bottom: var(--sp-9);
+  padding-top: var(--sp-5);
+  border-top: 2px solid transparent;
+  border-image: var(--sunrise) 1;
+}
+
+.eyebrow {
+  display: block;
+  margin-bottom: var(--sp-4);
+  font-family: var(--font-body);
+  font-size: var(--t-label-size);
+  line-height: var(--t-label-line);
+  letter-spacing: var(--t-label-tracking);
+  text-transform: uppercase;
+  color: var(--ink-55);
+}
+
+.masthead .title {
+  font-size: var(--t-display-xl-size);
+  line-height: var(--t-display-xl-line);
+  letter-spacing: var(--t-display-xl-tracking);
+  font-variation-settings:
+    "WONK" 1,
+    "opsz" 72;
+}
+
+.masthead .voice {
+  margin-bottom: 0;
+}
+
+.refused {
+  margin: 0;
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--color-warn-border, var(--color-border));
+  border-radius: var(--radius-md);
+  background: var(--color-warn-surface, var(--color-surface));
+  color: var(--color-text);
+  font-size: var(--font-size-sm);
+}

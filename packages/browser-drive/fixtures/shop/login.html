@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Bazaar Fixture — Sign in</title>
+    <style>
+      body { font: 16px/1.5 system-ui, sans-serif; margin: 2rem; max-width: 30rem; }
+      label { display: block; margin-top: 1rem; }
+      input { font: inherit; padding: .4rem .6rem; width: 100%; }
+      button { font: inherit; padding: .5rem .9rem; margin-top: 1rem; }
+    </style>
+  </head>
+  <body>
+    <h1>Sign in</h1>
+    <p>Fixture credentials. Nothing is transmitted; the form navigates locally.</p>
+
+    <!-- A real shop keeps its header search on the sign-in page too. It is
+         here so the classifier's scope rule has something ordinary to refuse:
+         inside a sign-in scope the agent types into nothing at all. -->
+    <form action="/search" method="get">
+      <label for="q">Search the catalogue</label>
+      <input id="q" name="q" type="search" placeholder="What are you after?" />
+    </form>
+
+    <form id="login-form" action="/login" method="post">
+      <label for="email">Email</label>
+      <input id="email" name="email" type="email" autocomplete="username" />
+
+      <label for="password">Password</label>
+      <input
+        id="password"
+        name="password"
+        type="password"
+        autocomplete="current-password"
+      />
+
+      <button id="sign-in" type="submit">Sign in</button>
+    </form>
+
+    <p>
+      <a id="to-register" href="register.html">Create an account</a> ·
+      <a id="to-home" href="index.html">Home</a>
+    </p>
+
+    <script>
+      document.getElementById("login-form").addEventListener("submit", (event) => {
+        event.preventDefault();
+        window.location.href = "account.html";
+      });
+    </script>
+  </body>
+</html>

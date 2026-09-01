@@ -1,0 +1,329 @@
+.chat {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  width: 100%;
+  max-width: 820px;
+  margin: 0 auto;
+}
+
+.scroll {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: var(--sp-8) var(--sp-7) var(--sp-6);
+}
+
+.thread {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--sp-6);
+  min-height: 100%;
+  justify-content: flex-end;
+}
+
+/* First run: nothing has been said, so the welcome holds the centre of the
+   room instead of hiding at the skirting board — and it holds the horizontal
+   centre too. Left-aligned against an empty column, the greeting read as the
+   top of a transcript that had failed to load rather than as an opening. */
+.threadFresh {
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  gap: var(--sp-7);
+}
+
+/* The agent speaks in plain type on the paper — no box, no avatar, no name
+   tag. The buyer's replies sit right and carry a quiet surface, so the two
+   voices are distinct at a glance without chrome. */
+.bubble {
+  margin: 0;
+  max-width: 52ch;
+  font-family: var(--font-body);
+  font-size: var(--t-body-l-size);
+  line-height: var(--t-body-l-line);
+  color: var(--ink);
+  text-wrap: pretty;
+}
+
+.buyer {
+  align-self: flex-end;
+  padding: var(--sp-3) var(--sp-5);
+  /* The human voice is warm; the agent's work stays indigo. */
+  background: color-mix(in oklab, var(--marigold) 22%, transparent);
+  border-radius: var(--r-1);
+  font-size: var(--t-body-m-size);
+  color: var(--ink-90);
+}
+
+.offer {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+  width: 100%;
+}
+
+.offerLine {
+  margin: 0;
+  font-family: var(--font-body);
+  font-size: var(--t-body-m-size);
+  color: var(--ink-70);
+}
+
+.trust {
+  width: 100%;
+}
+
+.confirm {
+  padding: var(--sp-4) var(--sp-8);
+  border: 1px solid var(--indigo);
+  border-radius: var(--r-1);
+  background: var(--indigo);
+  color: var(--paper);
+  cursor: pointer;
+  font-family: var(--font-body);
+  font-size: var(--t-body-m-size);
+}
+.confirm:hover {
+  filter: brightness(1.12);
+}
+
+/* A decision already taken reads as history, not as a live question. */
+.folded {
+  margin: 0;
+  font-family: var(--font-body);
+  font-size: var(--t-body-s-size);
+  color: var(--ink-55);
+}
+
+/* Chats, plural: a quiet tab strip, not a sidebar. */
+.sessions {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  width: 100%;
+}
+
+.sessionBar {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-4);
+  width: 100%;
+  max-width: 820px;
+  margin: 0 auto;
+  padding: var(--sp-4) var(--sp-7) 0;
+}
+
+.sessionTime {
+  font-size: 10px;
+  color: var(--ink-40);
+}
+
+.newChat {
+  flex-shrink: 0;
+  padding: var(--sp-2) var(--sp-4);
+  border: none;
+  border-radius: var(--r-1);
+  background: none;
+  cursor: pointer;
+  font-family: var(--font-body);
+  font-size: var(--t-body-s-size);
+  color: var(--indigo);
+}
+.newChat:hover {
+  background: var(--indigo-12);
+}
+
+.sessionBody {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+.sessionBody[hidden] {
+  display: none;
+}
+
+/* The bill's own plane: a sheet sliding up over the conversation, on a
+   scrim of the same paper so the thread recedes without going dark. */
+.sheetLayer {
+  /* The whole viewport, not the chat column: a scrim with a visible seam
+     reads as a rendering bug, not a layer. */
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 0 var(--sp-7) var(--sp-7);
+}
+
+.scrim {
+  position: absolute;
+  inset: 0;
+  border: none;
+  cursor: pointer;
+  background: color-mix(in oklab, var(--paper) 55%, transparent);
+  backdrop-filter: blur(3px);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .scrim {
+    animation: scrimIn 0.24s var(--ease-out) both;
+  }
+}
+@keyframes scrimIn {
+  from {
+    opacity: 0;
+  }
+}
+
+.historyButton {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+  max-width: 40ch;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding: var(--sp-2) var(--sp-4);
+  border: none;
+  border-radius: var(--r-1);
+  background: none;
+  cursor: pointer;
+  font-family: var(--font-body);
+  font-size: var(--t-body-s-size);
+  color: var(--ink-70);
+}
+.historyButton:hover {
+  background: var(--paper-sunk);
+  color: var(--ink);
+}
+
+.history {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: var(--sp-7);
+  z-index: 10;
+  min-width: 260px;
+  display: flex;
+  flex-direction: column;
+  padding: var(--sp-2);
+  background: var(--paper-raised);
+  border: var(--rule);
+  border-radius: var(--r-1);
+  box-shadow: 0 12px 32px -18px rgba(30, 30, 30, 0.3);
+}
+
+.historyRow {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--sp-4);
+  padding: var(--sp-3) var(--sp-4);
+  border: none;
+  border-radius: var(--r-1);
+  background: none;
+  cursor: pointer;
+  text-align: left;
+  font-family: var(--font-body);
+  font-size: var(--t-body-s-size);
+  color: var(--ink-70);
+}
+.historyRow:hover {
+  background: var(--paper-sunk);
+}
+.historyRowOn {
+  color: var(--ink);
+  background: var(--indigo-12);
+}
+
+.historyTitle {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.historyGroup {
+  margin: 0;
+  padding: var(--sp-2) var(--sp-4);
+  font-family: var(--font-body);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-40);
+}
+
+/* Scope at a glance: what each chat is, and where it got to. */
+.status {
+  flex-shrink: 0;
+  padding: 1px var(--sp-3);
+  border-radius: var(--r-full);
+  font-size: 10px;
+}
+.status_new {
+  background: var(--ink-06);
+  color: var(--ink-55);
+}
+.status_in-progress {
+  background: var(--indigo-12);
+  color: var(--indigo);
+}
+.status_signed {
+  background: var(--green-12);
+  color: var(--green);
+}
+
+/* Where the data came from, stated plainly. Never a decoration: this strip
+   only appears when the answer is "not from a live agent-host". */
+.notice {
+  display: flex;
+  align-items: baseline;
+  gap: var(--sp-3);
+  margin: 0;
+  padding: var(--sp-2) var(--sp-4);
+  border: 1px solid var(--crimson-24);
+  border-radius: var(--r-1);
+  background: var(--crimson-08);
+  font-family: var(--font-body);
+  font-size: var(--t-body-s-size);
+  color: var(--ink-70);
+}
+
+.noticeDegraded {
+  border-color: var(--ink-12);
+  background: var(--ink-06);
+}
+
+.noticeLabel {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-55);
+}
+
+/* The intent gate: the run is stopped at a signature and says which one. */
+.gate {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+  width: 100%;
+}
+
+.gateLine {
+  margin: 0;
+  font-family: var(--font-body);
+  font-size: var(--t-body-m-size);
+  color: var(--ink-70);
+}
+
+.driveFull {
+  display: contents;
+}

@@ -1,0 +1,24 @@
+/* §6.4 — the ₹ glyph sits in a fixed-width leading column so symbols in a
+   table form a vertical rule; digits stay tabular and right-aligned.
+   The digits are set in the mono face on purpose: General Sans ships no
+   `tnum` table, so `font-variant-numeric` was a silent no-op everywhere it
+   was declared and money columns never actually aligned. Monospaced digits
+   are tabular by construction. */
+.money {
+  display: inline-flex;
+  justify-content: flex-end;
+  font-variant-numeric: tabular-nums lining;
+}
+
+.symbol {
+  display: inline-block;
+  width: 1ch;
+  text-align: left;
+}
+
+.digits {
+  font-family: var(--font-data);
+  /* Mono runs large against a grotesque at the same nominal size. */
+  font-size: 0.94em;
+  text-align: right;
+}

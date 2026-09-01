@@ -1,0 +1,9 @@
+.rule {
+  border: none;
+  border-top: var(--rule);
+  margin: 0;
+}
+
+.strong {
+  border-top: var(--rule-strong);
+}

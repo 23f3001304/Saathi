@@ -1,0 +1,35 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "dist"
+  },
+  "include": [
+    "src"
+  ],
+  "references": [
+    {
+      "path": "../../packages/domain"
+    },
+    {
+      "path": "../../packages/ledger"
+    },
+    {
+      "path": "../../packages/memory"
+    },
+    {
+      "path": "../../packages/mandates"
+    },
+    {
+      "path": "../../packages/gateway"
+    },
+    {
+      "path": "../../packages/razorpay"
+    },
+    {
+      "path": "../../packages/recs"
+    },
+    {
+      "path": "../../packages/agents"
+    }
+  ]
+}

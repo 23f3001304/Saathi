@@ -1,0 +1,21 @@
+node_modules
+dist
+
+# The ledger and its WAL. `*.db` alone misses `covenant.db-wal` / `-shm`,
+# which carry committed rows that have not been checkpointed yet.
+data/
+*.db
+
+.env
+.env.*
+!.env.example
+
+# The whole trust ring, not just part of it. gateway-svc mints a dev ring into
+# keys/ on first boot, so a clone needs none of it — and `keys/private/` holds
+# the ES256 private halves for the user, merchant and gateway roles. A public
+# repo carrying the user key is a repo where anyone can sign a mandate as the
+# user, which is the one thing this system exists to make impossible.
+keys/
+
+# Scratch from a debug run.
+dump.json

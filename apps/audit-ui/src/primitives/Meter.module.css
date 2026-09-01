@@ -1,0 +1,31 @@
+/* §6.4/§2.2/§2.3 — no colour ramp, no red-amber-green; segments differ by
+   fill style (solid/hatched/faint), not by a gradient of colours. */
+.track {
+  display: flex;
+  height: 8px;
+  width: 100%;
+  background: var(--ink-12);
+  border-radius: var(--r-0);
+  overflow: hidden;
+}
+
+.segment {
+  height: 100%;
+}
+
+.solid-ink {
+  background: var(--ink-70);
+}
+.solid-indigo {
+  background: var(--indigo);
+}
+.solid-crimson {
+  background: var(--crimson);
+}
+.faint-ink {
+  background: var(--ink-24);
+}
+.hatched-indigo {
+  background-image: var(--hatch);
+  color: var(--indigo);
+}

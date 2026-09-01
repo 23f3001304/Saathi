@@ -1,0 +1,106 @@
+/* The voice row: microphone at the left where the thumb is, the state it is
+   in next to it, and the two quiet preferences pushed to the far edge. */
+.bar {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-4);
+  min-height: 28px;
+}
+
+.tail {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  margin-left: auto;
+}
+
+/* One short sentence, and only when there is something true to say. */
+.hint {
+  margin: 0;
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: var(--font-body);
+  font-size: var(--t-body-s-size);
+  line-height: var(--t-body-s-line);
+  color: var(--ink-55);
+}
+
+.language {
+  padding: var(--sp-2) var(--sp-3);
+  border: var(--rule);
+  border-radius: var(--r-full);
+  background: var(--paper-raised);
+  cursor: pointer;
+  font-family: var(--font-body);
+  font-size: var(--t-body-s-size);
+  color: var(--ink-70);
+}
+.language:hover:enabled {
+  border-color: var(--ink-40);
+  color: var(--ink);
+}
+.language:disabled {
+  color: var(--ink-40);
+  cursor: default;
+}
+
+.speak {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+  padding: var(--sp-2) var(--sp-4);
+  border: var(--rule);
+  border-radius: var(--r-full);
+  background: var(--paper-raised);
+  cursor: pointer;
+  font-family: var(--font-body);
+  font-size: var(--t-body-s-size);
+  color: var(--ink-55);
+  transition:
+    color 0.16s var(--ease-out),
+    border-color 0.16s var(--ease-out);
+}
+.speak:hover {
+  border-color: var(--ink-40);
+  color: var(--ink);
+}
+
+/* On is a state worth seeing at a glance: something is going to make noise. */
+.on {
+  border-color: var(--indigo-24);
+  background: var(--indigo-12);
+  color: var(--indigo);
+}
+
+.speakText {
+  white-space: nowrap;
+}
+
+/* Interrupting mid-sentence has to be one press, at full contrast. */
+.stop {
+  padding: var(--sp-2) var(--sp-4);
+  border: 1px solid var(--crimson-24);
+  border-radius: var(--r-full);
+  background: var(--paper-raised);
+  cursor: pointer;
+  font-family: var(--font-body);
+  font-size: var(--t-body-s-size);
+  color: var(--crimson);
+}
+.stop:hover {
+  background: var(--crimson-08);
+}
+
+/* On a phone the two preferences drop under the microphone rather than
+   squeezing the state line into nothing. */
+@media (max-width: 560px) {
+  .bar {
+    flex-wrap: wrap;
+  }
+  .speakText {
+    display: none;
+  }
+}

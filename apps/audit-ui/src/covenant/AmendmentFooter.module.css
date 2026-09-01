@@ -1,0 +1,47 @@
+/* The seal is the point of the page, so it sits in the middle of it and stays
+   in reach: pushed to the right of a wide row it read as a footnote, and a
+   scroll away from the rules it governs it could not be found at all. */
+.footer {
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+  margin-top: var(--sp-9);
+  padding: var(--sp-6) var(--sp-5) var(--sp-6);
+  border-top: var(--rule-strong);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--sp-4);
+  text-align: center;
+  background: var(--paper);
+}
+
+.count {
+  max-width: 52ch;
+  font-family: var(--font-body);
+  font-size: var(--t-body-m-size);
+  color: var(--ink-55);
+}
+
+.trigger {
+  background: none;
+  border: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--sp-2);
+  cursor: pointer;
+  color: var(--ink-24);
+}
+
+.enabled {
+  color: var(--ink-70);
+  cursor: pointer;
+}
+
+.label {
+  font-family: var(--font-body);
+  font-size: var(--t-label-size);
+  letter-spacing: var(--t-label-tracking);
+  text-transform: uppercase;
+}

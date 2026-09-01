@@ -1,0 +1,169 @@
+/* Design tokens (frontend-screens.md §6.5, §6.2, §6.3). One source of truth;
+   every colour, size and space in the app is a var() against this file. */
+:root {
+  /* §6.5 colour */
+  --paper: #faf7f2;
+  --paper-sunk: #f4f0e9;
+  --paper-raised: #fffdfa;
+  --ink: #1e1e1e;
+  --ink-90: color-mix(in oklab, var(--ink) 90%, transparent);
+  --ink-70: color-mix(in oklab, var(--ink) 70%, transparent);
+  --ink-62: color-mix(in oklab, var(--ink) 62%, transparent);
+  /* Text tiers, not a decorative ramp. --ink-55 carried the whole provenance
+     layer — merchant names, "unverified", activity pills — at 3.73:1, which
+     fails AA. These two are now the darkest values that still read as
+     secondary; the hairline weights below are for rules and marks only and
+     must never carry text. */
+  --ink-55: color-mix(in oklab, var(--ink) 64%, transparent);
+  --ink-40: color-mix(in oklab, var(--ink) 55%, transparent);
+  --ink-24: color-mix(in oklab, var(--ink) 24%, transparent);
+  --ink-12: color-mix(in oklab, var(--ink) 12%, transparent);
+  --ink-06: color-mix(in oklab, var(--ink) 6%, transparent);
+
+  --indigo: #232196;
+  --indigo-24: color-mix(in oklab, var(--indigo) 24%, transparent);
+  --indigo-12: color-mix(in oklab, var(--indigo) 12%, transparent);
+  --green: #0e7a4d;
+  --green-12: color-mix(in oklab, var(--green) 12%, transparent);
+  --crimson: #b3261e;
+  --crimson-24: color-mix(in oklab, var(--crimson) 24%, transparent);
+  --crimson-12: color-mix(in oklab, var(--crimson) 12%, transparent);
+  --crimson-08: color-mix(in oklab, var(--crimson) 8%, transparent);
+
+  --saffron: #e8740c;
+  --marigold: #e8a33d;
+  /* The sunrise: Sarvam's own entry gesture, and the one place this app is
+     allowed to be warm. Used at the top edge and behind the covenant, never
+     on data and never on a status. */
+  --sunrise: linear-gradient(
+    100deg,
+    var(--saffron) 0%,
+    var(--marigold) 22%,
+    var(--indigo) 78%
+  );
+
+  --rule: 1px solid var(--ink-12);
+  --rule-strong: 1px solid var(--ink-24);
+  --r-0: 0;
+  --r-1: 2px;
+  --r-full: 999px;
+  --shadow-sheet:
+    0 1px 0 var(--ink-12), 0 24px 48px -32px rgba(30, 30, 30, 0.28); /* R2: SigningSheet only */
+  --hatch: repeating-linear-gradient(
+    45deg,
+    currentColor 0 1px,
+    transparent 1px 5px
+  );
+
+  /* §6.1 faces */
+  /* Every stack below names a face that can actually draw what we ask of it.
+     Neither Fraunces nor IBM Plex Mono ships U+20B9, so "Noto Sans" precedes
+     the generic fallbacks wherever a rupee can appear — without it the symbol
+     silently resolves to whatever the OS happens to have. */
+  --font-display: "Fraunces", "Noto Serif", ui-serif, Georgia, serif;
+  --font-body: "General Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-data: "IBM Plex Mono", "Noto Sans Mono", ui-monospace,
+    "SFMono-Regular", monospace;
+  --font-accent: "Anek Devanagari", "Noto Sans Devanagari", var(--font-body);
+
+  /* §6.2 type scale — size / line / tracking per role; weight + variation
+     settings are applied at the point of use (CSS custom properties cannot
+     bundle a full font shorthand across weight and font-variation-settings). */
+  /* Density pass: the display end grows and the text end shrinks, so the
+     scale reads as big-and-light over small-and-quiet rather than as one
+     undifferentiated middle. Nothing below 11px carries prose. */
+  --t-display-xl-size: 60px;
+  --t-display-xl-line: 62px;
+  --t-display-xl-tracking: -0.025em;
+  --t-display-l-size: 34px;
+  --t-display-l-line: 40px;
+  --t-display-l-tracking: -0.02em;
+  --t-display-s-size: 17px;
+  --t-display-s-line: 22px;
+  --t-display-s-tracking: -0.01em;
+  --t-body-l-size: 15px;
+  --t-body-l-line: 22px;
+  --t-body-m-size: 13px;
+  --t-body-m-line: 19px;
+  --t-body-s-size: 12px;
+  --t-body-s-line: 17px;
+  /* 10px labels were unreadable at any contrast; the tier starts at 11. */
+  --t-label-size: 11px;
+  --t-label-line: 12px;
+  /* Was 0.08em. Wide tracking on uppercase is the loudest thing a small
+     label can do; halved so labels recede instead of shouting. */
+  --t-label-tracking: 0.04em;
+  --t-data-l-size: 18px;
+  --t-data-l-line: 22px;
+  --t-data-m-size: 12px;
+  --t-data-m-line: 16px;
+  --t-data-s-size: 11px;
+  --t-data-s-line: 14px;
+  --t-data-s-tracking: 0.02em;
+  --measure-prose: 68ch;
+  --measure-chat: 58ch;
+
+  /* §6.3 spacing scale (4px base) */
+  --sp-px: 1px;
+  --sp-1: 2px;
+  --sp-2: 4px;
+  --sp-3: 6px;
+  --sp-4: 8px;
+  /* sp-5..sp-8 are the component-padding band and come down a notch; sp-9
+     and up are the between-group band and are left alone, because the
+     density goal is smaller components with MORE air around them, not a
+     uniformly tighter page. */
+  --sp-5: 10px;
+  --sp-6: 14px;
+  --sp-7: 18px;
+  --sp-8: 22px;
+  --sp-9: 32px;
+  --sp-10: 40px;
+  --sp-11: 56px;
+  --sp-12: 72px;
+  --sp-13: 96px;
+
+  /* §6.3 fixed dimensions */
+  --dim-rail: 68px;
+  --dim-topbar: 40px;
+  --dim-conversation: 400px;
+  /* The calm default column: one measure of conversation, centred. */
+  --dim-calm: 620px;
+  --dim-attack-gutter: 96px;
+  --dim-kolam: 132px;
+  --dim-dock-collapsed: 44px;
+  --dim-dock-expanded: 260px;
+  --dim-instrument-min: 640px;
+  /* Mirrors Seal's `size` default the way motion.css mirrors presets.ts —
+     the prop stays the geometry source of truth (viewBox and radius are
+     computed from it), this is the value CSS needs to reserve space. */
+  --dim-seal: 36px;
+  --dim-seal-payment: 56px;
+  /* The at-rest mark in the collapsed trust strip. The 36px seal is only
+     ever drawn inside the opened instrument, where it is the stamp beat. */
+  --dim-seal-tick: 14px;
+  --dim-rosette: 88px;
+  --dim-row: 32px;
+  --kolam-pitch: 44px;
+}
+
+/* §7.3 dark theme — explicit opt-in ONLY (`data-theme="dark"`, set from a
+   stored choice in main.tsx). There is deliberately no
+   `prefers-color-scheme: dark` rule: an OS preference must never decide
+   what a reviewer sees. The palette is a warm neutral dark — lifted, low
+   chroma, ink-on-paper at night — not a near-black terminal ground. */
+:root[data-theme="dark"] {
+  --paper: #1f1c18;
+  --paper-sunk: #1a1714;
+  --paper-raised: #262320;
+  --ink: #f0ebe3;
+  --indigo: #a5a3f2;
+  --green: #62c295;
+  --crimson: #e79289;
+  --seal-bloom-opacity: 0.16;
+  --kolam-stroke-opacity: 0.62;
+}
+:root {
+  --seal-bloom-opacity: 0.12;
+  --kolam-stroke-opacity: 0.7;
+}

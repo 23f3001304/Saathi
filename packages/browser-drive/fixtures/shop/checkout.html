@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Bazaar Fixture — Checkout</title>
+    <style>
+      body { font: 16px/1.5 system-ui, sans-serif; margin: 2rem; max-width: 40rem; }
+      label { display: block; margin-top: .8rem; }
+      input { font: inherit; padding: .4rem .6rem; width: 100%; }
+      button { font: inherit; padding: .6rem 1rem; margin-top: 1.2rem; }
+      table { border-collapse: collapse; width: 100%; margin-bottom: 1.5rem; }
+      td, th { border-bottom: 1px solid #ddd; padding: .5rem; text-align: left; }
+    </style>
+  </head>
+  <body>
+    <h1>Checkout</h1>
+
+    <table>
+      <tbody>
+        <tr data-cart-row>
+          <td>Trailfoot Runner</td>
+          <td class="qty">Qty: 1</td>
+          <td class="price">₹3,499.00</td>
+        </tr>
+        <tr data-cart-row>
+          <td>Merino trail socks</td>
+          <td class="qty">Qty: 2</td>
+          <td class="price">₹300.00</td>
+        </tr>
+      </tbody>
+      <tfoot>
+        <tr><td colspan="2">Delivery</td><td>₹500.00</td></tr>
+        <tr data-total><td colspan="2">Grand total</td><td>₹4,299.00</td></tr>
+      </tfoot>
+    </table>
+
+    <form id="pay-form" action="/checkout/payment" method="post">
+      <label for="cardholder">Name on card</label>
+      <input id="cardholder" name="cardholder" type="text" autocomplete="cc-name" />
+
+      <label for="card-number">Card number</label>
+      <input
+        id="card-number"
+        name="cardNumber"
+        type="text"
+        inputmode="numeric"
+        autocomplete="cc-number"
+        placeholder="0000 0000 0000 0000"
+      />
+
+      <label for="expiry">Expiry</label>
+      <input id="expiry" name="expiry" type="text" autocomplete="cc-exp" placeholder="MM/YY" />
+
+      <label for="cvv">CVV</label>
+      <input
+        id="cvv"
+        name="cvv"
+        type="text"
+        inputmode="numeric"
+        autocomplete="cc-csc"
+        maxlength="4"
+      />
+
+      <label for="upi">Or pay by UPI ID</label>
+      <input id="upi" name="upiId" type="text" placeholder="name@bank" />
+
+      <button id="place-order" type="submit">Place order</button>
+      <button id="pay-hindi" type="button">भुगतान करें</button>
+    </form>
+  </body>
+</html>

@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Bazaar Fixture — Home</title>
+    <style>
+      body { font: 16px/1.5 system-ui, sans-serif; margin: 2rem; max-width: 46rem; }
+      .card { border: 1px solid #ccc; padding: 1rem; margin: 1rem 0; }
+      input, button { font: inherit; padding: .4rem .6rem; }
+    </style>
+  </head>
+  <body>
+    <h1>Bazaar (local fixture)</h1>
+    <p>
+      A self-contained shop used to prove the browser-drive mechanics. Nothing
+      here talks to a network, and no third-party site is ever touched.
+    </p>
+
+    <form action="/search" method="get">
+      <label for="q">Search the catalogue</label>
+      <input id="q" name="q" type="search" placeholder="What are you after?" />
+      <button id="search-go" type="button">Search</button>
+    </form>
+
+    <div class="card">
+      <h2>Trailfoot Runner</h2>
+      <p class="price">₹3,499.00</p>
+      <a id="to-product" href="product.html">View product</a>
+    </div>
+
+    <p>
+      <a id="to-cart" href="cart.html">Cart</a> ·
+      <a id="to-login" href="login.html">Sign in</a>
+    </p>
+  </body>
+</html>

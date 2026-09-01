@@ -1,0 +1,44 @@
+.row {
+  display: grid;
+  grid-template-columns: 1fr 140px 90px 24px 24px;
+  align-items: center;
+  gap: var(--sp-4);
+  padding: var(--sp-3) 0;
+  border-bottom: var(--rule);
+}
+
+.amended {
+  border-left: 2px solid var(--indigo);
+  padding-left: var(--sp-3);
+}
+
+.expiring {
+  border-bottom-style: dotted;
+}
+
+.value {
+  font-family: var(--font-data);
+  font-size: var(--t-data-m-size);
+  text-align: right;
+}
+
+.signedAt {
+  font-family: var(--font-data);
+  font-size: var(--t-data-s-size);
+  color: var(--ink-55);
+  text-align: right;
+}
+
+.seal {
+  text-align: center;
+}
+.sealHollow {
+  color: var(--indigo);
+}
+
+.revoke {
+  background: none;
+  border: none;
+  color: var(--ink-55);
+  cursor: pointer;
+}

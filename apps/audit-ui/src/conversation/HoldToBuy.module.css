@@ -1,0 +1,41 @@
+.hold {
+  position: relative;
+  align-self: flex-start;
+  overflow: hidden;
+  padding: var(--sp-4) var(--sp-8);
+  border: 1px solid var(--indigo);
+  border-radius: var(--r-1);
+  background: var(--indigo);
+  cursor: pointer;
+  transition: filter 0.16s var(--ease-out);
+}
+.hold:hover {
+  filter: brightness(1.12);
+}
+.hold:focus-visible {
+  outline: 2px solid var(--indigo);
+  outline-offset: 2px;
+}
+.hold:disabled {
+  border-color: var(--ink-24);
+  background: var(--ink-24);
+  cursor: default;
+}
+
+/* The commitment, made visible: a lighter band sweeps the width of the
+   button over the 600 ms hold. Lighter rather than inverted, so the label
+   stays legible at every point in the sweep. */
+.fill {
+  position: absolute;
+  inset: 0;
+  transform: scaleX(0);
+  transform-origin: left center;
+  background: rgb(255 255 255 / 0.3);
+}
+
+.label {
+  position: relative;
+  font-family: var(--font-body);
+  font-size: var(--t-body-m-size);
+  color: var(--paper);
+}
