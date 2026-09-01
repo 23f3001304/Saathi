@@ -50,7 +50,7 @@ describe("a Google profile alone is never purchase authority", () => {
     fireEvent.click(screen.getByRole("button", TRIGGER));
     fireEvent.click(await screen.findByRole("button", ACCOUNT));
 
-    expect(screen.getByText("none — nothing can be bought")).toBeDefined();
+    expect(screen.getByText("none: nothing can be bought")).toBeDefined();
     expect(screen.getByText("Google · mehang@example.com")).toBeDefined();
   });
 });

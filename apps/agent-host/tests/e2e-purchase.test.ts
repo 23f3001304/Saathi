@@ -86,7 +86,9 @@ describe("what the agent wrote down", () => {
     const listings = resultOf(happy).memoryWrites.filter(
       (write) => write.channel === "untrusted_text",
     );
-    expect(listings.length).toBeGreaterThan(1);
+    // The scripted search now queries the request, so only best-matching rows
+    // come back: one for this request. Every one of them is still quarantined.
+    expect(listings.length).toBeGreaterThan(0);
     expect(listings.every((write) => write.status === "quarantined")).toBe(true);
     expect(listings.every((write) => write.tierGranted === "P0")).toBe(true);
   });

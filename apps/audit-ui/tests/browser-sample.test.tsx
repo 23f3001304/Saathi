@@ -187,7 +187,7 @@ describe("classifying a handshake that did not carry a key", () => {
 describe("the reel's own action lines", () => {
   it("name themselves, so a quoted line cannot pass for a reading", () => {
     for (const action of BROWSING.actions) {
-      expect(action.label.startsWith("Sample —")).toBe(true);
+      expect(action.label.startsWith("Sample:")).toBe(true);
     }
     expect(JSON.stringify(BROWSING)).not.toContain("high confidence");
   });

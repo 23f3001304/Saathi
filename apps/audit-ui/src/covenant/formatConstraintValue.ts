@@ -26,7 +26,7 @@ export function formatConstraintValue(constraint: Constraint): string {
 
 /** A cool-off is quoted in whole hours, or in days once it passes two. */
 function hours(count: number): string {
-  if (!Number.isFinite(count)) return "—";
+  if (!Number.isFinite(count)) return "·";
   if (count >= 48) return `${Math.round(count / 24)} days`;
   return `${count} hour${count === 1 ? "" : "s"}`;
 }

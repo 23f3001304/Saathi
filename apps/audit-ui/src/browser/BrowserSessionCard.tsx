@@ -94,7 +94,7 @@ function Chrome({
         }
       >
         {idleAgent
-          ? "Done looking — take the wheel or ask me something"
+          ? "Done looking: take the wheel or ask me something"
           : nobody
             ? "nobody is driving"
             : yours
@@ -200,7 +200,7 @@ export function BrowserSessionCard({
           Anything you buy on this page is bought here, not through Saathi. No
           rule you signed applies to it, there is no cool-off, and it will not
           appear in your ledger. While the window is yours it shows everything
-          on it, including what you type — the picture goes to this tab and is
+          on it, including what you type. The picture goes to this tab and is
           never written down. Saathi still cannot touch a password or a card
           number on this page, and the moment you hand the window back those
           fields are painted out of the picture again.
@@ -238,9 +238,14 @@ export function BrowserSessionCard({
               and stays in that window.
             </p>
           )}
-          <button type="button" className={styles.resume} onClick={onResume}>
-            I&rsquo;m done — carry on
-          </button>
+          {/* A restored card keeps the handoff's words as the record of what
+              was asked, but never the button: "carry on" on a window this
+              page has no hold on is a control that looks alive and is not. */}
+          {!undriven(session) && (
+            <button type="button" className={styles.resume} onClick={onResume}>
+              I&rsquo;m done, carry on
+            </button>
+          )}
         </div>
       )}
 

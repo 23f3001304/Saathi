@@ -64,7 +64,7 @@ export const NO_WINDOW = webFailure(
 export function theirTurn(state: string): WebResult {
   return webFailure(
     "user_is_driving",
-    `The window is in "${state}" — the shopper has the wheel and the agent cannot act until they hand it back. Say what you are waiting for.`,
+    `The window is in "${state}": the shopper has the wheel and the agent cannot act until they hand it back. Say what you are waiting for.`,
     { state },
   );
 }

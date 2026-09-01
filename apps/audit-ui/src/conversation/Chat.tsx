@@ -1,7 +1,14 @@
 // Chat-first: one centred conversation, like every assistant people already
 // know. except this one asks before it spends, shows its work as it
 // happens, and ends every purchase at a hold-to-sign, not a buy button.
-import { useEffect, useRef, useState, type JSX, type ReactNode } from "react";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type JSX,
+  type ReactNode,
+} from "react";
 import { ChatSession } from "./ChatSession.tsx";
 import {
   ChatHistory,
@@ -9,6 +16,10 @@ import {
   type SessionStatus,
 } from "./ChatHistory.tsx";
 import { cancelRun } from "../api/agent.ts";
+import type { AttentionKind } from "../api/lanes.ts";
+import { notifyAttention } from "./attentionNotify.ts";
+import { badgesFor } from "./laneBadges.ts";
+import { useLaneAttention } from "./useLaneAttention.ts";
 import { newConversationId, readChats, writeChats } from "./sessionStore.ts";
 import styles from "./Chat.module.css";
 
@@ -77,6 +88,30 @@ export function Chat({ offline, trust }: ChatProps): JSX.Element {
   useEffect(() => {
     writeChats({ sessions, groups, activeId });
   }, [sessions, groups, activeId]);
+
+  // Refs, because the lane poll fires between renders and must judge "is this
+  // chat on screen" against the shelf as it stands, not as it was captured.
+  const sessionsRef = useRef(sessions);
+  sessionsRef.current = sessions;
+  const activeRef = useRef(activeId);
+  activeRef.current = activeId;
+
+  /** A lane parked needing a person. If that chat is the one on screen the
+   *  composer is already asking; anything else earns a notification whose
+   *  click brings the chat forward. */
+  const onAttention = useCallback((conversation: string, kind: AttentionKind) => {
+    const target = sessionsRef.current.find(
+      (session) => session.conversationId === conversation,
+    );
+    if (target === undefined) return;
+    const onScreen =
+      target.id === activeRef.current &&
+      document.visibilityState === "visible";
+    if (onScreen) return;
+    notifyAttention(kind, target.title, () => setActiveId(target.id));
+  }, []);
+  const lanes = useLaneAttention(onAttention);
+  const badges = badgesFor(sessions, lanes);
 
   const active = sessions.find((s) => s.id === activeId);
 
@@ -161,6 +196,7 @@ export function Chat({ offline, trust }: ChatProps): JSX.Element {
             sessions={sessions}
             activeId={activeId}
             groups={groups}
+            badges={badges}
             onSelect={(id) => {
               setActiveId(id);
               const picked = sessions.find((s) => s.id === id);

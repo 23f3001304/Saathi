@@ -109,6 +109,7 @@ export class PurchaseRunner {
     const chose = await routeTypedPick(this.parts, base, request, {
       chat,
       replyLanguage,
+      stated,
     });
     // Rolling compaction: lines already folded into the record's summary are
     // not replayed verbatim; the digest carries them, small, as data. What

@@ -6,7 +6,7 @@ import type { AppEnv } from "./app-env.js";
 import { browserKeyGuard, HANDSHAKE_PATH } from "./browser-key.js";
 import { registerSessions } from "./session-routes.js";
 import type { SessionKeys } from "./session-keys.js";
-import { registerWindow } from "./window-routes.js";
+import { registerWindow, type ResolveWindow } from "./window-routes.js";
 
 export { payloadOf } from "./frame-stream.js";
 
@@ -18,6 +18,9 @@ export interface BrowserRoutes {
   readonly keys: SessionKeys;
   readonly logger: Logger;
   readonly hostKey: string;
+  /** Which agent window a `/browser/*` call means: the primary, or — with
+   *  `?conversation=` — that lane's own. Absent, the primary serves alone. */
+  readonly resolveWindow?: ResolveWindow;
 }
 
 /**
@@ -51,7 +54,12 @@ export function registerBrowser(
   registerWindow(
     app,
     "/browser",
-    () => ({ id: "primary", service: routes.registry.primary(), openedAt: 0 }),
+    routes.resolveWindow ??
+      (() => ({
+        id: "primary",
+        service: routes.registry.primary(),
+        openedAt: 0,
+      })),
     routes.logger,
   );
   registerSessions(app, routes);

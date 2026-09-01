@@ -20,17 +20,22 @@ let web: WebHarness;
 let hub: BeatHub;
 let park: WebPickPark;
 
-function stepOn(said = "It is in the basket."): WebBuyStep {
+function stepOn(said = "It is in the basket.", carts = false): WebBuyStep {
   return new WebBuyStep(
     hub,
     {
-      converse: () =>
-        Promise.resolve({
+      converse: () => {
+        // Stands in for the add-to-basket click the real errand makes; the
+        // recording itself is `WebShopper`'s and is covered where the tools
+        // are driven for real.
+        if (carts) web.progress.recordCarted();
+        return Promise.resolve({
           transcript: [said],
           blocked: [],
           turns: 1,
           completed: true,
-        }),
+        });
+      },
     },
     web.shopper,
     web.trail,
@@ -63,11 +68,21 @@ beforeEach(async () => {
 
 describe("a tapped card drives the window", () => {
   it("goes to the listing the ref names, and says where it got to", async () => {
-    const result = await stepOn().buy("w1", ["runners under 3000"]);
+    const result = await stepOn("It is in the basket.", true).buy("w1", [
+      "runners under 3000",
+    ]);
     expect(web.page.url()).toBe(PRODUCT);
     expect(result.status).toBe("answered");
     expect(said()[0]).toBe("It is in the basket.");
     expect(said().at(-1)).toContain("payment step is yours");
+  });
+
+  it("admits an empty basket rather than handing over a payment step", async () => {
+    // The errand claims a basket; this host watched no add-to-basket click
+    // land. The closing line reports the host's own record, not the claim.
+    await stepOn("It is in the basket.").buy("w1", ["runners under 3000"]);
+    expect(said().at(-1)).toContain("could not get it into that shop's basket");
+    expect(said().at(-1)).not.toContain("payment step is yours");
   });
 
   it("signs nothing and drafts nothing on the way", async () => {

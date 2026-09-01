@@ -22,10 +22,10 @@ export const DECISION_TEXT: Record<string, string> = {
 };
 
 const KEPT_AT: Record<string, string> = {
-  P3: "Remembered — you signed it",
-  P2: "Remembered — the merchant signed for it",
-  P1: "Remembered — from something I checked myself",
-  P0: "Noted, but not trusted — read off a merchant's page",
+  P3: "Remembered: you signed it",
+  P2: "Remembered: the merchant signed for it",
+  P1: "Remembered: from something I checked myself",
+  P0: "Noted, but not trusted: read off a merchant's page",
 };
 
 /**
@@ -37,8 +37,8 @@ const KEPT_AT: Record<string, string> = {
 function refusedLine(rule: string | null): string {
   const contradiction = rule !== null && rule !== "" && !rule.startsWith("R0");
   return contradiction
-    ? "Refused — that would have loosened a rule you signed"
-    : "Not remembered — text on a merchant's page is not a fact";
+    ? "Refused: that would have loosened a rule you signed"
+    : "Not remembered: text on a merchant's page is not a fact";
 }
 
 export function memoryLine(

@@ -21,9 +21,17 @@ const STATUS_LABEL: Record<SessionStatus, string> = {
   signed: "Signed",
 };
 
+/** What the host's lane list says about a chat that is not on screen: it is
+ *  working, it is waiting in line, or it has stopped and needs its person. */
+export type LaneBadgeView = {
+  readonly label: string;
+  readonly tone: "attention" | "queued" | "running";
+};
+
 type RowProps = {
   session: ChatSessionMeta;
   active: boolean;
+  badge?: LaneBadgeView | undefined;
   onSelect: () => void;
   onArchive: () => void;
   onDelete: () => void;
@@ -32,6 +40,7 @@ type RowProps = {
 function Row({
   session,
   active,
+  badge,
   onSelect,
   onArchive,
   onDelete,
@@ -40,6 +49,11 @@ function Row({
     <div className={active ? `${styles.row} ${styles.rowOn}` : styles.row}>
       <button type="button" className={styles.open} onClick={onSelect}>
         <span className={styles.title}>{session.title}</span>
+        {badge !== undefined && (
+          <span className={`${styles.badge} ${styles[`badge_${badge.tone}`]}`}>
+            {badge.label}
+          </span>
+        )}
         <span
           className={`${styles.status} ${styles[`status_${session.status}`]}`}
         >
@@ -74,6 +88,8 @@ type ChatHistoryProps = {
   sessions: ChatSessionMeta[];
   activeId: number;
   groups: string[];
+  /** Lane badges by session id, from `GET /chat/lanes`; absent in fixture mode. */
+  badges?: ReadonlyMap<number, LaneBadgeView>;
   onSelect: (id: number) => void;
   onToggleArchive: (id: number) => void;
   onDelete: (id: number) => void;
@@ -131,6 +147,7 @@ export function ChatHistory({
   sessions,
   activeId,
   groups,
+  badges,
   onSelect,
   onToggleArchive,
   onDelete,
@@ -153,6 +170,7 @@ export function ChatHistory({
                 key={session.id}
                 session={session}
                 active={session.id === activeId}
+                badge={badges?.get(session.id)}
                 onSelect={() => onSelect(session.id)}
                 onArchive={() => onToggleArchive(session.id)}
                 onDelete={() => onDelete(session.id)}
@@ -182,6 +200,7 @@ export function ChatHistory({
               key={session.id}
               session={session}
               active={session.id === activeId}
+              badge={badges?.get(session.id)}
               onSelect={() => onSelect(session.id)}
               onArchive={() => onToggleArchive(session.id)}
               onDelete={() => onDelete(session.id)}

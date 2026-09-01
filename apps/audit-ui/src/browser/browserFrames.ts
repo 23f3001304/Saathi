@@ -1,6 +1,6 @@
 // The frame side of the sandbox seam, split out of liveBrowser.ts so that file
 // reads as "what to poll and when" rather than also carrying the socket.
-import { get, handshake, streamUrl } from "./browserKey.ts";
+import { get, handshake, scoped, streamUrl } from "./browserKey.ts";
 import { repeat } from "./browserPoll.ts";
 import type { Wire } from "./browserPoll.ts";
 import { parseFrame } from "./browserWire.ts";
@@ -24,7 +24,7 @@ function safeJson(raw: string): unknown {
 
 export async function readFrame(wire: Wire): Promise<void> {
   try {
-    const res = await get(wire.base, "/browser/frame");
+    const res = await get(wire.base, scoped("/browser/frame", wire.conversation));
     if (!res.ok) return;
     emitCapture(wire, parseFrame(await res.json()));
   } catch {
@@ -48,7 +48,7 @@ export function streamFrames(wire: Wire, retried = false): void {
     repeat(wire, FRAME_INTERVAL_MS, () => readFrame(wire));
     return;
   }
-  const source = new EventSource(streamUrl(wire.base));
+  const source = new EventSource(streamUrl(wire.base, wire.conversation));
   wire.source = source;
   source.onmessage = (event: MessageEvent<string>) => {
     emitCapture(wire, parseFrame(safeJson(event.data)));

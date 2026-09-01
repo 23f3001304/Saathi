@@ -3,6 +3,7 @@
 // stand on it while it keeps trying to climb back.
 import { parseChatState } from "../api/agentBeat.ts";
 import { epochOf } from "./beatEvents.ts";
+import { stateUrl } from "./beatScope.ts";
 import { claim, drain } from "./beatFold.ts";
 import {
   giveUp,
@@ -53,7 +54,7 @@ function pollRecovered(session: StreamSession): void {
 
 export async function pollOnce(session: StreamSession): Promise<void> {
   try {
-    const res = await fetch(`${session.base}/chat/state`);
+    const res = await fetch(stateUrl(session));
     if (!res.ok) throw new Error(`chat/state → ${res.status}`);
     const raw: unknown = await res.json();
     const state = parseChatState(raw);

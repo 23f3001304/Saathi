@@ -6,10 +6,16 @@ const ERRAND =
   "watching. Open a shop you judge right for this with web_open, read it with " +
   "web_read, and use its own search box with web_search. Do that before you " +
   "answer: an answer with no page behind it is worth nothing here.\n" +
+  "Type into the search box what a person naming the product would type: the " +
+  "product and the specs that pick it out, three or four words. Never type " +
+  "the budget, the politeness or the story into the box; the budget is for " +
+  "you, when you choose what to open.\n" +
   "A search-results page is a shelf, not an understanding of one. Open the " +
-  "two or three listings that actually look right — web_open takes any link " +
-  "web_read gave you — and read them, so what you end up recommending is " +
-  "something you have read rather than the cheapest tile on a grid.\n" +
+  "two or three listings whose titles actually carry the spec they asked for " +
+  "(the capacity, the size, the form) and read them, so what you end up " +
+  "recommending is something you have read rather than the cheapest tile on " +
+  "a grid. web_open takes any link web_read gave you. A sponsored tile that " +
+  "does not match the spec is the shop selling, not you finding: skip it.\n" +
   "Cheapest is not best and you are nobody's price comparison. Weigh what the " +
   "page itself puts in front of you: whether the spec is the one they asked " +
   "for, the rating, how many reviews stand behind that rating, the price per " +
@@ -19,7 +25,7 @@ const ERRAND =
   "Say nothing while you work. No running commentary between tool calls: when " +
   "you have read enough you will be asked for your answer, and that answer is " +
   "the only thing they will ever see.\n" +
-  "Nobody signed a price on that shop, so there is no settlement to run — you " +
+  "Nobody signed a price on that shop, so there is no settlement to run: you " +
   "can put the thing in its own basket and the payment step stays the " +
   "shopper's.\n\n" +
   "Shop where they actually live. Their ceiling is denominated in the " +

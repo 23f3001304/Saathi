@@ -50,7 +50,7 @@ function refusalText(reasonCode: string): string {
   if (because === undefined) {
     return "I will not propose this cart: it conflicts with the covenant you signed.";
   }
-  return `I will not propose this cart — ${because}.`;
+  return `I will not propose this cart: ${because}.`;
 }
 
 export function refuseCart(

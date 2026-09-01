@@ -5,6 +5,8 @@ import { BeatHub } from "../http/beat-hub.js";
 import type { BeatLog } from "../http/beat-log.js";
 import { openBeatLog } from "../http/beat-log.js";
 import { ConversationBeatStore } from "../http/beat-store.js";
+import type { EpochSource } from "../http/epoch-source.js";
+import { SharedEpochs } from "../http/epoch-source.js";
 import type { SandboxView } from "../http/chat-beat.js";
 import { ChatService } from "../http/chat-service.js";
 import type { BuyerParts } from "./buyer-wiring.js";
@@ -13,9 +15,15 @@ import type { KeyParts } from "./key-wiring.js";
 import type { ObsParts } from "./obs-wiring.js";
 
 export interface BeatParts {
-  readonly log: BeatLog;
   readonly store: ConversationBeatStore;
   readonly hub: BeatHub;
+}
+
+/** The durable half, opened once for the whole host. */
+export interface BeatLogParts {
+  readonly log: BeatLog;
+  /** Every lane's hub draws epochs here, so no two lanes share an address. */
+  readonly epochs: EpochSource;
 }
 
 /** The sandbox as the conversation log may see it: a card, never a picture. */
@@ -33,22 +41,37 @@ interface ChatDeps {
 }
 
 /**
- * The log, the store over it and the hub that writes through it — built
- * together because the hub's first epoch is read off the log. A host that came
- * back at epoch 1 would mint an address the log already holds.
+ * The log and the epoch counter over it — one of each per process, however
+ * many lanes run. The counter starts past the highest epoch the log has ever
+ * held: a host that came back at epoch 1 would mint an address the log
+ * already holds, and a client holding the first one could not tell them apart.
  */
-export function wireBeats(
+export function wireBeatLog(
   config: AgentHostConfig,
   clock: Clock,
   obs: ObsParts,
-): BeatParts {
+): BeatLogParts {
   const log = openBeatLog(config.dbFile, clock, obs.logger);
-  const store = new ConversationBeatStore(log, obs.logger);
+  return { log, epochs: new SharedEpochs(log.lastEpoch) };
+}
+
+/**
+ * One lane's store and hub over the shared log. The store is per lane because
+ * its one piece of state — which conversation the hub's beats file under — is
+ * exactly the state that must never be shared: a process-wide "current chat"
+ * is how one lane's beats ended up in another conversation's transcript.
+ */
+export function wireLaneBeats(
+  shared: BeatLogParts,
+  clock: Clock,
+  obs: ObsParts,
+): BeatParts {
+  const store = new ConversationBeatStore(shared.log, obs.logger);
   const hub = new BeatHub(clock, obs.logger, {
     recorder: store,
-    startEpoch: store.startEpoch,
+    epochs: shared.epochs,
   });
-  return { log, store, hub };
+  return { store, hub };
 }
 
 export function wireChat(

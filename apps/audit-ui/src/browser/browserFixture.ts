@@ -18,15 +18,15 @@ const BASE = `https://${MERCHANT}`;
 export const BROWSING: BrowserSessionView = {
   merchant: MERCHANT,
   url: `${BASE}/cart`,
-  title: "Your bag — Kolam Run (sample)",
+  title: "Your bag: Kolam Run (sample)",
   state: "agent-drive",
   actions: [
-    { id: "a1", label: "Sample — opened the shop", outcome: "ok" },
-    { id: "a2", label: "Sample — searched for “navy kurta”", outcome: "ok" },
-    { id: "a3", label: "Sample — added it to the bag", outcome: "ok" },
+    { id: "a1", label: "Sample: opened the shop", outcome: "ok" },
+    { id: "a2", label: "Sample: searched for “navy kurta”", outcome: "ok" },
+    { id: "a3", label: "Sample: added it to the bag", outcome: "ok" },
     {
       id: "a4",
-      label: "Sample — a bag total of ₹1,299 stands in here",
+      label: "Sample: a bag total of ₹1,299 stands in here",
       outcome: "ok",
     },
   ],
@@ -35,20 +35,20 @@ export const BROWSING: BrowserSessionView = {
 export const HANDOFF_LOGIN: BrowserSessionView = {
   ...BROWSING,
   url: `${BASE}/account/signin`,
-  title: "Sign in — Kolam Run (sample)",
+  title: "Sign in: Kolam Run (sample)",
   state: "user-drive",
   handoff: {
     reason: "login",
-    ask: "This shop wants a password. I never type credentials — the window below is yours. Sign in and I will pick up where I left off.",
+    ask: "This shop wants a password. I never type credentials: the window below is yours. Sign in and I will pick up where I left off.",
   },
   actions: [
     ...BROWSING.actions,
     {
       id: "a5",
-      label: "Sample — tried to type the password",
+      label: "Sample: tried to type the password",
       outcome: "refused",
       reason:
-        "That is a password field. The agent never types a credential — you type it in the window you can see.",
+        "That is a password field. The agent never types a credential: you type it in the window you can see.",
     },
   ],
 };
@@ -56,10 +56,10 @@ export const HANDOFF_LOGIN: BrowserSessionView = {
 export const READY_TO_RESUME: BrowserSessionView = {
   ...HANDOFF_LOGIN,
   url: `${BASE}/account`,
-  title: "Your account — Kolam Run (sample)",
+  title: "Your account: Kolam Run (sample)",
   handoff: {
     reason: "login",
-    ask: "This shop wants a password. I never type credentials — the window below is yours.",
+    ask: "This shop wants a password. I never type credentials: the window below is yours.",
     readiness:
       "It looks like you are through. I stay paused until you tell me to carry on.",
   },
@@ -68,28 +68,28 @@ export const READY_TO_RESUME: BrowserSessionView = {
 export const REFUSED_OVER_CAP: BrowserSessionView = {
   merchant: MERCHANT,
   url: `${BASE}/checkout`,
-  title: "Checkout — Kolam Run (sample)",
+  title: "Checkout: Kolam Run (sample)",
   state: "agent-drive",
   actions: [
     ...READY_TO_RESUME.actions,
-    { id: "a6", label: "Sample — you signed in; I carried on", outcome: "ok" },
+    { id: "a6", label: "Sample: you signed in; I carried on", outcome: "ok" },
     {
       id: "a7",
-      label: "Sample — tried to type the card number",
+      label: "Sample: tried to type the card number",
       outcome: "refused",
       reason:
         "The page declares that field as card data. The agent never touches card data.",
     },
     {
       id: "a8",
-      label: "Sample — tried to press “Place order”",
+      label: "Sample: tried to press “Place order”",
       outcome: "refused",
       reason:
         "That button commits the payment. Pressing it is the user's act, never the agent's.",
     },
     {
       id: "a9",
-      label: "Sample — stopped assisting; the bag is over your cap",
+      label: "Sample: stopped assisting; the bag is over your cap",
       outcome: "refused",
       reason:
         "The cart reads ₹4,299 against a ₹2,000 cap. On a page like this I cannot hold a limit, so I stop here and do not open the payment step. The window is yours; nothing has been paid.",

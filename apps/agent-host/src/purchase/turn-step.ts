@@ -77,11 +77,13 @@ async function moveOf(
     return await parts.webLook.look(base, plan, stated, replyLanguage);
   }
   if (plan.action === "propose_amendment") {
-    // Prepared and logged — including the `warn` on a widening proposal — but
-    // not yet on the wire: `ChatBeat`/`BeatDraft` in `http/chat-beat.ts` has no
-    // `amendment` variant, and `apps/audit-ui/src/covenant/amendmentBeat.ts`
-    // is already waiting to parse one. Adding that variant is the last step.
-    amendmentBeat(plan, parts.ids, parts.logger);
+    // On the wire at last: `ChatBeat` carries an `amendment` variant and
+    // `apps/audit-ui/src/covenant/amendmentBeat.ts` parses it into the
+    // pending set. The beat used to be prepared, logged and then dropped
+    // here, so a proposal the model made never reached the screen it was
+    // made for. A proposal is still only a proposal: signing stays a hold.
+    const proposed = amendmentBeat(plan, parts.ids, parts.logger);
+    if (proposed !== null) parts.hub.emit(proposed);
   }
   return answerTurn(parts, base, plan);
 }

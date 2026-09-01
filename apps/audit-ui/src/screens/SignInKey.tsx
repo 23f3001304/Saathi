@@ -58,7 +58,7 @@ export function SignInKey(): JSX.Element {
         </p>
         <p className={styles.body}>
           I am going to make your signing key, here, in this browser. From then
-          on, nothing is bought in your name without it — not by me, not by a
+          on, nothing is bought in your name without it: not by me, not by a
           merchant, not by anyone holding {held}.
         </p>
         <dl className={styles.contract}>

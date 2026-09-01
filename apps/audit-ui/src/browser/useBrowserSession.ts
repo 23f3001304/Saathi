@@ -33,9 +33,9 @@ export type BrowserSession = {
   readonly dismissRefusal: () => void;
 };
 
-function transportFor(): BrowserTransport {
+function transportFor(conversation: string | null): BrowserTransport {
   const base = agentBaseUrl();
-  return base === null ? fixtureBrowser() : liveBrowser(base);
+  return base === null ? fixtureBrowser() : liveBrowser(base, conversation);
 }
 
 /**
@@ -96,7 +96,7 @@ function withFrame(
  * `user-drive`: readiness is suggested by the harness, never acted on.
  */
 /** Everything arriving from the host, and the transport it arrived on. */
-function useBrowserFeed(active: boolean) {
+function useBrowserFeed(active: boolean, conversation: string | null) {
   const [view, setView] = useState<BrowserSessionView | null>(null);
   const [frame, setFrame] = useState<BrowserFrame | null>(null);
   const [blackout, setBlackout] = useState<BrowserBlackout | null>(null);
@@ -105,19 +105,42 @@ function useBrowserFeed(active: boolean) {
 
   useEffect(() => {
     if (!active) return;
-    return attach(transport, transportFor, {
+    return attach(transport, () => transportFor(conversation), {
       setView,
       setFrame,
       setBlackout,
       setStatus,
     });
-  }, [active]);
+  }, [active, conversation]);
 
   return { view, frame, blackout, status, transport };
 }
 
-export function useBrowserSession(active: boolean): BrowserSession {
-  const { view, frame, blackout, status, transport } = useBrowserFeed(active);
+// Only explain a refusal when there was something to refuse. With no window
+// open, a diagnostic paragraph in the middle of a chat is noise about a
+// sandbox the shopper never asked for.
+function shownOf(
+  view: BrowserSessionView | null,
+  frame: BrowserFrame | null,
+  blackout: BrowserBlackout | null,
+  status: BrowserStatus,
+): BrowserSessionView | null {
+  return status === "unauthorized" && view !== null
+    ? REFUSED_VIEW
+    : labelled(withFrame(view, frame, blackout), status);
+}
+
+/** `conversation` names the lane whose window this card watches: each chat
+ *  session holds a window of its own now, so an unscoped watch would show a
+ *  hidden chat the visible chat's errand. `null` watches the primary. */
+export function useBrowserSession(
+  active: boolean,
+  conversation: string | null = null,
+): BrowserSession {
+  const { view, frame, blackout, status, transport } = useBrowserFeed(
+    active,
+    conversation,
+  );
   const [refusal, setRefusal] = useState<RelayRefusal | null>(null);
 
   const relay = useCallback((input: RelayInput) => {
@@ -126,13 +149,7 @@ export function useBrowserSession(active: boolean): BrowserSession {
     });
   }, []);
 
-  // Only explain a refusal when there was something to refuse. With no window
-  // open, a diagnostic paragraph in the middle of a chat is noise about a
-  // sandbox the shopper never asked for.
-  const shown =
-    status === "unauthorized" && view !== null
-      ? REFUSED_VIEW
-      : labelled(withFrame(view, frame, blackout), status);
+  const shown = shownOf(view, frame, blackout, status);
 
   return {
     view: shown,

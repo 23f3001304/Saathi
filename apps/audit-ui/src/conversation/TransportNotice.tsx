@@ -1,4 +1,4 @@
-import { useEffect, useReducer, type JSX } from "react";
+import { useEffect, useReducer, useState, type JSX } from "react";
 import { useOptionalLedgerStore } from "../ledger/LedgerProvider.tsx";
 import type { TransportStatus } from "./assistantTransport.ts";
 import styles from "./Chat.module.css";
@@ -6,7 +6,7 @@ import styles from "./Chat.module.css";
 const COPY: Partial<Record<TransportStatus, string>> = {
   fixtures: "Nothing is connected. This is a scripted demo, not a real run.",
   connecting: "Connecting…",
-  degraded: "Still live, just slower — the fast connection dropped.",
+  degraded: "Still live, just slower: the fast connection dropped.",
   offline:
     "Nothing is answering, so this is a scripted demo. Nothing below is a real run.",
 };
@@ -18,6 +18,27 @@ const LABEL: Partial<Record<TransportStatus, string>> = {
   degraded: "slower",
   offline: "offline",
 };
+
+/** The rung states the ladder passes through on a blip. Painting them the
+ *  instant they happen made every reconnect flash a banner over a working
+ *  chat — the agent read as breaking when only a socket was. They earn the
+ *  screen by persisting; `fixtures` and `offline` are honesty states and
+ *  still paint immediately. */
+const TRANSIENT: readonly TransportStatus[] = ["connecting", "degraded"];
+const TRANSIENT_AFTER_MS = 1_500;
+
+function useSettledStatus(status: TransportStatus): TransportStatus {
+  const [shown, setShown] = useState(status);
+  useEffect(() => {
+    if (!TRANSIENT.includes(status)) {
+      setShown(status);
+      return;
+    }
+    const timer = setTimeout(() => setShown(status), TRANSIENT_AFTER_MS);
+    return () => clearTimeout(timer);
+  }, [status]);
+  return shown;
+}
 
 /**
  * §4.4's honesty rule, applied to provenance: the screen must never let a
@@ -31,13 +52,16 @@ export function TransportNotice({
   status: TransportStatus;
   detail: string | null;
 }): JSX.Element | null {
-  const copy = COPY[status];
+  const settled = useSettledStatus(status);
+  const copy = COPY[settled];
   if (copy === undefined) return null;
   const tone =
-    status === "offline" ? styles.notice : `${styles.notice} ${styles.noticeDegraded}`;
+    settled === "offline"
+      ? styles.notice
+      : `${styles.notice} ${styles.noticeDegraded}`;
   return (
     <p className={tone}>
-      <span className={styles.noticeLabel}>{LABEL[status] ?? status}</span>
+      <span className={styles.noticeLabel}>{LABEL[settled] ?? settled}</span>
       <span>
         {copy}
         {detail !== null && ` (${detail})`}

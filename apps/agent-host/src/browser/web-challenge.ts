@@ -14,7 +14,7 @@ import { webFailure } from "./web-result.js";
  */
 const BOT_CHECK =
   "This shop is asking to check you are human. I cannot answer that for you " +
-  "and I will not try — solving it is yours to do, by design. The window is " +
+  "and I will not try: solving it is yours to do, by design. The window is " +
   "yours now: work through it there, and tell me when you are through. " +
   "Nothing is lost; I pick up in the same window where I stopped.";
 

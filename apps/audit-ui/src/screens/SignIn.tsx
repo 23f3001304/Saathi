@@ -33,7 +33,7 @@ function DemoAffordance(): JSX.Element {
     <div className={styles.affordance}>
       <p className={styles.demoNote}>
         There is no Google sign-in in this build. A demo user is a made-up
-        identity that lives in this browser and nowhere else — not a Google
+        identity that lives in this browser and nowhere else: not a Google
         account, and not anybody.
       </p>
       <button type="button" className={styles.demoButton} onClick={signIn}>

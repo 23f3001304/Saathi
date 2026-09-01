@@ -27,7 +27,7 @@ export const CUT_SHORT =
  * still shown, so this is an unfinished answer rather than no answer.
  */
 export const RAN_LONG =
-  "I ran out of time on that one — the shop stopped answering me partway " +
+  "I ran out of time on that one: the shop stopped answering me partway " +
   "through. What I did read is below. Nothing was bought and nothing was " +
   "signed; ask me again and I will pick it up.";
 
@@ -72,7 +72,7 @@ function shopOf(url: string): string {
 }
 
 const UNSIGNED =
-  "Whatever it said there is the page's own text, never a signed quote — off " +
+  "Whatever it said there is the page's own text, never a signed quote. Off " +
   "this platform the payment step stays yours to take.";
 
 /** No "tap one" here any more. The ask belongs at the composer, which now
@@ -80,6 +80,6 @@ const UNSIGNED =
  *  in a transcript line as well put the same instruction on screen twice, one
  *  of them where a shopper cannot act on it. */
 const ON_OFFER =
-  "Those prices are what the page printed, not signed quotes — off this " +
+  "Those prices are what the page printed, not signed quotes. Off this " +
   "platform I can find the thing and put it in that shop's own basket, and " +
   "the payment step stays yours to take.";

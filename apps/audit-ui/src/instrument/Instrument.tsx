@@ -65,7 +65,7 @@ export function Instrument({
       <div className={styles.chainColumn}>
         {offline && (
           <p className={styles.offlineBanner}>
-            Nothing is answering — nothing can be bought right now.
+            Nothing is answering, so nothing can be bought right now.
           </p>
         )}
         <CausalChain

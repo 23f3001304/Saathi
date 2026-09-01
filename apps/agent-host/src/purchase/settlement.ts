@@ -29,7 +29,7 @@ function detailOf(outcome: CheckoutOutcome): string {
       // No link is a real outcome, not a missing value: the order is there and
       // the bill can still be paid on it, so the line says which one it is.
       return outcome.paymentLink === null
-        ? `${outcome.rzpOrderId} · no link issued — pay on the bill`
+        ? `${outcome.rzpOrderId} · no link issued · pay on the bill`
         : `${outcome.rzpOrderId} · ${outcome.paymentLink}`;
     case "held":
       return `Parked until ${outcome.until}; cancel at ${outcome.cancelUrl}`;

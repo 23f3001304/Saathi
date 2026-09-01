@@ -66,4 +66,12 @@ export class WebProgress {
     this.handed = null;
     this.cartClicked = false;
   }
+
+  /** A resumed checkout keeps the basket it parked with. The click that
+   *  carted was this host's own act in the earlier leg; wiping it made the
+   *  closing line deny a basket this host itself had filled. */
+  resumeReset(): void {
+    this.filledSlots = [];
+    this.handed = null;
+  }
 }

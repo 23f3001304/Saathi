@@ -68,6 +68,12 @@ export class BrowserRegistry {
     return this.primaryService;
   }
 
+  /** A conversation lane's window, in the primary's family: agent-opened,
+   *  host-keyed, not in `open` — the lane cap (`laneCapFor`) bounds these. */
+  agentWindow(id: string): BrowserService {
+    return this.make(id);
+  }
+
   get count(): number {
     return this.open.size;
   }

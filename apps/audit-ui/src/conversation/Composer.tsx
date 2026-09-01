@@ -1,7 +1,6 @@
 import {
   useRef,
   useState,
-  type ChangeEvent,
   type FormEvent,
   type JSX,
   type ReactNode,
@@ -67,14 +66,6 @@ export function Composer({
 }: ComposerProps): JSX.Element {
   const [text, setText] = useState("");
   const [typing, setTyping] = useState(false);
-  const [attachments, setAttachments] = useState<File[]>([]);
-  const fileRef = useRef<HTMLInputElement>(null);
-
-  function handleFiles(e: ChangeEvent<HTMLInputElement>): void {
-    const picked = Array.from(e.target.files ?? []);
-    if (picked.length > 0) setAttachments((prev) => [...prev, ...picked]);
-    e.target.value = "";
-  }
   const askRef = useRef<HTMLDivElement>(null);
   useStageMorph(askRef, stage);
 
@@ -106,26 +97,6 @@ export function Composer({
           ))}
         </div>
       )}
-      {attachments.length > 0 && (
-        <ul className={styles.files}>
-          {attachments.map((f, i) => (
-            <li key={`${f.name}-${i}`} className={styles.file}>
-              <span className={styles.fileName}>{f.name}</span>
-              <span className={styles.fileNote}>I have not read this yet</span>
-              <button
-                type="button"
-                className={styles.fileRemove}
-                aria-label={`Remove ${f.name}`}
-                onClick={() =>
-                  setAttachments((prev) => prev.filter((_, j) => j !== i))
-                }
-              >
-                ×
-              </button>
-            </li>
-          ))}
-        </ul>
-      )}
       <form className={styles.row} onSubmit={handleSubmit}>
         {(picker !== undefined ||
           (actions !== undefined && actions.length > 0) ||
@@ -140,43 +111,13 @@ export function Composer({
           </button>
         ) : (
           <div className={styles.field}>
-            <button
-              type="button"
-              className={styles.clip}
-              aria-label="Attach a document, image or reference"
-              onClick={() => fileRef.current?.click()}
-            >
-              <svg
-                viewBox="0 0 16 16"
-                width="15"
-                height="15"
-                aria-hidden="true"
-              >
-                <path
-                  d="M13 7.5 8.2 12.3a3.2 3.2 0 0 1-4.5-4.5L8.9 2.6a2.1 2.1 0 0 1 3 3L7.2 10.3a1 1 0 0 1-1.5-1.4l4.3-4.3"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="1.3"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            </button>
-            <input
-              ref={fileRef}
-              type="file"
-              multiple
-              accept="image/*,.pdf,.doc,.docx,.txt,.csv"
-              className={styles.fileInput}
-              onChange={handleFiles}
-            />
             <input
               className={styles.input}
               value={text}
               disabled={blocked}
               placeholder={
                 blocked
-                  ? "Nothing is answering — nothing can be bought"
+                  ? "Nothing is answering: nothing can be bought"
                   : (placeholder ?? "Ask Saathi…")
               }
               onChange={(e) => setText(e.target.value)}

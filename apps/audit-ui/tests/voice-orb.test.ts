@@ -108,7 +108,7 @@ describe("orbState — the words for each state", () => {
     expect(new Set(said).size).toBe(phases.length);
     expect(said.every((s) => s !== "")).toBe(true);
     expect(new Set(phases.map(orbLabel)).size).toBe(phases.length);
-    expect(orbStatus("idle")).toBe("Ready — tap the bloom and speak");
+    expect(orbStatus("idle")).toBe("Ready: tap the bloom and speak");
     expect(orbStatus("listening")).toBe("Listening");
     expect(orbStatus("thinking")).toBe("Working out what you said");
     expect(orbStatus("speaking")).toBe("Speaking");

@@ -118,7 +118,7 @@ describe("Composer + voice — the transcript lands in the field", () => {
     pressMic();
     act(() => kit.recognizer.emit({ kind: "listening" }));
 
-    pressMic("Listening — press to stop");
+    pressMic("Listening: press to stop");
     expect(kit.recognizer.stops).toBeGreaterThan(0);
   });
 

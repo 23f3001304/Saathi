@@ -127,7 +127,7 @@ function auditSignals(beat: AgentBeat, index: number): AssistantSignal[] {
     case "memory":
       return [pill(`memory-${index}`, memoryLine(beat))];
     case "blocked":
-      return [pill(`blocked-${index}`, `Refused — ${beat.human}`)];
+      return [pill(`blocked-${index}`, `Refused: ${beat.human}`)];
     case "sort-key":
       // `label` is already the host's sentence; `sortKey` is the machine token
       // behind it. Printing both, in that order, avoids "Sorted by price_asc".

@@ -4,6 +4,7 @@
 // session that fell once is not a session that must stay down.
 import { parseChatState } from "../api/agentBeat.ts";
 import { epochOf } from "./beatEvents.ts";
+import { stateUrl } from "./beatScope.ts";
 import { claim } from "./beatFold.ts";
 import { clearTimers, rebaseTo, type StreamSession } from "./beatSession.ts";
 import { connectSocket } from "./beatLadder.ts";
@@ -57,7 +58,7 @@ export function connect(session: StreamSession): void {
  */
 export async function probeState(session: StreamSession): Promise<void> {
   try {
-    const res = await fetch(`${session.base}/chat/state`);
+    const res = await fetch(stateUrl(session));
     if (!res.ok) return;
     const raw: unknown = await res.json();
     const state = parseChatState(raw);
@@ -81,11 +82,12 @@ export async function probeState(session: StreamSession): Promise<void> {
  * cursor it sets is carried onto the socket as `?after=&epoch=` exactly as it
  * is onto SSE and polling.
  *
- * It is also the session's standing answer to "whose run is this?". The hub is
- * one fan-out for the whole host and its beats are unstamped, so the probe's
- * answer holds only for the epoch it named — the ladder re-asks through
- * `reprobe` on every rebase, which is the moment the run underneath can have
- * become a different conversation's.
+ * It is also the session's standing answer to "whose run is this?". A scoped
+ * session's wire (`beatScope.ts`) only ever serves its own lane, so the probe
+ * confirms; the unscoped wire is one fan-out with unstamped beats, so there
+ * the probe's answer holds only for the epoch it named — the ladder re-asks
+ * through `reprobe` on every rebase, which is the moment the run underneath
+ * can have become a different conversation's.
  */
 export async function attach(session: StreamSession): Promise<void> {
   session.reprobe = () => {

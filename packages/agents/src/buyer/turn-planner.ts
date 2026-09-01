@@ -42,7 +42,7 @@ export interface TurnPlanner {
  * indistinguishable, to the shopper, from an agent that had nothing to say.
  */
 export const TURN_UNFINISHED =
-  "I did not manage to work that out — I ran out of steps before I had " +
+  "I did not manage to work that out: I ran out of steps before I had " +
   "anything to show you. Ask me again and I will start over.";
 
 interface Spoken {

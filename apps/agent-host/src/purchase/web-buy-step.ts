@@ -15,7 +15,7 @@ import {
 import { runErrand } from "./errand-run.js";
 import { FORGOTTEN, NOT_OPENED, STILL_THEIRS } from "./web-buy-copy.js";
 import type { Spoken } from "./web-pick-close.js";
-import { closePick, emitLine, settleAs, spokenBy } from "./web-pick-close.js";
+import { closePick, emitLine, settleAs } from "./web-pick-close.js";
 import type { WebPickPark } from "./web-pick-park.js";
 import type { WebErrand } from "./errand-run.js";
 import type { WebPin } from "./web-pin.js";
@@ -86,7 +86,7 @@ export class WebBuyStep {
         "web_pick_waiting",
       );
     }
-    this.progress.reset();
+    this.progress.resumeReset();
     const from = this.trail.length;
     // What the basket holds, from this host's own record of the pick — the
     // listing the parked ref resolves to, never the errand's memory of it.
@@ -189,7 +189,7 @@ export class WebBuyStep {
         },
         this.logger,
       );
-      return { told: spokenBy(run), slipped: run.slipped };
+      return { told: run.told, slipped: run.slipped, expired: run.expired };
     } finally {
       release();
     }

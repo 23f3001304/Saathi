@@ -86,13 +86,19 @@ function failureOf(parsed: unknown): SealFailure {
  * page `w3` was, exactly as it resolves which SKU a draft named. Resolves false
  * when the host no longer holds that listing, and the caller says so.
  */
-export async function pickWebOption(optionId: string): Promise<boolean> {
+export async function pickWebOption(
+  optionId: string,
+  conversationId: string | null = null,
+): Promise<boolean> {
   const base = agentBaseUrl();
   if (base === null) return false;
   const response = await fetch(`${base}/chat/web-pick`, {
     method: "POST",
     headers: { "content-type": "application/json" },
-    body: JSON.stringify({ option_id: optionId }),
+    // The conversation names the lane whose table holds this ref: another
+    // lane's run never read it, so without the id the tap would reach a
+    // stranger's listings or none at all.
+    body: JSON.stringify({ option_id: optionId, conversation_id: conversationId }),
   }).catch(() => null);
   return response !== null && response.ok;
 }

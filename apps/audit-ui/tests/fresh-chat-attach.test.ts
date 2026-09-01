@@ -25,7 +25,7 @@ function stubHost(body: StateBody): void {
   vi.stubGlobal(
     "fetch",
     vi.fn(async (url: string) => {
-      if (!url.endsWith("/chat/state")) throw new Error(`unexpected ${url}`);
+      if (!url.includes("/chat/state")) throw new Error(`unexpected ${url}`);
       return new Response(JSON.stringify({ beats: BEATS, ...body }), {
         status: 200,
         headers: { "content-type": "application/json" },

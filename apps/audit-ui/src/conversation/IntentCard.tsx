@@ -109,7 +109,7 @@ export function IntentCard({
       </div>
       {description !== undefined && <p>{description}</p>}
       {state === "draft" && (
-        <p className={styles.banner}>unsigned — human confirmation forced</p>
+        <p className={styles.banner}>unsigned: human confirmation forced</p>
       )}
       {capPaise !== undefined && (
         <div className={styles.chips}>

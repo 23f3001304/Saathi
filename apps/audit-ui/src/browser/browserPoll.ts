@@ -6,6 +6,8 @@ import type { BrowserEmit } from "./browserTransport.ts";
 
 export interface Wire {
   readonly base: string;
+  /** Which lane's window this card watches; `null` is the primary. */
+  readonly conversation: string | null;
   readonly emit: BrowserEmit;
   stopped: boolean;
   failures: number;
@@ -15,9 +17,14 @@ export interface Wire {
   timers: ReturnType<typeof setTimeout>[];
 }
 
-export function wireOf(base: string, emit: BrowserEmit): Wire {
+export function wireOf(
+  base: string,
+  emit: BrowserEmit,
+  conversation: string | null = null,
+): Wire {
   return {
     base,
+    conversation,
     emit,
     stopped: false,
     failures: 0,

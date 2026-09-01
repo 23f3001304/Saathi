@@ -119,7 +119,15 @@ export async function routeTypedPick(
   parts: PickParts,
   base: PurchaseResult,
   message: string,
-  turn: { chat: string | null; replyLanguage: string | null },
+  turn: {
+    chat: string | null;
+    replyLanguage: string | null;
+    /** The shopper's whole half of the conversation. The errand behind the
+     *  pick reads its language and its context off this: handed only the
+     *  picking sentence, a checkout for a thread's worth of stated wants knew
+     *  nothing but "go with the Crucial". */
+    stated?: readonly string[];
+  },
 ): Promise<PurchaseResult | null> {
   // A checkout already standing on a question owns the next sentence: their
   // "yes" is an answer to the address, not a fresh product to go and buy.
@@ -133,5 +141,6 @@ export async function routeTypedPick(
     return askTurn(parts, base, WHICH_ONE, chipsFor(named.between));
   }
   parts.logger.info("purchase.typed_pick", { ref: named.ref });
-  return await parts.webPick.buy(named.ref, [message], turn.replyLanguage);
+  const stated = turn.stated ?? [message];
+  return await parts.webPick.buy(named.ref, stated, turn.replyLanguage);
 }

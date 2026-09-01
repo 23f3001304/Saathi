@@ -89,6 +89,27 @@
   color: var(--ink-40);
 }
 
+/* The lane badge: what a chat that is not on screen is waiting on. Attention
+   is the one that matters, so it is the one with colour. */
+.badge {
+  flex-shrink: 0;
+  padding: 1px var(--sp-3);
+  border-radius: var(--r-full);
+  font-size: 10px;
+}
+.badge_attention {
+  background: var(--crimson-12);
+  color: var(--crimson);
+}
+.badge_queued {
+  background: var(--ink-06);
+  color: var(--ink-55);
+}
+.badge_running {
+  background: var(--indigo-12);
+  color: var(--indigo);
+}
+
 /* Row actions stay out of the way until the row is under the cursor: the
    list is for finding a chat, not for administering one. */
 .actions {

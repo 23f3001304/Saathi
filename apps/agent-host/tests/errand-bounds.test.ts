@@ -57,7 +57,7 @@ describe("a sandbox call that stops answering is a tool result", () => {
 
     await runner.run({ tool: "web_read", server: "covenant_web", args: {} });
 
-    expect(steps).toEqual(["Read the page — did not go through"]);
+    expect(steps).toEqual(["Read the page · the page stopped answering"]);
   });
 });
 

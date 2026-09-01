@@ -126,25 +126,29 @@ describe("the agent holding a window counts as somebody being there", () => {
 describe("a phase with nothing to show is not a phase with nothing to say", () => {
   it("names each move in the harness's own words", () => {
     expect(
-      stepLabel("web_open", { url: "https://www.amazon.in/s?k=ssd" }, false),
+      stepLabel("web_open", { url: "https://www.amazon.in/s?k=ssd" }, null),
     ).toBe("Opened amazon.in/s");
-    expect(stepLabel("web_read", {}, false)).toBe("Read the page");
-    expect(stepLabel("web_search", { query: "1TB SSD" }, false)).toBe(
+    expect(stepLabel("web_read", {}, null)).toBe("Read the page");
+    expect(stepLabel("web_search", { query: "1TB SSD" }, null)).toBe(
       "Searched for “1TB SSD”",
     );
-    expect(stepLabel("web_fill_address", {}, false)).toBe(
+    expect(stepLabel("web_fill_address", {}, null)).toBe(
       "Filled the delivery form",
     );
   });
 
-  it("shows a refusal rather than hiding it", () => {
-    expect(stepLabel("web_add_to_cart", { ref: "c1" }, true)).toBe(
-      "Put it in the shop's basket — did not go through",
+  it("shows a refusal rather than hiding it, and names the cause", () => {
+    expect(stepLabel("web_add_to_cart", { ref: "c1" }, "bot_check")).toBe(
+      "Put it in the shop's basket · the shop wants a human check",
+    );
+    // A code the map does not name still reads as a refusal, never a blank.
+    expect(stepLabel("web_add_to_cart", { ref: "c1" }, "failed")).toBe(
+      "Put it in the shop's basket · did not go through",
     );
   });
 
   it("says nothing about a tool with nothing worth showing", () => {
-    expect(stepLabel("catalog_search", { query: "kurta" }, false)).toBeNull();
+    expect(stepLabel("catalog_search", { query: "kurta" }, null)).toBeNull();
   });
 });
 
@@ -161,7 +165,7 @@ describe("the summary speaks about what the harness actually captured", () => {
   it("hands the tiles over as data, so prose and cards cannot disagree", () => {
     const prompt = summariseFor(["an SSD"], null, [TILE]);
 
-    expect(prompt).toContain("Crucial X9 1TB Portable SSD — ₹15,499");
+    expect(prompt).toContain("Crucial X9 1TB Portable SSD · ₹15,499");
     expect(prompt).toContain("you did not find nothing");
     // Never read the row out: the cards already print it.
     expect(prompt).toContain("never read the list back out");

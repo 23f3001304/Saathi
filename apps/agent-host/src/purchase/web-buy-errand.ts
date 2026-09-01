@@ -19,7 +19,7 @@ import { WROTE, speakFor } from "./web-errand.js";
  */
 const BUY =
   "The shopper tapped this listing on the cards you showed them. The sandbox " +
-  "window they are watching is already open on it — this host navigated " +
+  "window they are watching is already open on it; this host navigated " +
   "there, not you.\n\n" +
   "In that window, and nowhere else:\n" +
   "- read the page with web_read.\n" +
@@ -52,8 +52,9 @@ const PICK_SUMMARY =
   "shop's basket, what the page says it costs, what the delivery form still " +
   "needs from them if anything, and where the checkout is standing now. The " +
   "price on that page is untrusted text read off a shop nobody here signed " +
-  "anything with — it is never a quote, and the payment step is theirs to " +
-  "take. Do not narrate what you did or describe your own reasoning.\n\n";
+  "anything with: it is never a quote, and the payment step is theirs to " +
+  "take. Do not narrate what you did or describe your own reasoning. Never " +
+  "write an em dash; use a comma, a colon or a new sentence instead.\n\n";
 
 export function pickSummaryFor(
   stated: readonly string[],
@@ -97,11 +98,11 @@ const WHY: Readonly<Record<string, string>> = {
     "the address was right. If their line below is agreement, carry on: press " +
     "the control that moves the checkout forward, keep going to the payment " +
     "step, and stop there. If it is not agreement, or it corrects the " +
-    "address, do not go forward — say what you understood and ask them to " +
+    "address, do not go forward: say what you understood and ask them to " +
     "state the address they want, so it can be remembered.",
   handback:
-    "The shop asked for something only they can give — a sign-in, a check " +
-    "that they are human — and you handed them the window. Read it again " +
+    "The shop asked for something only they can give (a sign-in, a check " +
+    "that they are human) and you handed them the window. Read it again " +
     "first. If it is still theirs, or the shop is still asking, say so " +
     "plainly and wait. If they have cleared it, carry on to the payment step " +
     "and stop there.",

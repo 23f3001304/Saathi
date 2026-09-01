@@ -26,7 +26,7 @@ export function orbPhase(signals: SessionSignals): OrbPhase {
 }
 
 const STATUS: Readonly<Record<OrbPhase, string>> = {
-  idle: "Ready — tap the bloom and speak",
+  idle: "Ready: tap the bloom and speak",
   listening: "Listening",
   thinking: "Working out what you said",
   speaking: "Speaking",

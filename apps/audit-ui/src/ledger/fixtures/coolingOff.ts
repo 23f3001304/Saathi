@@ -30,7 +30,7 @@ const parked: CooloffPayload = {
   amount_paise: 299_900,
   release_at: iso(COOLOFF_BASE_MS, 24 * 60 * 60_000),
   merchant: "sundar-textiles",
-  cues: ["only 2 left!!", "60% off — ends today"],
+  cues: ["only 2 left!!", "60% off: ends today"],
 };
 
 const inputs: FrameInput[] = [

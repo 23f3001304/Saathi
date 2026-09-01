@@ -7,7 +7,7 @@ import {
   QUOTE_TOOL_NAME,
 } from "@covenant/agents";
 
-import { chooseSku } from "../judge/catalog-match.js";
+import { chooseSku, matchCatalog } from "../judge/catalog-match.js";
 
 export interface ScriptedToolRequest {
   readonly tool: string;
@@ -71,9 +71,19 @@ const POISONED_TURNS: readonly ScriptedTurn[] = [
   },
 ];
 
-function searchTurn(config: ScriptConfig): ScriptedTurn {
+// DECISION: the search queries the thing being bought, never a fixed phrase.
+// The query used to be "kolam run", which matched the brand's own shoes and
+// socks on every request: the flagship kurta run presented four footwear
+// cards directly above a cart for a kurta, and the narrator's off-request log
+// confirmed not one card matched the ask. It queries the chosen listing's
+// own label and category rather than the raw request because the request the
+// buyer hands over is the whole shopper half of the conversation: on a
+// two-purchase chat the earlier ask outscored the current one and the search
+// returned the wrong product entirely. The scripted demo is the key-less
+// judge's first run; its cards must be about the thing on the cart.
+function searchTurn(config: ScriptConfig, query: string): ScriptedTurn {
   return {
-    text: "Looking at Kolam Run's catalog. Listing copy is a claim, not a price — I will not treat any number as real until it arrives merchant-signed.",
+    text: "Checking the shop's catalog for that. Listing copy is a claim, not a price: I will not treat any number as real until it arrives merchant-signed.",
     toolRequests: [
       {
         tool: CATALOG_TOOL_NAME,
@@ -81,7 +91,7 @@ function searchTurn(config: ScriptConfig): ScriptedTurn {
         // Matched on sku/label/category, never on the description — a search
         // that read the prose would let injected text pick the SKU.
         args: {
-          query: "kolam run",
+          query,
           max_price_paise: null,
           limit: config.catalogLimit,
         },
@@ -91,9 +101,30 @@ function searchTurn(config: ScriptConfig): ScriptedTurn {
   };
 }
 
-function quoteTurn(sku: CatalogSku): ScriptedTurn {
+/** The dark-pattern remark, said only about a listing the search actually
+ *  returned. A fixed line about "only 2 left" was a claim about a listing the
+ *  request-driven search may never have read. */
+function flagRemark(matched: readonly CatalogSku[]): string {
+  if (matched.some((item) => /only \d+ left/i.test(item.description))) {
+    return ' One of these shouts "only 2 left": I am flagging that as scarcity copy and carrying on unhurried.';
+  }
+  if (matched.some((item) => /was [\d,]+/i.test(item.description))) {
+    return " One of these anchors its discount to a price nobody ever charged: I am flagging that and weighing the real number.";
+  }
+  return "";
+}
+
+/** The listing as a person would say it: the part before the size or pack
+ *  coda. The full label verbatim would trip `restatesRow`, which drops any
+ *  bubble carrying a whole card row, and took the quote and closing lines
+ *  with it on the kurta run. */
+function spokenName(sku: CatalogSku): string {
+  return sku.label.split(",")[0] ?? sku.label;
+}
+
+function quoteTurn(sku: CatalogSku, matched: readonly CatalogSku[]): ScriptedTurn {
   return {
-    text: `Asking Kolam Run to sign a quote for ${sku.sku}. One of the other listings shouts "only 2 left" — I am flagging that as scarcity copy and carrying on unhurried.`,
+    text: `Asking the shop to sign a quote for the ${spokenName(sku)}.${flagRemark(matched)}`,
     toolRequests: [
       {
         tool: QUOTE_TOOL_NAME,
@@ -121,7 +152,7 @@ const F2_PROBE: ScriptedTurn = {
 
 function closingTurn(sku: CatalogSku): ScriptedTurn {
   return {
-    text: `That call was refused before it ran: money leaves only through the covenant gateway. I have a signed quote for ${sku.label} and I am ready to propose the cart.`,
+    text: `That call was refused before it ran: money leaves only through the covenant gateway. I have a signed quote for the ${spokenName(sku)} and I am ready to propose the cart.`,
     toolRequests: [],
     done: true,
   };
@@ -138,11 +169,13 @@ export function scriptFor(
   config: ScriptConfig,
 ): readonly ScriptedTurn[] {
   const sku = chooseSku(catalog, request);
+  const query = `${sku.label} ${sku.category}`;
+  const matched = matchCatalog(catalog, query);
   const poisoned = sku.sku === POISONED_SKU ? POISONED_TURNS : [];
   return [
-    searchTurn(config),
+    searchTurn(config, query),
     ...poisoned,
-    quoteTurn(sku),
+    quoteTurn(sku, matched),
     F2_PROBE,
     closingTurn(sku),
   ];

@@ -18,11 +18,11 @@ import { webFailure } from "./web-result.js";
 const SIGN_IN =
   "This shop wants you signed in before it will go any further. I never type " +
   "credentials, so the window is yours: sign in there and tell me when you " +
-  "are through, and I will pick up in the same window — the basket is still " +
+  "are through, and I will pick up in the same window; the basket is still " +
   "in it.";
 
 const AT_PAYMENT =
-  "This is the payment step. I have taken it as far as I can — every field " +
+  "This is the payment step. I have taken it as far as I can: every field " +
   "and every button here is yours, and I have pressed nothing that pays. The " +
   "window is yours now.";
 

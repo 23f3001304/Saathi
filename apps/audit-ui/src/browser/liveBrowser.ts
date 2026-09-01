@@ -14,6 +14,7 @@ import {
   post,
   Refused,
   rememberSession,
+  scoped,
 } from "./browserKey.ts";
 import { watchFrames } from "./browserFrames.ts";
 import { giveUp, repeat, stop, wireOf } from "./browserPoll.ts";
@@ -26,7 +27,7 @@ const MAX_FAILURES = 4;
 
 async function readState(wire: Wire): Promise<void> {
   try {
-    const res = await get(wire.base, "/browser/state");
+    const res = await get(wire.base, scoped("/browser/state", wire.conversation));
     if (!res.ok) throw new Error(`browser/state → ${res.status}`);
     wire.failures = 0;
     const view = parseSession(await res.json());
@@ -64,7 +65,7 @@ function watch(wire: Wire, emit: BrowserEmit): void {
 async function attachSession(wire: Wire): Promise<boolean> {
   try {
     await handshake(wire.base);
-    const res = await get(wire.base, "/browser/state");
+    const res = await get(wire.base, scoped("/browser/state", wire.conversation));
     if (!res.ok) throw new Error(`browser/state → ${res.status}`);
     return true;
   } catch (cause) {
@@ -73,42 +74,55 @@ async function attachSession(wire: Wire): Promise<boolean> {
   }
 }
 
-export function liveBrowser(base: string): BrowserTransport {
-  let wire: Wire | null = null;
+/** Opens the watch and hands back its teardown; `hold` is where the transport
+ *  keeps the live wire so resume/takeover can force a state read on it. */
+function startWatch(
+  base: string,
+  conversation: string | null,
+  emit: BrowserEmit,
+  hold: { wire: Wire | null },
+): () => void {
+  const started = wireOf(base, emit, conversation);
+  hold.wire = started;
+  emit({ kind: "status", status: "connecting" });
+  void attachSession(started).then((ready) => {
+    if (!started.stopped && ready) watch(started, emit);
+  });
+  return () => {
+    stop(started);
+    if (hold.wire === started) hold.wire = null;
+  };
+}
+
+export function liveBrowser(
+  base: string,
+  conversation: string | null = null,
+): BrowserTransport {
+  const lane = (path: string): string => scoped(path, conversation);
+  const hold: { wire: Wire | null } = { wire: null };
   return {
     live: true,
-    start: (emit) => {
-      const started = wireOf(base, emit);
-      wire = started;
-      emit({ kind: "status", status: "connecting" });
-      void attachSession(started).then((ready) => {
-        if (!started.stopped && ready) watch(started, emit);
-      });
-      return () => {
-        stop(started);
-        if (wire === started) wire = null;
-      };
-    },
+    start: (emit) => startWatch(base, conversation, emit, hold),
     relay: async (input: RelayInput): Promise<RelayOutcome> => {
       try {
-        return parseRelay(await post(base, "/browser/input", input));
+        return parseRelay(await post(base, lane("/browser/input"), input));
       } catch {
         return parseRelay(null);
       }
     },
     resume: async () => {
-      await post(base, "/browser/resume").catch(() => null);
-      if (wire !== null) await readState(wire);
+      await post(base, lane("/browser/resume")).catch(() => null);
+      if (hold.wire !== null) await readState(hold.wire);
     },
     // The state read is not decoration: the chip and the drivable surface both
     // hang off `state`, so the card must not sit on `agent-drive` for up to a
     // poll interval after the wheel has actually moved.
     takeover: async () => {
-      await post(base, "/browser/takeover").catch(() => null);
-      if (wire !== null) await readState(wire);
+      await post(base, lane("/browser/takeover")).catch(() => null);
+      if (hold.wire !== null) await readState(hold.wire);
     },
     front: async () => {
-      const body = await post(base, "/browser/front").catch(() => null);
+      const body = await post(base, lane("/browser/front")).catch(() => null);
       return (body as { ok?: unknown } | null)?.ok === true;
     },
   };

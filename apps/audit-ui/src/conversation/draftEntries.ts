@@ -73,7 +73,7 @@ function withdrawDraft(
   }
   const note: ChatEntry = {
     kind: "agent",
-    text: `${WITHDRAWN_PREFIX} — ${reason}.`,
+    text: `${WITHDRAWN_PREFIX}: ${reason}.`,
     system: true,
   };
   return replaceAt(entries, at, note);

@@ -84,11 +84,11 @@ function agentLabel(event: JournalEvent): string {
     "page.typed": `Typed into ${selector || "a field"}`,
     "page.keyed": `Pressed ${text(event.detail, "key")}`,
     "handoff.raised": "Handed the wheel to you",
-    "context.flagged": `Noted this is a ${text(event.detail, "reason")} page — readable, not touchable`,
+    "context.flagged": `Noted this is a ${text(event.detail, "reason")} page: readable, not touchable`,
     "handoff.resumed": "You handed the wheel back",
     "window.fronted": "Brought the Saathi window to the front",
     "handoff.pointed":
-      "Handed you the page to open in your own browser — this one cannot do it",
+      "Handed you the page to open in your own browser; this one cannot do it",
     "action.blocked": `Refused to ${text(event.detail, "action")} ${selector || "there"}`,
   };
   return map[event.kind] ?? event.kind;
@@ -101,7 +101,7 @@ function userLabel(event: JournalEvent): string {
     "page.keyed": `You pressed ${text(event.detail, "key")}`,
     "window.fronted": "The Saathi window came to the front",
     "handoff.pointed": "This page is yours to open in your own browser",
-    "action.blocked": "Refused to pass that through — it is a protected field",
+    "action.blocked": "Refused to pass that through: it is a protected field",
   };
   return map[event.kind] ?? agentLabel(event);
 }

@@ -6,6 +6,7 @@
 // seconds of lag.
 import { parseChatState } from "../api/agentBeat.ts";
 import { epochOf } from "./beatEvents.ts";
+import { stateUrl } from "./beatScope.ts";
 import { claim, drain } from "./beatFold.ts";
 import { rebaseTo, type StreamSession } from "./beatSession.ts";
 
@@ -35,7 +36,7 @@ type Verdict = "clean" | "missed";
  * the rung, whose own failure handling then walks the ladder honestly.
  */
 async function reconcileOnce(session: StreamSession): Promise<Verdict> {
-  const res = await fetch(`${session.base}/chat/state`);
+  const res = await fetch(stateUrl(session));
   if (!res.ok) return "clean";
   const raw: unknown = await res.json();
   const state = parseChatState(raw);

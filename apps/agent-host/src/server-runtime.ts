@@ -36,18 +36,23 @@ function stepsFor(root: CompositionRoot, server: ServerType) {
         });
       }),
     settleRun: async () => {
-      await root.chat.settled();
+      // Every lane's run, not just the default's: two conversations can be
+      // mid-errand at once now, and a drain that waited on one would close
+      // the database under the other.
+      await root.lanes.settleAll();
     },
     closeStreams: () => {
-      root.hub.closeAll();
+      for (const lane of root.lanes.all()) lane.hub.closeAll();
       root.beatLog.close();
       root.contextLog.close();
     },
     closeSession: async () => {
       // Every window, not just the agent's: a host that exits leaving other
       // sessions' containers running is the orphan problem it reaps at boot.
+      // Lane windows first — they are not registry-tracked — then the
+      // registry's own, then every lane's model session via `closeAll`.
+      await root.lanes.closeAll();
       await root.browserRegistry.closeAll();
-      await root.session.close();
     },
   };
 }
@@ -59,11 +64,9 @@ function depsFor(
 ): ServerDeps {
   return {
     config,
-    chat: root.chat,
+    lanes: root.lanes,
     conversation: root.buyer.conversation,
-    hub: root.hub,
     beats: root.beats,
-    browser: root.browser,
     browserRegistry: root.browserRegistry,
     browserKeys: root.browserKeys,
     amend: root.amend,

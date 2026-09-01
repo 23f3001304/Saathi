@@ -14,7 +14,7 @@ const CURL_EXAMPLE = `curl -s https://gateway.example/recs?user_id=u_123&categor
 export function RecsPanel(): JSX.Element {
   return (
     <div>
-      <p className={styles.caption}>/recs — MCP tool signature</p>
+      <p className={styles.caption}>/recs: MCP tool signature</p>
       <pre className={styles.panel}>
         {TOOL_SIGNATURE}
         {"\n\n"}

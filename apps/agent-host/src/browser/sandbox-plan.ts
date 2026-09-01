@@ -86,7 +86,7 @@ export async function resolvePlan(
   }
   logger.warn("browser.sandbox.in_process", { reason: missing });
   return inProcessPlan(
-    `no containerised sandbox available here — ${missing}. This window runs on your own machine instead.`,
+    `no containerised sandbox available here (${missing}). This window runs on your own machine instead.`,
   );
 }
 

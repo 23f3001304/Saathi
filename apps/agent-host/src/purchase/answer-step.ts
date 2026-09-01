@@ -16,13 +16,16 @@ import type { PurchaseResult } from "./purchase-result.js";
  * arguments are neither.
  */
 /** The question only earns its own sentence when the reply did not already ask
- *  one; otherwise the reply is the whole utterance. */
+ *  one; otherwise the reply is the whole utterance. "Already asks" means a
+ *  question mark anywhere in the reply, not only at its end: a live turn wrote
+ *  its ask mid-reply and a summary sentence after it, and the endsWith check
+ *  then stapled `question` on as a near-verbatim second ask. */
 function answerLine(plan: TurnPlan): string {
   const reply = plan.reply.trim();
   const question = plan.question?.trim() ?? "";
   if (question === "") return reply;
   if (reply === "") return question;
-  return reply.endsWith("?") ? reply : `${reply} ${question}`;
+  return reply.includes("?") ? reply : `${reply} ${question}`;
 }
 
 export interface AnswerParts {

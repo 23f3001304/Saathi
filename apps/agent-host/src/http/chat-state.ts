@@ -1,6 +1,17 @@
 import type { PurchaseResult } from "../purchase/purchase-result.js";
 import type { ChatBeat, SandboxView } from "./chat-beat.js";
 
+/** The runner as `ChatService` drives it: one method, no wiring. Structural
+ *  for the same reason `WebPickRunner` is — the service holds a seam, and a
+ *  test may stand a controllable run behind it. */
+export interface RunnerPort {
+  run(
+    request: string,
+    chat?: string,
+    replyLanguage?: string | null,
+  ): Promise<PurchaseResult>;
+}
+
 /**
  * Driving a shop the shopper picked off an open-web card. Structural, so
  * `ChatService` never learns that a browser exists — the same shape
@@ -32,12 +43,12 @@ export interface ChatState {
    *  is looking at somebody else's finished conversation, not its own. */
   readonly running: boolean;
   /**
-   * Which conversation the hub's beats belong to. The hub is one fan-out for
-   * the whole host, so a client showing chat B while a run from chat A is
-   * streaming would otherwise fold A's beats into B's transcript — the
-   * cross-chat bleed this field exists to let a client refuse. `null` means
-   * the run was started without an id (the CLI, the e2e), which no shelf
-   * conversation should claim as its own.
+   * Which conversation this lane's beats belong to. A scoped request
+   * (`?conversation=`) is answered by that conversation's own lane, so this
+   * is confirmation; on the unscoped wire it is still the guard it always
+   * was — the field a client checks before folding a run that may be another
+   * chat's. `null` means the run was started without an id (the CLI, the
+   * e2e), which no shelf conversation should claim as its own.
    */
   readonly conversation: string | null;
   /** Which run these indices belong to; the polling rung's rebase signal. */

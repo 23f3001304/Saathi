@@ -118,7 +118,7 @@ function answer(host: Host, url: string, init?: RequestInit): Response {
       beats: host.stored,
       cursor: host.cursor,
     });
-  if (url.endsWith("/chat/state"))
+  if (url.includes("/chat/state"))
     return reply({
       epoch: EPOCH,
       beats: host.live,

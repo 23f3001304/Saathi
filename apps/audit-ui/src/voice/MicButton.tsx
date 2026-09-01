@@ -15,9 +15,9 @@ type MicButtonProps = {
 
 const LABELS: Readonly<Record<VoicePhase, string>> = {
   idle: "Speak instead of typing",
-  listening: "Listening — press to stop",
+  listening: "Listening: press to stop",
   transcribing: "Working out what you said",
-  blocked: "Voice unavailable — press for details",
+  blocked: "Voice unavailable: press for details",
   unsupported: "Voice input is not available in this browser",
 };
 

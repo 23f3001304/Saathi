@@ -141,8 +141,8 @@ export function obeys(
  *  been: the shopper decides, this only checks. */
 export const CORRECTIVE =
   "That reply was written in Hindi. They did not write in Hindi and they did " +
-  "not ask for it. Write the same answer again — same findings, same prices, " +
-  "same pages, same recommendation — in the language of their own line quoted " +
+  "not ask for it. Write the same answer again (same findings, same prices, " +
+  "same pages, same recommendation) in the language of their own line quoted " +
   "below, and in no other. Say nothing about this correction.\n\n";
 
 /** Said in the harness's own voice when a second attempt slipped too. The

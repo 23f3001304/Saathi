@@ -50,7 +50,7 @@ function stubHost(host: Host): void {
       if (url.startsWith(`${BASE}/chat/history`)) {
         return Promise.resolve(reply({ ok: true, lines: host.lines }));
       }
-      if (url.endsWith("/chat/state")) {
+      if (url.includes("/chat/state")) {
         const { beats, running } = host;
         return Promise.resolve(
           reply({ beats, running, awaiting: [], conversation: CHAT }),

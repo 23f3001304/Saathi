@@ -83,7 +83,7 @@ export function signCovenant(
   // The gateway demands an ES256 signature over the canonical base string on
   // this route; the browser holds no user key, so the host signs it, not us.
   return unmapped(
-    `/v1/covenant/sign (${intentMandateJwt.length}-char JWT) — the signing key lives in agent-host`,
+    `/v1/covenant/sign (${intentMandateJwt.length}-char JWT): the signing key lives in agent-host`,
   );
 }
 

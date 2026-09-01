@@ -18,7 +18,7 @@ const TIER_MEANING: Record<MemoryTier, string> = {
   P3: "user-signed, permanent",
   P2: "trusted second-party quote",
   P1: "unverified first-party claim",
-  P0: "untrusted external content — untrusted is not hostile",
+  P0: "untrusted external content: untrusted is not hostile",
 };
 
 /** §2.1 — P0 is only ever crimson when a write is actually rejected. */

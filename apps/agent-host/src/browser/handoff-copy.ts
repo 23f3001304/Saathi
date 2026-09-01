@@ -5,9 +5,9 @@
  */
 const ASKS: Readonly<Record<string, string>> = {
   login:
-    "This shop wants a password. I never type credentials — the window is yours. Sign in and tell me to carry on.",
+    "This shop wants a password. I never type credentials, so the window is yours. Sign in and tell me to carry on.",
   "account-creation":
-    "This is an account sign-up. Creating an account in your name is not mine to do — the window is yours.",
+    "This is an account sign-up. Creating an account in your name is not mine to do, so the window is yours.",
   otp: "A one-time code was sent to you, so only you can enter it.",
   payment:
     "This is the payment step. Every button and every field here is yours to press.",

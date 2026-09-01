@@ -32,7 +32,7 @@ export function ConstraintRow({
         />
       </span>
       <span className={styles.signedAt}>
-        {constraint.amended ? "unsigned" : (constraint.signedAt ?? "—")}
+        {constraint.amended ? "unsigned" : (constraint.signedAt ?? "·")}
       </span>
       <span
         className={

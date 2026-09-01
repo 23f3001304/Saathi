@@ -69,7 +69,7 @@ export const NOT_YOUR_SESSION = {
   ok: false,
   reason_code: "NOT_YOUR_SESSION",
   human:
-    "That key is a valid sandbox key, but not for this window. Each sandbox on this host has its own key, so holding one does not grant the others — this call was refused rather than quietly re-aimed at the window you can reach. Nothing was read and nothing was relayed.",
+    "That key is a valid sandbox key, but not for this window. Each sandbox on this host has its own key, so holding one does not grant the others, so this call was refused rather than quietly re-aimed at the window you can reach. Nothing was read and nothing was relayed.",
 } as const;
 
 export const NO_SUCH_SESSION = {

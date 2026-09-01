@@ -133,7 +133,7 @@ export const HAPPY_CHAT_SCRIPT: ChatBeat[] = [
   {
     offsetMs: 1500,
     kind: "message",
-    text: "I found three that fit — sorting by total landed cost, from your saved preference.",
+    text: "I found three that fit: sorting by total landed cost, from your saved preference.",
   },
   {
     offsetMs: 1700,
@@ -157,7 +157,7 @@ export const T1_CHAT_SCRIPT: ChatBeat[] = [
   {
     offsetMs: 0,
     kind: "message",
-    text: "A merchant claim conflicted with your ₹2,000 limit — I ignored it.",
+    text: "A merchant claim conflicted with your ₹2,000 limit: I ignored it.",
     variant: "system",
   },
 ];

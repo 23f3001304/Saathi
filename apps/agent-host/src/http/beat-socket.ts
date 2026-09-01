@@ -4,7 +4,9 @@ import type { Hono } from "hono";
 
 import type { AppEnv } from "./app-env.js";
 import { cursorOf } from "./beat-cursor.js";
-import type { BeatHub, BeatSink } from "./beat-hub.js";
+import type { BeatSink } from "./beat-hub.js";
+import type { ChatLanes } from "./chat-lanes.js";
+import { laneOf } from "./chat-stream-routes.js";
 import type { ChatBeat } from "./chat-beat.js";
 
 export const SOCKET_PATH = "/chat/ws";
@@ -127,17 +129,20 @@ export interface BeatSocketRoutes {
 /**
  * `GET /chat/ws` — the same replay the SSE route serves, over a socket that
  * says when it has died instead of hanging open until a proxy reaps it.
+ * `?conversation=` picks the lane the same way `/chat/stream` does, and the
+ * hub is settled at upgrade: this socket serves that lane for its whole life.
  * `injectWebSocket` must be handed the `node:http` server `serve()` returned;
  * without it the upgrade never reaches this route.
  */
 export function registerBeatSocket(
   app: Hono<AppEnv>,
-  hub: BeatHub,
+  lanes: ChatLanes,
 ): BeatSocketRoutes {
   const { upgradeWebSocket, injectWebSocket } = createNodeWebSocket({ app });
   app.get(
     SOCKET_PATH,
     upgradeWebSocket((context) => {
+      const hub = laneOf(context, lanes).hub;
       const cursor = cursorOf(context, "socket");
       const life: Liveness = { seq: 0, missed: 0, timer: null, detach: null };
       return {

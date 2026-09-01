@@ -30,7 +30,7 @@ import { webOpenArgs, webRefArgs, webSearchArgs } from "./web-tools.js";
  */
 const WRITE_IN =
   "Whatever you say to them, write it in the language of their own lines " +
-  "quoted at the top of this errand — not the language of this note, and not " +
+  "quoted at the top of this errand, not the language of this note, and not " +
   "the language of the page you have just read.";
 
 function outcomeOf(result: WebResult): ToolOutcome {
@@ -79,7 +79,7 @@ export class WebToolRunner {
 
   async run(call: ToolCall): Promise<ToolOutcome> {
     const outcome = await this.bounded(call);
-    const label = stepLabel(call.tool, call.args, outcome.isError);
+    const label = stepLabel(call.tool, call.args, failureOf(outcome));
     if (label !== null) this.steps?.step(label);
     return outcome;
   }
@@ -141,6 +141,23 @@ export class WebToolRunner {
   }
 }
 
+/** The failure code a refused call carries, for the pill that records it.
+ *  The runner built this JSON itself one frame down, so the parse is of its
+ *  own writing; anything unreadable stays a generic failure. */
+function failureOf(outcome: ToolOutcome): string | null {
+  if (!outcome.isError) return null;
+  try {
+    const body: unknown = JSON.parse(outcome.content);
+    const failure =
+      typeof body === "object" && body !== null
+        ? (body as Record<string, unknown>)["failure"]
+        : null;
+    return typeof failure === "string" ? failure : "failed";
+  } catch {
+    return "failed";
+  }
+}
+
 /** Refused, and told what to do instead: the errand is about one listing, and
  *  the way back to it is the shop's own search, not another product. */
 function offPin(url: string): ToolOutcome {
@@ -150,7 +167,7 @@ function offPin(url: string): ToolOutcome {
       failure: "not_this_product",
       human:
         "That is a different product. This errand is about the one listing " +
-        "the shopper tapped — open that listing again, or search this shop " +
+        "the shopper tapped: open that listing again, or search this shop " +
         "for it, and nothing else.",
       url,
     }),

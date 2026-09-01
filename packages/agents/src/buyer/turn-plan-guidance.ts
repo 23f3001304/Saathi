@@ -5,7 +5,7 @@ import type { ToolOutcome } from "../shared/agent-session.js";
  *  the harness: what to say about a miss is the model's to decide. */
 const NOTHING_MATCHED =
   "Nothing in this shop fits. Say so now, in their own language, in one " +
-  "sentence — your `reply` was written before you knew this. Offer to look " +
+  "sentence: your `reply` was written before you knew this. Offer to look " +
   "on the open web, or call look_on_web if they have already asked you to.";
 
 const SOMETHING_MATCHED =
@@ -27,7 +27,7 @@ const OPENED_NOTHING =
   "This move opened no page and searched nothing, so you have no results and " +
   "have not looked anywhere. Do not tell them otherwise. If you need to see " +
   "something before you can answer, call browse_catalog for this shop or " +
-  "look_on_web for anywhere else — that is what actually goes and looks.";
+  "look_on_web for anywhere else; that is what actually goes and looks.";
 
 /**
  * `blocked_by` makes the model name the one thing looking could not have told

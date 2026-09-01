@@ -79,7 +79,7 @@ export function LiveViewport({
         <span className={styles.sandboxNote}>
           {session.sample !== undefined
             ? "There is no window behind this panel and no picture to show. The lines below are a script, kept so the shape of a session is visible with nothing running."
-            : "A disposable Chrome profile. It shares nothing with your own browser — no cookies, no saved passwords, no history."}
+            : "A disposable Chrome profile. It shares nothing with your own browser: no cookies, no saved passwords, no history."}
         </span>
       </div>
     );
@@ -94,7 +94,7 @@ export function LiveViewport({
       role={interactive ? "application" : "presentation"}
       aria-label={
         interactive
-          ? "The sandbox window — your keystrokes go to it"
+          ? "The sandbox window: your keystrokes go to it"
           : undefined
       }
       tabIndex={interactive ? 0 : -1}

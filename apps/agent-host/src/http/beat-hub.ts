@@ -39,6 +39,14 @@ export interface BeatHubOptions {
   readonly recorder?: BeatRecorder;
   /** The first epoch this process may use; a restart must not reuse one. */
   readonly startEpoch?: number;
+  /**
+   * Where the next epoch comes from when several hubs share one process. A
+   * lane-per-conversation host runs a hub per lane, and hubs that each counted
+   * `+1` privately would mint the same `(epoch, index)` in two conversations
+   * at once. Absent, the hub counts alone — the single-hub tests and the CLI
+   * keep exactly the arithmetic they had.
+   */
+  readonly epochs?: { next(): number };
 }
 
 /**
@@ -72,6 +80,7 @@ export class BeatHub {
   private generation: number;
   readonly heartbeatMs: number;
   private readonly recorder: BeatRecorder | null;
+  private readonly epochs: { next(): number } | null;
 
   constructor(
     private readonly clock: Clock,
@@ -81,7 +90,8 @@ export class BeatHub {
     this.startedAtMs = clock.now().getTime();
     this.heartbeatMs = options.heartbeatMs ?? HEARTBEAT_MS;
     this.recorder = options.recorder ?? null;
-    this.generation = options.startEpoch ?? 1;
+    this.epochs = options.epochs ?? null;
+    this.generation = this.epochs?.next() ?? options.startEpoch ?? 1;
   }
 
   get epoch(): number {
@@ -92,7 +102,7 @@ export class BeatHub {
   restart(): void {
     this.beats.length = 0;
     this.startedAtMs = this.clock.now().getTime();
-    this.generation += 1;
+    this.generation = this.epochs?.next() ?? this.generation + 1;
     for (const subscriber of this.subscribers) {
       subscriber.lastSent = 0;
       subscriber.sink.rebase(this.generation);

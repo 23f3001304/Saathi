@@ -38,11 +38,15 @@ export function beatSocketUrl(
   base: string,
   after: number,
   epoch: number,
+  conversation: string | null = null,
 ): string {
   const url = new URL(`${base}${SOCKET_PATH}`);
   url.protocol = url.protocol === "https:" ? "wss:" : "ws:";
   url.searchParams.set("after", String(after));
   if (epoch > 0) url.searchParams.set("epoch", String(epoch));
+  // The lane: a scoped socket serves one conversation's hub and nothing else.
+  if (conversation !== null && conversation !== "")
+    url.searchParams.set("conversation", conversation);
   return url.toString();
 }
 

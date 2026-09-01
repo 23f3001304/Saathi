@@ -88,10 +88,10 @@ export interface BrowserTransport {
 }
 
 export const SANDBOX_REFUSED =
-  "agent-host refused this page's sandbox request: it has no session key. The key is minted when agent-host boots and handed to the Bench over GET /browser/handshake, which only answers the origins that host was told to trust. Nothing is broken here and no window was opened — this page simply is not the one holding the key.";
+  "agent-host refused this page's sandbox request: it has no session key. The key is minted when agent-host boots and handed to the Bench over GET /browser/handshake, which only answers the origins that host was told to trust. Nothing is broken here and no window was opened: this page simply is not the one holding the key.";
 
 export const REEL_HAS_NO_WINDOW =
-  "These frames are the fixture reel, not a live window — there is nothing behind them to click. Start agent-host to drive the real sandbox.";
+  "These frames are the fixture reel, not a live window: there is nothing behind them to click. Start agent-host to drive the real sandbox.";
 
 /**
  * The card's own provenance line, in the two cases where the panel is showing

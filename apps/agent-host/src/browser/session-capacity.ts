@@ -53,6 +53,30 @@ export function queueLimitFor(cap: number): number {
   return Math.ceil(cap * QUEUE_FACTOR);
 }
 
+/** Conversation lanes never take more than this many runs at once. */
+export const MAX_LANES = 3;
+
+/**
+ * How many conversations may *run* at once, derived from the sandbox cap
+ * rather than picked: each running lane is entitled to a window of its own,
+ * plus the shopper-requested sessions the registry already serves, so a lane
+ * cap that ate the whole sandbox budget would starve the queue this machine
+ * already promised to honour. A quarter of the cap, floored, never zero,
+ * never past three — three concurrent errands is already more model traffic
+ * than a demo machine holds comfortably.
+ */
+export function laneCapFor(sandboxCap: number): number {
+  return Math.max(1, Math.min(MAX_LANES, Math.floor(sandboxCap / 4)));
+}
+
+/** What a message is told when every lane is mid-run. Honest, not a failure. */
+export function laneWaitingSentence(position: number, cap: number): string {
+  return (
+    `All ${cap} conversation ${cap === 1 ? "lane is" : "lanes are"} mid-run, so this one is waiting rather than failing. ` +
+    `It is number ${position} in line and starts the moment a run finishes. Nothing has been lost and nothing needs retrying.`
+  );
+}
+
 /** The sentence the cap says when it is reached. It never claims a failure. */
 export function waitingSentence(position: number, cap: number): string {
   return (

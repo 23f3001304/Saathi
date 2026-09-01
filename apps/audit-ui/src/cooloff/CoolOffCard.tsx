@@ -46,7 +46,7 @@ export function CoolOffCard({
       {item.cues.length > 0 && (
         <button type="button" className={styles.flag} onClick={onExpandCues}>
           <Glyph name="flag" size={12} /> {item.cues.length} pushy lines in this
-          listing — ignored ›
+          listing, ignored ›
         </button>
       )}
     </div>

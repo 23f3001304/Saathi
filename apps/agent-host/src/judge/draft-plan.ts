@@ -36,7 +36,7 @@ function descriptionOf(
     terms.push("refundable only");
   }
   const echo = request.trim().slice(0, MAX_REQUEST_ECHO);
-  return `${echo} — ${terms.join(", ")}.`.slice(0, MAX_DESCRIPTION);
+  return `${echo}: ${terms.join(", ")}.`.slice(0, MAX_DESCRIPTION);
 }
 
 /**

@@ -115,7 +115,7 @@ describe("what the buyer sees", () => {
     expect(
       pills.some((p) => /remembered|not trusted/i.test(p.text)),
     ).toBe(true);
-    expect(pills.some((p) => p.text.startsWith("Refused — "))).toBe(true);
+    expect(pills.some((p) => p.text.startsWith("Refused: "))).toBe(true);
     expect(pills.some((p) => p.text.startsWith("Sorted by "))).toBe(true);
     expect(pills.some((p) => p.text.startsWith("Cart built "))).toBe(true);
     expect(pills.some((p) => p.text.includes("checks passed"))).toBe(true);

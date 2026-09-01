@@ -106,7 +106,7 @@ describe("a withdrawn draft leaves, and says so", () => {
 
     const texts = agents(state).map((entry) => entry.text);
     expect(texts[0]).toBe(
-      `${WITHDRAWN_PREFIX} — the agent was not confident enough in that answer.`,
+      `${WITHDRAWN_PREFIX}: the agent was not confident enough in that answer.`,
     );
     expect(texts[1]).toBe("Here is a better answer.");
     expect(agents(state)[0]).toMatchObject({ system: true });

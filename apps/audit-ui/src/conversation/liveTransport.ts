@@ -62,6 +62,24 @@ async function open(
   await attach(session);
 }
 
+/** The host said the message is waiting for a lane. Say so in its words:
+ *  the sentence carries the place in line, and the run starts by itself. */
+async function reportIfQueued(
+  session: StreamSession,
+  res: Response,
+): Promise<void> {
+  const body = (await res.json().catch(() => null)) as {
+    status?: unknown;
+    human?: unknown;
+  } | null;
+  if (body?.status !== "queued") return;
+  const human =
+    typeof body.human === "string" && body.human !== ""
+      ? body.human
+      : "Every lane is busy right now. This message is in line and starts by itself.";
+  session.emit({ kind: "say", text: human, system: true });
+}
+
 async function startRun(
   session: StreamSession,
   text: string,
@@ -80,6 +98,7 @@ async function startRun(
       reportStartFailure(session, res.status);
       return;
     }
+    await reportIfQueued(session, res);
     // The host rebased its beat indices when the run began and says so on the
     // wire, so this is only a nudge: if the ladder is on a lower rung, a new
     // run is the moment to try climbing back to the socket.
@@ -94,9 +113,16 @@ async function startRun(
  * already let the run through. That is still a signature the host accepted, so
  * the pen reports success on `ok` and does not invent a refusal.
  */
-async function releaseGate(base: string, scope: SignScope): Promise<boolean> {
+async function releaseGate(
+  base: string,
+  scope: SignScope,
+  conversationId: string | null,
+): Promise<boolean> {
   try {
-    const res = await post(base, SIGN_PATH[scope]);
+    // The lane: a signature releases this conversation's gate and no other's.
+    const res = await post(base, SIGN_PATH[scope], {
+      conversation_id: conversationId,
+    });
     return res.ok;
   } catch {
     return false;
@@ -137,7 +163,7 @@ export function liveTransport(
       void startRun(session, text, chat);
     },
     sign: async (scope) => {
-      const released = await releaseGate(base, scope);
+      const released = await releaseGate(base, scope, chat);
       if (released) current?.emit({ kind: "signed", scope });
       return released;
     },

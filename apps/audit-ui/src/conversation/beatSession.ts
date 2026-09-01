@@ -24,12 +24,15 @@ export const MAX_POLL_FAILURES = OFFLINE_AFTER_MS / POLL_INTERVAL_MS;
 export type Rung = "socket" | "sse" | "poll";
 
 /**
- * Whose run the hub is currently fanning out. The hub is one stream for the
- * whole host and the beats carry no conversation id, so a chat that folded
- * whatever arrived put another chat's run — drafts, cards, sandbox and all —
- * into its own transcript the moment two chats existed. `GET /chat/state`
- * names the owner; that answer holds for the epoch it named and no further,
- * which is why a rebase puts this back to `unknown`.
+ * Whose run the hub is currently fanning out. The unscoped hub is one stream
+ * for the whole host and the beats carry no conversation id, so a chat that
+ * folded whatever arrived put another chat's run — drafts, cards, sandbox and
+ * all — into its own transcript the moment two chats existed. `GET
+ * /chat/state` names the owner; that answer holds for the epoch it named and
+ * no further, which is why a rebase puts this back to `unknown`. A chat with
+ * an id rides its own lane's scoped wire now (`beatScope.ts`), where the
+ * host's answer always names it — this dance survives as the belt under that
+ * scoping, and as the whole of the guard for id-less chats.
  */
 export type Ownership = "unknown" | "mine" | "theirs";
 

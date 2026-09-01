@@ -23,9 +23,10 @@ export function SandboxPane({
   record,
   busy,
 }: SandboxPaneProps): JSX.Element | null {
-  const browser = useBrowserSession(active);
-  // The live window belongs to the conversation whose run claimed it; any
-  // other chat renders its own restored record instead.
+  const browser = useBrowserSession(active, conversationId);
+  // The watch is lane-scoped now, so the host only ever serves this chat's
+  // own window; the claim check stays as the belt under those braces; the
+  // stamp arrives on the view either way.
   const owns =
     browser.view?.conversation == null ||
     browser.view.conversation === conversationId;
@@ -41,7 +42,7 @@ export function SandboxPane({
         // shopper who just said "go to the shop" reads it as nothing
         // happening — "container did not open" was the exact complaint.
         <p className={styles.paneNote}>
-          Working — the live window appears here when the agent reaches the
+          Working. The live window appears here when the agent reaches the
           shop.
         </p>
       )}

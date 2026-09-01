@@ -64,7 +64,7 @@ export function restatesRow(text: string, labels: readonly string[]): boolean {
  *  up to. */
 export const REGISTER_CORRECTIVE =
   "That reply said more than one thing. Say what you are about to do, or what " +
-  "you just found, and stop — two sentences at the outside, and the question " +
+  "you just found, and stop: two sentences at the outside, and the question " +
   "counts as one of them. Do not restate anything already on their screen: " +
   "the cards, the cart, the sheet they are about to sign. Answer the whole " +
   "turn again, shorter.\n\n";

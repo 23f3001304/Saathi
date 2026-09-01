@@ -33,7 +33,7 @@ function memoryRow(write: MemoryWriteRecord): string {
 function cartRows(result: PurchaseResult): readonly string[] {
   if (result.cart === null) {
     return [
-      row("cart", `refused: ${result.cartRefusal ?? "not proposed"} — the cart stayed inside the signed bounds`),
+      row("cart", `refused: ${result.cartRefusal ?? "not proposed"} · the cart stayed inside the signed bounds`),
     ];
   }
   return [
@@ -59,7 +59,7 @@ function verdictRows(result: PurchaseResult): readonly string[] {
       row(
         "verdicts",
         result.outcome === null
-          ? "none — the gateway was never asked"
+          ? "none · the gateway was never asked"
           : "none published in the gateway's audit view for this txn",
       ),
     ];
@@ -102,7 +102,7 @@ export function trailLines(result: PurchaseResult): readonly string[] {
     ...cartRows(result),
     ...verdictRows(result),
     ...result.blocked.map((decision) =>
-      row("blocked", `${decision.reason} — ${decision.human ?? "refused before it ran"}`),
+      row("blocked", `${decision.reason} · ${decision.human ?? "refused before it ran"}`),
     ),
     outcomeRow(result),
     row("status", result.status + (result.failure === null ? "" : ` · ${result.failure}`)),

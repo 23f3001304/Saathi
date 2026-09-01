@@ -150,7 +150,7 @@ export function ChatSession({
    *  wait, so a tap picks and this confirms. */
   function goToShop(): void {
     if (webChosen === undefined) return;
-    void pickWebOption(webChosen.id);
+    void pickWebOption(webChosen.id, conversationId);
     setWebLaunched(true);
   }
 
@@ -199,10 +199,10 @@ export function ChatSession({
     options.length > 0 && !signed && !webLaunched && question === null;
   const askPrompt =
     awaiting === "intent"
-      ? "Nothing has been searched for yet — that starts when you sign."
+      ? "Nothing has been searched for yet: that starts when you sign."
       : (question?.prompt ??
         (webChosen !== undefined && !webLaunched
-          ? `${shortTitle(webChosen.title)} — ${rupeesRounded(webChosen.pricePaise)} on ${webChosen.merchant}. Go and put it in that shop's basket?`
+          ? `${shortTitle(webChosen.title)}: ${rupeesRounded(webChosen.pricePaise)} on ${webChosen.merchant}. Go and put it in that shop's basket?`
           : awaitingPick
             ? fromWeb
               ? "Pick one below and I will go and do that in the window."
@@ -256,7 +256,7 @@ export function ChatSession({
         return (
           <p key={i} className={styles.folded}>
             Going for {shortTitle(webChosen.title)} ·{" "}
-            {Math.max(options.length - 1, 0)} others considered — “Switch
+            {Math.max(options.length - 1, 0)} others considered. “Switch
             product” brings them back
           </p>
         );

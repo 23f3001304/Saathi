@@ -75,7 +75,7 @@ export const WEB_TOOL_DECLARATIONS: readonly ToolDeclaration[] = [
     server: WEB_TOOL_SERVER,
     description:
       "Click one control you read on the page: an add-to-cart or add-to-bag " +
-      "button, or a control that moves a checkout to its next step — Proceed, " +
+      "button, or a control that moves a checkout to its next step: Proceed, " +
       "Continue, Deliver to this address. It is the only click you have. It is " +
       "refused if the button commits a payment, and a page that asks for a " +
       "card or a password hands the window to the shopper instead.",

@@ -126,7 +126,7 @@ function Blocks({
         return (
           <span key={i} className={styles.item}>
             <span className={styles.marker} aria-hidden="true">
-              {block.kind === "step" ? `${block.marker}.` : "—"}
+              {block.kind === "step" ? `${block.marker}.` : "·"}
             </span>
             {body}
           </span>

@@ -10,6 +10,7 @@ import {
   type StreamSession,
 } from "./beatSession.ts";
 import { pollOnce } from "./beatPoll.ts";
+import { sseUrl } from "./beatScope.ts";
 import { openEventStream, type EventStreamHandlers } from "./beatEvents.ts";
 import { beatSocketUrl, openBeatSocket } from "./beatSocket.ts";
 
@@ -130,9 +131,8 @@ function sseHandlers(session: StreamSession): EventStreamHandlers {
 }
 
 function connectSse(session: StreamSession, detail: string): void {
-  const url = `${session.base}/chat/stream?after=${session.seen}&epoch=${session.epoch}`;
   session.source = openEventStream(
-    url,
+    sseUrl(session),
     () => session.seen + 1,
     sseHandlers(session),
   );
@@ -182,7 +182,7 @@ export function connectSocket(session: StreamSession): void {
     return;
   }
   session.socket = openBeatSocket(
-    beatSocketUrl(session.base, session.seen, session.epoch),
+    beatSocketUrl(session.base, session.seen, session.epoch, session.chat),
     {
       onOpen: () => opened(session, "socket", "websocket"),
       onBeat: (epoch, index, beat) => {

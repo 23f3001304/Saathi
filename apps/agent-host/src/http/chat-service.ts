@@ -4,12 +4,12 @@ import type { Clock, Logger } from "@covenant/domain";
 import type { ConfirmationGate } from "../purchase/confirmation-gate.js";
 import type { PurchaseResult } from "../purchase/purchase-result.js";
 import { emptyResult } from "../purchase/purchase-result.js";
-import type { PurchaseRunner } from "../purchase/purchase-runner.js";
 import type { BeatHub } from "./beat-hub.js";
 import type {
   ChatServiceConfig,
   ChatState,
   ConversationRecorder,
+  RunnerPort,
   WebPickRunner,
 } from "./chat-state.js";
 import type { SortKeySignal } from "./sort-key-write.js";
@@ -25,14 +25,15 @@ import { writeSortKey } from "./sort-key-write.js";
 
 export type { SortKeySignal } from "./sort-key-write.js";
 
-/** One conversation at a time: two runs signing intents concurrently would
- *  give the audit UI two timelines and no way to tell them apart. */
+/** One conversation's engine: one runner, one hub, one pair of gates. A
+ *  second sentence for THIS conversation queues behind its run; a different
+ *  conversation runs on its own lane entirely (`ChatLanes`). */
 export class ChatService {
   private current: PurchaseResult | null = null;
   private running: Promise<PurchaseResult> | null = null;
 
   constructor(
-    private readonly runner: PurchaseRunner,
+    private readonly runner: RunnerPort,
     private readonly hub: BeatHub,
     private readonly intentGate: ConfirmationGate,
     private readonly cartGate: ConfirmationGate,

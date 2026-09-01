@@ -17,7 +17,7 @@ const LEDE: Record<string, string> = {
   attack: "Detected and recorded before it reached a decision.",
   relaxation:
     "Something tried to widen a rule you signed. Only your signature can do that.",
-  tier: "Routine. Something read off a merchant's page tried to become a remembered fact — text on a web page is untrusted, so it was not kept.",
+  tier: "Routine. Something read off a merchant's page tried to become a remembered fact: text on a web page is untrusted, so it was not kept.",
 };
 
 function Row({ entry }: { entry: AttackLaneEntry }): JSX.Element {

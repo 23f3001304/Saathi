@@ -5,14 +5,12 @@ import { Hono } from "hono";
 import { cors } from "hono/cors";
 
 import type { AgentHostConfig } from "../config.js";
-import type { BrowserService } from "../browser/browser-service.js";
 import type { ContextStore } from "../obs/request-store.js";
 import type { AmendFlow } from "../covenant/amend-flow.js";
 import type { ConversationMemory } from "../purchase/conversation-memory.js";
-import type { AppEnv } from "./app-env.js";
-import type { BeatHub } from "./beat-hub.js";
+import type { AppContext, AppEnv } from "./app-env.js";
 import type { ConversationBeatStore } from "./beat-store.js";
-import type { ChatService } from "./chat-service.js";
+import type { ChatLanes } from "./chat-lanes.js";
 import { registerBeatSocket } from "./beat-socket.js";
 import {
   BROWSER_KEY_HEADER,
@@ -29,11 +27,9 @@ import { requestContext } from "./request-context.js";
 
 export interface ServerDeps {
   readonly config: AgentHostConfig;
-  readonly chat: ChatService;
+  readonly lanes: ChatLanes;
   readonly conversation: ConversationMemory;
-  readonly hub: BeatHub;
   readonly beats: ConversationBeatStore;
-  readonly browser: BrowserService;
   readonly browserRegistry: BrowserRegistry;
   readonly browserKeys: SessionKeys;
   readonly amend: AmendFlow;
@@ -87,13 +83,31 @@ function corsFor(uiOrigins: readonly string[]): MiddlewareHandler<AppEnv> {
   });
 }
 
-/** The sandbox surface: the agent's own window, and the registry behind it. */
+/**
+ * `/browser/*?conversation=` is that lane's window; unscoped stays the
+ * primary. The lane resolver rides the same host-key guard the primary always
+ * had — a lane window is agent-opened, exactly like the primary, so there is
+ * no session key to mint and no caller to hand one to.
+ */
+function laneWindowOf(deps: ServerDeps) {
+  return (context: AppContext) => {
+    const conversation = context.req.query("conversation") ?? "";
+    const service =
+      conversation === ""
+        ? deps.browserRegistry.primary()
+        : deps.lanes.laneFor(conversation).browser;
+    return { id: "primary", service, openedAt: 0 };
+  };
+}
+
+/** The sandbox surface: the lane windows, and the registry behind them. */
 function registerBrowserOn(app: Hono<AppEnv>, deps: ServerDeps): void {
   registerBrowser(app, {
     registry: deps.browserRegistry,
     keys: deps.browserKeys,
     logger: deps.logger,
     hostKey: deps.config.browserKey,
+    resolveWindow: laneWindowOf(deps),
   });
 }
 
@@ -128,8 +142,8 @@ export function buildServer(deps: ServerDeps): BuiltServer {
       deps.draining() ? 503 : 200,
     ),
   );
-  registerChat(app, deps.chat, deps.hub, deps.conversation, deps.beats, deps.browser);
-  const socket = registerBeatSocket(app, deps.hub);
+  registerChat(app, deps.lanes, deps.conversation, deps.beats);
+  const socket = registerBeatSocket(app, deps.lanes);
   registerBrowserOn(app, deps);
   registerCovenantAmend(app, deps.amend);
   return { app, injectWebSocket: socket.injectWebSocket };

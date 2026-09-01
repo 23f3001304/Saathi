@@ -54,7 +54,7 @@ export function AccountMenu({
               <dt>Signing key</dt>
               <dd className={styles.mono}>
                 {signingKey === null
-                  ? "none — nothing can be bought"
+                  ? "none: nothing can be bought"
                   : signingKey.thumbprint}
               </dd>
             </div>

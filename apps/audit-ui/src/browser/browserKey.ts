@@ -40,10 +40,24 @@ function keyed(extra: Record<string, string> = {}): Record<string, string> {
   return headers;
 }
 
+/**
+ * Which lane's window a sandbox call means. The host serves one agent window
+ * per conversation now, so an unscoped call from a lane chat would watch the
+ * primary — someone else's errand — while its own window went unshown.
+ */
+export function scoped(path: string, conversation: string | null): string {
+  if (conversation === null || conversation === "") return path;
+  return `${path}?conversation=${encodeURIComponent(conversation)}`;
+}
+
 /** Appends the key where a header cannot go: `EventSource` sends none. */
-export function streamUrl(base: string): string {
+export function streamUrl(base: string, conversation: string | null): string {
   const key = sessionKey ?? "";
-  return `${base}/browser/frames?key=${encodeURIComponent(key)}`;
+  const lane =
+    conversation === null || conversation === ""
+      ? ""
+      : `&conversation=${encodeURIComponent(conversation)}`;
+  return `${base}/browser/frames?key=${encodeURIComponent(key)}${lane}`;
 }
 
 /**

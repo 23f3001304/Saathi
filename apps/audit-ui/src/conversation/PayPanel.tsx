@@ -131,7 +131,7 @@ export function PayPanel({ payment, onNudge }: PayPanelProps): JSX.Element {
         // was minted, and the order still has a working checkout.
         <p className={styles.note}>
           No payment link was issued for this bill, so there is nothing to scan.
-          Pay now still works — it opens the same checkout on this order.
+          Pay now still works: it opens the same checkout on this order.
         </p>
       )}
       {!canCheckout && payment.linkUrl === null && (

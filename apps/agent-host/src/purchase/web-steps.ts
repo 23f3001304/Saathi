@@ -60,16 +60,41 @@ const LABELS: Readonly<
   [WEB_FILL_ADDRESS_TOOL]: () => "Filled the delivery form",
 };
 
+/**
+ * Why a step did not land, in words a shopper can act on. "did not go
+ * through" twice in a row read as an unexplained malfunction; the failure
+ * code the tool result already carries names the cause, so the pill does too.
+ * Codes come from `web-result.ts`, `web-tool-runner.ts`, `web-challenge.ts`
+ * and the classifier's refusals; anything unnamed keeps the generic line.
+ */
+const CAUSES: Readonly<Record<string, string>> = {
+  bot_check: "the shop wants a human check",
+  page_unreachable: "the page stopped answering",
+  page_moved: "the page moved mid-read",
+  no_window_open: "no window was open yet",
+  user_is_driving: "paused, the window is yours",
+  not_this_product: "a different product, skipped",
+  at_login_step: "stopped, sign-in is yours",
+  at_payment_step: "stopped, the payment step is yours",
+  payment_button: "refused, that control pays",
+  sensitive_field: "refused, that field is protected",
+  restricted_context: "refused, that page is read-only",
+  element_missing: "nothing on the page matched",
+  navigation_blocked: "that address is off-limits",
+  covenant_violation: "outside what you signed",
+};
+
 /** `null` for a tool with nothing worth showing, so the list stays what the
  *  agent did rather than everything it called. */
 export function stepLabel(
   tool: string,
   args: Record<string, unknown>,
-  failed: boolean,
+  failure: string | null,
 ): string | null {
   const label = LABELS[tool]?.(args) ?? null;
   if (label === null) return null;
+  if (failure === null) return label;
   // A refusal is a step too, and the one most worth seeing: it is the block
   // matrix working, and hiding it would leave a gap in the record.
-  return failed ? `${label} — did not go through` : label;
+  return `${label} · ${CAUSES[failure] ?? "did not go through"}`;
 }

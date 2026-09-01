@@ -31,8 +31,9 @@ export interface NoStockParts {
  * English; the harness's safety copy needs translating, which is not done here.
  */
 export const NOT_STOCKED =
-  "This shop does not sell anything like that, so there is nothing here to " +
-  "put in front of you to sign. I have drafted nothing.";
+  "This shop doesn't stock that, so let me look on the open web for you " +
+  "instead. Give me a minute to read a few pages; nothing is bought or " +
+  "signed while I look.";
 
 /** Why the sentence above it went. The model wrote that it was getting a
  *  purchase ready before anything had read the shelf. */
@@ -49,9 +50,9 @@ export const SPOKE_TOO_SOON = "this shop does not stock it";
  * move is to point at it, not to go and look for it a second time.
  */
 export const ALREADY_FOUND =
-  "This shop does not sell that, and I have drafted nothing. What I found for " +
-  "you on the open web is still here — pick one and I will go and do it in " +
-  "the window.";
+  "This shop doesn't stock that, but what I found for you on the open web is " +
+  "still here. Pick one and I'll take it forward in that shop's own window; " +
+  "nothing is signed until you say so.";
 
 /** The errand, built by the harness so the query is the thing the catalog was
  *  actually asked for and not a phrase the model wrote after the fact. */
