@@ -61,12 +61,18 @@ export const MAX_LANES = 3;
  * rather than picked: each running lane is entitled to a window of its own,
  * plus the shopper-requested sessions the registry already serves, so a lane
  * cap that ate the whole sandbox budget would starve the queue this machine
- * already promised to honour. A quarter of the cap, floored, never zero,
- * never past three — three concurrent errands is already more model traffic
- * than a demo machine holds comfortably.
+ * already promised to honour. Half the cap, floored, never zero, never past
+ * three — three concurrent errands is already more model traffic than a
+ * demo machine holds comfortably.
+ *
+ * DECISION (was a quarter): a lane drives at most one window at a time, so
+ * a quarter left a 4-sandbox machine — the demo machine — with one lane and
+ * no concurrency at all, which is the feature the lanes exist for. Half
+ * gives that machine two lanes and still leaves two sandbox slots of
+ * headroom for handovers and requested sessions.
  */
 export function laneCapFor(sandboxCap: number): number {
-  return Math.max(1, Math.min(MAX_LANES, Math.floor(sandboxCap / 4)));
+  return Math.max(1, Math.min(MAX_LANES, Math.floor(sandboxCap / 2)));
 }
 
 /** What a message is told when every lane is mid-run. Honest, not a failure. */
