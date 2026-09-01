@@ -68,7 +68,7 @@ function failureOf(parsed: unknown): SealFailure {
   return {
     sealed: false,
     reasonCode: String(body["reason_code"] ?? "PROCESSING_ERROR"),
-    human: String(body["human"] ?? "The covenant was not signed."),
+    human: String(body["human"] ?? "Nothing was signed."),
     ...(Array.isArray(predicates)
       ? { predicates: predicates.map(String) }
       : {}),

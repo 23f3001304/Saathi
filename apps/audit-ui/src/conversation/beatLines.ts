@@ -2,6 +2,7 @@
 // there stays a mapper: what a beat becomes is one decision, how it reads is
 // another, and only the second one is copy.
 import type { AgentBeat } from "../api/agentBeat.ts";
+import type { AssistantSignal } from "./assistantTransport.ts";
 import { rupeesRounded } from "../primitives/formatMoney.ts";
 
 export const OUTCOME_TEXT: Record<string, string> = {
@@ -65,4 +66,11 @@ export function cartLine(beat: Extract<AgentBeat, { kind: "cart" }>): string {
   const quote = beat.quoteOk ? "signed quote" : "no signed quote";
   const items = `${beat.itemCount} item${beat.itemCount === 1 ? "" : "s"}`;
   return `Cart built · ${items} · ${rupeesRounded(beat.totalPaise)} · ${quote}`;
+}
+
+/** A host action as an activity signal. `afterMs` is the script player's
+ *  clock; a live beat has already happened. Lives here so the beat mappers
+ *  can share it without importing each other. */
+export function pill(id: string, text: string): AssistantSignal {
+  return { kind: "activity", activity: { id, text, afterMs: 0 } };
 }

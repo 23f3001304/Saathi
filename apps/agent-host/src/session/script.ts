@@ -152,7 +152,7 @@ const F2_PROBE: ScriptedTurn = {
 
 function closingTurn(sku: CatalogSku): ScriptedTurn {
   return {
-    text: `That call was refused before it ran: money leaves only through the covenant gateway. I have a signed quote for the ${spokenName(sku)} and I am ready to propose the cart.`,
+    text: `That call was refused before it ran: money leaves only through the gateway you signed. I have a signed quote for the ${spokenName(sku)} and I am ready to propose the cart.`,
     toolRequests: [],
     done: true,
   };

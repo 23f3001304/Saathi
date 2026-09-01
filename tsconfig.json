@@ -38,6 +38,9 @@
       "path": "./apps/merchant-ui"
     },
     {
+      "path": "./apps/landing"
+    },
+    {
       "path": "./apps/agent-host"
     },
     {

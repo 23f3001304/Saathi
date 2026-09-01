@@ -46,7 +46,7 @@ function SignedCovenant({
   useReveal(ref, "covenant");
   return (
     <section ref={ref} className={styles.covenant}>
-      <p className={styles.eyebrow}>Your covenant</p>
+      <p className={styles.eyebrow}>Aapke rules, signed</p>
       <h1 className={styles.statement}>
         {capPaise !== undefined ? (
           <>

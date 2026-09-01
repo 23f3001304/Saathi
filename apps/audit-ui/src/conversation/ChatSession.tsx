@@ -315,6 +315,7 @@ export function ChatSession({
             <BillCard
               picked={picked}
               covenant={chat.covenant}
+              cartTotalPaise={chat.cart?.totalPaise ?? null}
               txnId={chat.txnId}
               signedView
               onSigned={() => undefined}
@@ -338,6 +339,7 @@ export function ChatSession({
             dock
             picked={picked}
             covenant={chat.covenant}
+            cartTotalPaise={chat.cart?.totalPaise ?? null}
             txnId={chat.txnId}
             onSign={() => sign("cart")}
             onSigned={() => {

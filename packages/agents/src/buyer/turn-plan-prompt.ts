@@ -13,8 +13,10 @@ import {
  *  v2: a working-context section may now sit between the conversation and
  *  the closing — see `TURN_PLAN_CONTEXT_MARK`.
  *  v4: the writing rules ban em dashes in the reply (house copy rule), and
- *  the prompt's own prose models the same punctuation. */
-export const TURN_PLAN_PROMPT_ID = "buyer.turn-plan@v4";
+ *  the prompt's own prose models the same punctuation.
+ *  v5: a sentence naming two different products is two purchases, taken one
+ *  at a time, said so out loud. */
+export const TURN_PLAN_PROMPT_ID = "buyer.turn-plan@v5";
 
 /**
  * What stands over the harness's working-context digest when a turn has one.
@@ -66,7 +68,11 @@ export const TURN_PLAN_PROMPT =
   `${WEB_LOOK_TOOL} is the only move that opens the open web. If you mean ` +
   `to look on Amazon or anywhere else, call ${WEB_LOOK_TOOL}; saying so on ` +
   "any other move is a claim you have no way to keep. When they have named a " +
-  "shop outside this one, going there is the move; a question about it is not.";
+  "shop outside this one, going there is the move; a question about it is not.\n" +
+  "A sentence naming two different products is two purchases. Say you will " +
+  "take them one at a time, start with the first, and keep the second for " +
+  "the moment the first is settled; never blend two products into one " +
+  "search.";
 
 /**
  * The last thing the model reads, after the transcript rather than before it.

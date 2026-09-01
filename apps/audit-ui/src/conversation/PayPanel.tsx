@@ -72,7 +72,7 @@ function useCheckout(
       orderId,
       amountPaise: payment.amountPaise,
       currency: payment.currency,
-      description: `Covenant ${payment.txnId}`,
+      description: `Saathi order ${payment.txnId}`,
       onSettled: () => {
         setBusy(false);
         onNudge();

@@ -1,6 +1,6 @@
 import { useRef, useState, type JSX } from "react";
 import type { OptionRowData } from "./chatScript.ts";
-import { OptionRow } from "./OptionRow.tsx";
+import { evidenceLine, OptionRow } from "./OptionRow.tsx";
 import { rupeesRounded } from "../primitives/formatMoney.ts";
 import { useReveal } from "../motion/useReveal.ts";
 import styles from "./OptionSet.module.css";
@@ -66,6 +66,43 @@ function Evidence({ option }: { option: OptionRowData }): JSX.Element {
  * the price history, the merchant's quote-honour rate, and why it matches
  * the buyer's own stated preference.
  */
+/** Up to this many options render as picture cards; past it the set turns
+ *  into a dense list, one row per option, everything visible at once. Eight
+ *  tiles was a horizontal scroller with its third card cut mid-price, and
+ *  eight anything is a comparison, which is a table's job, not a gallery's. */
+const TILES_UP_TO = 4;
+
+/** One option as a row: swatch of rank order, name, price, provenance. The
+ *  whole row is the handle. Same invariant as the tiles: nothing here ranks,
+ *  promotes or decorates one option over another. */
+function OptionLine({
+  option,
+  selected,
+  onAsk,
+}: {
+  option: OptionRowData;
+  selected: boolean;
+  onAsk: () => void;
+}): JSX.Element {
+  return (
+    <li>
+      <button
+        type="button"
+        className={selected ? `${styles.line} ${styles.lineOn}` : styles.line}
+        onClick={onAsk}
+        aria-pressed={selected}
+      >
+        <span className={styles.lineTitle}>{option.title}</span>
+        <span className={styles.lineMerchant}>{option.merchant}</span>
+        <span className={styles.lineQuote}>{evidenceLine(option)}</span>
+        <span className={styles.linePrice}>
+          {rupeesRounded(option.pricePaise)}
+        </span>
+      </button>
+    </li>
+  );
+}
+
 export function OptionSet({
   options,
   inCartId,
@@ -76,28 +113,45 @@ export function OptionSet({
   const [openId, setOpenId] = useState<string | null>(null);
   const shown = selectedId ?? openId ?? inCartId ?? null;
   const open = options.find((o) => o.id === shown);
+  const dense = options.length > TILES_UP_TO;
   useReveal(gridRef, options.map((o) => o.id).join());
 
   return (
     <div className={styles.set}>
-      <div
-        className={styles.grid}
-        ref={gridRef}
-        role="group"
-        aria-label="Options"
-      >
-        {options.map((option) => (
-          <OptionRow
-            key={option.id}
-            option={option}
-            selected={option.id === shown}
-            onAsk={() => {
-              setOpenId(option.id);
-              onAsk(option.id);
-            }}
-          />
-        ))}
-      </div>
+      {dense ? (
+        <ul className={styles.lines} role="group" aria-label="Options">
+          {options.map((option) => (
+            <OptionLine
+              key={option.id}
+              option={option}
+              selected={option.id === shown}
+              onAsk={() => {
+                setOpenId(option.id);
+                onAsk(option.id);
+              }}
+            />
+          ))}
+        </ul>
+      ) : (
+        <div
+          className={styles.grid}
+          ref={gridRef}
+          role="group"
+          aria-label="Options"
+        >
+          {options.map((option) => (
+            <OptionRow
+              key={option.id}
+              option={option}
+              selected={option.id === shown}
+              onAsk={() => {
+                setOpenId(option.id);
+                onAsk(option.id);
+              }}
+            />
+          ))}
+        </div>
+      )}
       {open !== undefined && <Evidence option={open} />}
     </div>
   );

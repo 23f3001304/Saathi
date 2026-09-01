@@ -119,3 +119,31 @@ windowless research with step pills, no em dashes.
 - Klarna: OpenAI case study and press notes on assistant, hybrid-support reversal
 - Google AI Mode shopping: TechCrunch (2025-05-20), ppc.land on ads in AI Mode
 - Trust research: MDPI JTAER 2026 procedural-justice study of recommendation explanations; ScienceDirect on transparency in recommendation agents
+
+## 5. Our own screens, audited (2026-09-02, live walkthrough of the deployed build)
+
+Ranked; (F) = fixed in the same pass.
+
+### Integrity-adjacent
+1. **(F) The bill can show a different amount than the cart the signature releases.** BillCard renders the picked card's client-side price; the signed cart is the cart beat's. In the scripted flagship the sheet said Rs 1,299 while the built cart and the Orders row said Rs 1,199. What you see must be what you sign: the bill now binds to the cart beat when present.
+2. **(F) Raw transaction and order ids in a shopper bubble.** "Your bill is ready to pay. (txn_43918671... order_TWufS...)". Ids belong to the Ledger, not the conversation.
+3. **Contradiction: cards carry "no signed quote" chips directly under prose saying "I have a signed quote".** The chip reflects listing-time state and reads as a lie either way. Chip should update once a quote is signed, or say "quote pending".
+4. **"Cart built" pill live while the dock still asks "Pick one".** The scripted run builds its default cart before the pick; ask and act on screen at once.
+
+### Looks-broken
+5. **(F) Orders rows titled with raw URNs** (urn:covenant:merchant:kolam-run) and raw fold words (link_issued). Now: merchant short name, "Awaiting payment", rounded rupees.
+6. **Key thumbprint jargon repeats on shopper surfaces.** "ES256 · user-2026-09-bfd65ad0" appears twice on one bill sheet and again in the signed pill. Once, behind a tap, would say more.
+7. **Trailing ".00" on nearly every price.** Rs 1,299.00 in cards, bills, orders. Round rupees unless paise are real.
+8. **The payment moment opens with an apology.** "No payment link was issued for this bill, so there is nothing to scan." Lead with the action; mention the missing QR only if a QR was promised.
+9. **Pay now is a black button in an indigo-and-saffron system**, with no amount on it. "Pay Rs 1,299" in house indigo.
+10. **SKU codes printed on option-card art** (ST-KURTA-NAVY-M) and merchant disambiguators in titles ("(Acme)").
+
+### Flow and hierarchy
+11. **The refusal moment renders as plain grey prose.** "That call was refused before it ran" is the product's thesis and visually indistinguishable from small talk. It deserves the marked treatment the verdict card gets.
+12. **One mode toggle per work block.** Three "Just The Latest | The Steps | Everything" rows on one screen; the mode is global, render its control once.
+13. **Duplicate new-chat affordances** in one bar (title dropdown left, "+ New chat" right).
+14. **The sign gate's bubble restates itself.** "A navy kurta under Rs 2,000, refundable: at most 2000.00 INR, apparel, refundable only" is one fact said twice with a machine unit.
+15. **"6 refused" top-bar chip has no noun.** Judges see a scary number; "6 attacks refused" is the brag.
+16. **Sign-in and key screens bury their one action.** Ghost-faint hold square reads disabled; "Continue as a demo user" is a hairline button for the only path forward.
+17. **Opener cards: tag chips restate the title, captions are near-invisible, card bottoms ragged.**
+18. **Sort pill leaks the machine token**: "Sorted by verified price, lowest first. (price_asc)".

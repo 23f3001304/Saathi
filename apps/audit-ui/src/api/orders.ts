@@ -32,6 +32,8 @@ interface RawOrder {
 const STATE_WORDS: Record<string, string> = {
   settled: "Paid",
   captured: "Paid",
+  link_issued: "Awaiting payment",
+  cooloff_parked: "Cooling off",
   pending_cooloff: "Cooling off",
   proposed: "Awaiting signature",
   authorized: "Awaiting payment",
@@ -45,6 +47,13 @@ export function stateWord(state: string): string {
   return STATE_WORDS[state] ?? state;
 }
 
+/** "urn:covenant:merchant:kolam-run" earns its keep in the Ledger, not here. */
+function shortMerchant(id: string | null): string | null {
+  if (id === null) return null;
+  const tail = id.split(":").pop() ?? id;
+  return tail.length > 0 ? tail : id;
+}
+
 export async function fetchOrders(): Promise<readonly OrderItem[]> {
   if (!isLive()) return [];
   const raw = await getJson<{ items: RawOrder[] }>("/v1/transactions?limit=50");
@@ -53,7 +62,8 @@ export async function fetchOrders(): Promise<readonly OrderItem[]> {
     state: row.state,
     amountPaise: row.amount_paise,
     currency: row.currency,
-    merchant: row.merchant_id,
+    // The mandate's issuer is a URN; the row title is for a person.
+    merchant: shortMerchant(row.merchant_id),
     createdAt: row.created_at,
     cooloffUntil: row.cooloff_until,
   }));

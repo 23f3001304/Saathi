@@ -48,7 +48,7 @@ const REFUSAL_SENTENCE: Partial<Record<ReasonCode, string>> = {
 function refusalText(reasonCode: string): string {
   const because = REFUSAL_SENTENCE[reasonCode as ReasonCode];
   if (because === undefined) {
-    return "I will not propose this cart: it conflicts with the covenant you signed.";
+    return "I will not propose this cart: it conflicts with the rules you signed.";
   }
   return `I will not propose this cart: ${because}.`;
 }

@@ -11,52 +11,10 @@ import {
   cartLine,
   DECISION_TEXT,
   memoryLine,
-  OUTCOME_TEXT,
+  pill,
   sortLine,
 } from "./beatLines.ts";
-
-function pill(id: string, text: string): AssistantSignal {
-  // `afterMs` is the script player's clock; a live beat has already happened.
-  return { kind: "activity", activity: { id, text, afterMs: 0 } };
-}
-
-/** A conversational turn has no outcome to report: the reply *is* the outcome.
- *  An unmapped state is never spoken either — it would put a raw enum in the
- *  agent's mouth, which is how "answered answer" reached the screen. */
-function outcomeSignals(
-  beat: Extract<AgentBeat, { kind: "outcome" }>,
-): AssistantSignal[] {
-  if (beat.state === "answered")
-    return [{ kind: "work-done" }, { kind: "run-idle" }];
-  // The transaction is carried whatever the outcome reads as: a bill whose
-  // link mint was refused still has an order to pay, so the card needs the id
-  // even on the states that are not `link_issued`.
-  const settled: AssistantSignal[] =
-    beat.txnId === null ? [] : [{ kind: "settlement", txnId: beat.txnId }];
-  const known = OUTCOME_TEXT[beat.state];
-  if (known === undefined) {
-    return [
-      { kind: "work-done" },
-      { kind: "run-idle" },
-      ...settled,
-      pill(`outcome-${beat.state}`, beat.state),
-    ];
-  }
-  const txn = beat.txnId === null ? "" : ` (${beat.txnId})`;
-  // A link_issued whose detail admits no link was minted must not open with
-  // "your payment link is ready" — the sentence and its own detail disagreed
-  // on camera. The bill is the truthful headline either way.
-  const lead =
-    beat.state === "link_issued" && beat.detail.includes("no link issued")
-      ? "Your bill is ready to pay."
-      : known;
-  return [
-    { kind: "work-done" },
-    { kind: "run-idle" },
-    ...settled,
-    { kind: "say", text: `${lead}${txn} ${beat.detail}`.trim(), system: true },
-  ];
-}
+import { outcomeSignals } from "./outcomeSignals.ts";
 
 function signedSignals(
   beat: Extract<AgentBeat, { kind: "intent-signed" }>,
@@ -137,6 +95,14 @@ function auditSignals(beat: AgentBeat, index: number): AssistantSignal[] {
       // beat itself is the cue, and `GET /chat/state.awaiting` confirms it.
       return [
         pill(`cart-${index}`, cartLine(beat)),
+        // The bill binds to this, not to a tapped card's client-side price:
+        // a scripted run once showed a Rs 1,299 sheet over a Rs 1,199 cart,
+        // and what you see has to be what you sign.
+        {
+          kind: "cart-built",
+          totalPaise: beat.totalPaise,
+          itemCount: beat.itemCount,
+        },
         { kind: "await-sign", scope: "cart" },
       ];
     case "verdict":

@@ -10,7 +10,7 @@ type RailNavProps = {
 
 const ITEMS: Array<{ route: Route; label: string; glyph: GlyphName }> = [
   { route: { name: "bench" }, label: "Bench", glyph: "hexagon" },
-  { route: { name: "covenant" }, label: "Covenant", glyph: "shield" },
+  { route: { name: "covenant" }, label: "Rules", glyph: "shield" },
   { route: { name: "ledger" }, label: "Ledger", glyph: "chain" },
 ];
 

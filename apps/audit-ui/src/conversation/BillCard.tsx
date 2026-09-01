@@ -30,6 +30,10 @@ type BillCardProps = {
   onSign?: () => Promise<boolean>;
   /** The thread's copy of an already-signed bill: the record, no pen. */
   signedView?: boolean;
+  /** The signed cart's own total, off the cart beat. When present it is the
+   *  bill's Total: what you see must be what you sign, and a tapped card's
+   *  client-side price is not the thing the signature releases. */
+  cartTotalPaise?: number | null;
   /** Rising from the dock: full width, sunrise edge, the hero entrance. */
   dock?: boolean;
   /**
@@ -76,6 +80,7 @@ export function BillCard({
   signedView = false,
   dock = false,
   txnId = null,
+  cartTotalPaise = null,
 }: BillCardProps): JSX.Element {
   const [signed, setSigned] = useState(signedView);
   const [open, setOpen] = useState(!signedView);
@@ -83,6 +88,9 @@ export function BillCard({
   const [refused, setRefused] = useState(false);
   const [nudge, setNudge] = useState(0);
   const price = paise(picked.pricePaise);
+  const total = paise(cartTotalPaise ?? picked.pricePaise);
+  const differs =
+    cartTotalPaise !== null && cartTotalPaise !== picked.pricePaise;
   const terms = covenant ?? FIXTURE_COVENANT;
   const payment = usePaymentState(txnId, nudge);
 
@@ -147,10 +155,16 @@ export function BillCard({
         </div>
         <div className={`${styles.line} ${styles.total}`}>
           <dt>Total</dt>
-          <dd>{price}</dd>
+          <dd>{total}</dd>
         </div>
       </dl>
       <p className={styles.memo}>Quote signed by {picked.merchant}.</p>
+      {differs && (
+        <p className={styles.memo}>
+          This total is the signed cart&rsquo;s own number; the card you
+          tapped said {price}.
+        </p>
+      )}
       {signed && payment !== null && (
         <PayPanel
           payment={payment}

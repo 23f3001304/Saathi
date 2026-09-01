@@ -9,7 +9,7 @@ import {
   type PaymentState,
 } from "../api/paymentState.ts";
 import { useResource } from "../api/useResource.ts";
-import { paise } from "../primitives/formatMoney.ts";
+import { rupeesRounded } from "../primitives/formatMoney.ts";
 import styles from "./Orders.module.css";
 
 function whenOf(iso: string | null): string {
@@ -72,7 +72,7 @@ function OrderRow({ order }: { order: OrderItem }): JSX.Element {
         <span className={`${styles.state} ${toneOf(order.state)}`}>
           {stateWord(order.state)}
         </span>
-        <span className={styles.amount}>{paise(order.amountPaise)}</span>
+        <span className={styles.amount}>{rupeesRounded(order.amountPaise)}</span>
       </button>
       {open && <Trail payment={payment} />}
     </li>

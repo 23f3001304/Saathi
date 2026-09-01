@@ -56,14 +56,14 @@ function latestSortKey(
 }
 
 const RESEARCH_STEPS = [
-  { key: "covenant", label: "Your covenant" },
+  { key: "covenant", label: "Your rules" },
   { key: "catalog", label: "Catalog" },
   { key: "quote", label: "Signed quote" },
   { key: "cart", label: "Cart + digest" },
 ] as const;
 
 const RESEARCH_LABEL: Record<number, string> = {
-  0: "Reading your covenant…",
+  0: "Reading your rules…",
   1: "Reading the catalog. Listing copy is a claim, not a price.",
   2: "Asking the merchant to sign a quote I can hold them to…",
   3: "Building the cart and hashing the memories that justify it…",

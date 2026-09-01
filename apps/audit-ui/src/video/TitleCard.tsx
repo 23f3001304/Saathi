@@ -11,7 +11,7 @@ import styles from "./TitleCard.module.css";
 export function TitleCard(): JSX.Element {
   return (
     <div className={styles.card}>
-      <h1 className={styles.title}>Covenant</h1>
+      <h1 className={styles.title}>Saathi</h1>
       <p className={styles.subtitle}>
         India gave the ledger its zero. This is what it looks like when an
         agent's spending has one too.

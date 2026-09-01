@@ -26,7 +26,7 @@ type OptionRowProps = {
  * came from. "Page price, unsigned" is a stronger claim than "no signed quote",
  * and it is the true one for a number read off a live listing.
  */
-function evidenceLine(option: OptionRowData): string {
+export function evidenceLine(option: OptionRowData): string {
   if (option.quoteSigned === true) return "signed quote";
   return option.sourceUrl === undefined
     ? "no signed quote"

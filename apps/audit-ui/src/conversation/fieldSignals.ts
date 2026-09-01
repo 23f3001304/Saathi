@@ -11,21 +11,41 @@ function released(
   return state.awaiting === scope ? null : state.awaiting;
 }
 
-/** Signals that only set a field; none of them touch the entry list. */
-export function applyFieldSignal(
+/** The money fields, split out to keep each switch inside the complexity
+ *  budget: what a signature is bounded by, what it would release, and what
+ *  it settled into are one family of facts. */
+function applyMoneySignal(
   state: AssistantSnapshot,
   signal: AssistantSignal,
-): AssistantSnapshot {
+): AssistantSnapshot | null {
   switch (signal.kind) {
     case "covenant":
       return {
         ...state,
         covenant: { capPaise: signal.capPaise, thumbprint: signal.thumbprint },
       };
-    case "sandbox":
-      return { ...state, sandbox: signal.session };
+    case "cart-built":
+      return {
+        ...state,
+        cart: { totalPaise: signal.totalPaise, itemCount: signal.itemCount },
+      };
     case "settlement":
       return { ...state, txnId: signal.txnId };
+    default:
+      return null;
+  }
+}
+
+/** Signals that only set a field; none of them touch the entry list. */
+export function applyFieldSignal(
+  state: AssistantSnapshot,
+  signal: AssistantSignal,
+): AssistantSnapshot {
+  const money = applyMoneySignal(state, signal);
+  if (money !== null) return money;
+  switch (signal.kind) {
+    case "sandbox":
+      return { ...state, sandbox: signal.session };
     case "await-sign":
       return { ...state, awaiting: signal.scope };
     case "signed":

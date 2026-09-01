@@ -42,6 +42,7 @@ export type AssistantSignal =
   | { kind: "run-idle" }
   | { kind: "offer"; options: OptionRowData[] }
   | { kind: "covenant"; capPaise: number; thumbprint: string }
+  | { kind: "cart-built"; totalPaise: number; itemCount: number }
   /** The sandbox window as the run left it — actions, no picture. */
   | { kind: "sandbox"; session: SandboxSession }
   /** The transaction a run settled into, so the bill can ask after the money. */

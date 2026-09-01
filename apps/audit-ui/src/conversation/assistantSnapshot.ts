@@ -16,6 +16,9 @@ export type AssistantSnapshot = {
   offering: boolean;
   options: OptionRowData[];
   covenant: CovenantView | null;
+  /** The cart a signature would release, off the cart beat: the bill binds
+   *  to this, never to a tapped card's client-side price. */
+  cart: { totalPaise: number; itemCount: number } | null;
   /** A window the run opened, restored from the log; live cards come from
    *  `/browser/session`. */
   sandbox: SandboxSession | null;
@@ -37,6 +40,7 @@ export const emptySnapshot: AssistantSnapshot = {
   offering: false,
   options: [],
   covenant: null,
+  cart: null,
   sandbox: null,
   awaiting: null,
   running: false,
