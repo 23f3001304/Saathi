@@ -2,6 +2,7 @@
 // counts as a rung failing, how long to wait before trying it again, when to
 // fall, and — the part that is new — when to climb back.
 import { feed } from "./beatFold.ts";
+import { startReconcile } from "./beatReconcile.ts";
 import {
   POLL_INTERVAL_MS,
   rebaseTo,
@@ -59,6 +60,10 @@ function opened(
   if (session.retry !== null) clearTimeout(session.retry);
   session.retry = null;
   session.emit({ kind: "status", status: "live", detail: transport });
+  // A stream believed live is checked, slowly, against the one surface that
+  // cannot go quiet without meaning it — a half-open connection drops no
+  // error, and without this the run's closing beats never reached the screen.
+  startReconcile(session, () => connectSocket(session));
 }
 
 function scheduleClimb(session: StreamSession): void {

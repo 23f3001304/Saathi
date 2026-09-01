@@ -4,6 +4,7 @@ export type Route =
   | { name: "bench" }
   | { name: "covenant" }
   | { name: "ledger" }
+  | { name: "orders" }
   | { name: "ledger-sku"; sku: string }
   | { name: "settings" };
 
@@ -14,6 +15,7 @@ function parse(pathname: string): Route {
   if (pathname === "/covenant") return { name: "covenant" };
   if (pathname === "/settings") return { name: "settings" };
   if (pathname === "/ledger") return { name: "ledger" };
+  if (pathname === "/orders") return { name: "orders" };
   return { name: "bench" };
 }
 
@@ -42,6 +44,7 @@ const ROUTE_PATH: Record<Route["name"], string> = {
   bench: "/",
   covenant: "/covenant",
   ledger: "/ledger",
+  orders: "/orders",
   settings: "/settings",
   "ledger-sku": "/ledger/sku",
 };

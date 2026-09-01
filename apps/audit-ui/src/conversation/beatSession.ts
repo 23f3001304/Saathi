@@ -62,6 +62,10 @@ export type StreamSession = {
   timer: ReturnType<typeof setTimeout> | null;
   /** The ladder's next move, up or down. */
   retry: ReturnType<typeof setTimeout> | null;
+  /** The push rungs' liveness check — see beatReconcile.ts. */
+  heartbeat: ReturnType<typeof setTimeout> | null;
+  /** Consecutive heartbeats that caught the stream not delivering. */
+  misses: number;
   /** Consecutive failures on the rung being attempted. */
   attempt: number;
   /**
@@ -101,6 +105,8 @@ export function newSession(
     source: null,
     timer: null,
     retry: null,
+    heartbeat: null,
+    misses: 0,
     attempt: 0,
     proven: { socket: false, sse: false },
     climb: 0,
@@ -141,6 +147,8 @@ export function clearTimers(session: StreamSession): void {
   session.timer = null;
   if (session.retry !== null) clearTimeout(session.retry);
   session.retry = null;
+  if (session.heartbeat !== null) clearTimeout(session.heartbeat);
+  session.heartbeat = null;
 }
 
 /** The host stopped answering. Say so once, then stand down. */

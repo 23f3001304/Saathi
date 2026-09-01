@@ -311,7 +311,7 @@ export function ChatSession({
               <StreamText text="Your bill is ready." />
             </p>
           )}
-          {signed && picked !== undefined && (
+          {signed && picked !== undefined && !billOpen && (
             <BillCard
               picked={picked}
               covenant={chat.covenant}
@@ -326,7 +326,7 @@ export function ChatSession({
           <div ref={endRef} />
         </div>
       </div>
-      {billOpen && !signed && picked !== undefined && (
+      {billOpen && picked !== undefined && (
         <div className={styles.sheetLayer}>
           <button
             type="button"
@@ -338,10 +338,15 @@ export function ChatSession({
             dock
             picked={picked}
             covenant={chat.covenant}
+            txnId={chat.txnId}
             onSign={() => sign("cart")}
             onSigned={() => {
+              // The sheet stays up: the hand that signed is the hand that
+              // pays, so the same popup morphs into the payment step rather
+              // than stranding "Pay now" down in the transcript. Closing it
+              // is the shopper's gesture, and the signed record in the
+              // thread is waiting behind the scrim either way.
               setSigned(true);
-              setBillOpen(false);
             }}
           />
         </div>

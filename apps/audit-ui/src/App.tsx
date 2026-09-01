@@ -16,6 +16,7 @@ import { Bench } from "./screens/Bench.tsx";
 import { Covenant } from "./screens/Covenant.tsx";
 import { Settings } from "./screens/Settings.tsx";
 import { Ledger } from "./screens/Ledger.tsx";
+import { Orders } from "./screens/Orders.tsx";
 import type { SigningRequest, DigestRequest } from "./ui/overlays.ts";
 import styles from "./App.module.css";
 
@@ -31,6 +32,7 @@ function Screen({
   offline: boolean;
 }): JSX.Element {
   const { navigate } = useRoute();
+  if (routeName === "orders") return <Orders />;
   if (routeName === "covenant") return <Covenant onRequestSign={onSign} />;
   if (routeName === "settings") return <Settings />;
   if (routeName === "ledger" || routeName === "ledger-sku") {

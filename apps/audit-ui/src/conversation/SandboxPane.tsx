@@ -35,6 +35,16 @@ export function SandboxPane({
   const driving = live?.state === "user-drive";
   return (
     <div className={driving ? styles.driveFull : undefined}>
+      {busy && live === null && (
+        // A run in flight with no live window yet: without this line the
+        // last errand's record card sits there looking finished, and a
+        // shopper who just said "go to the shop" reads it as nothing
+        // happening — "container did not open" was the exact complaint.
+        <p className={styles.paneNote}>
+          Working — the live window appears here when the agent reaches the
+          shop.
+        </p>
+      )}
       <BrowserSessionCard
         session={card}
         idleAgent={live !== null && live.state === "agent-drive" && !busy}

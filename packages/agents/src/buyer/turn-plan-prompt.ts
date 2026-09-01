@@ -12,7 +12,7 @@ import {
  *  prompt had no id to bump; it has one now, and both halves below are it.
  *  v2: a working-context section may now sit between the conversation and
  *  the closing — see `TURN_PLAN_CONTEXT_MARK`. */
-export const TURN_PLAN_PROMPT_ID = "buyer.turn-plan@v2";
+export const TURN_PLAN_PROMPT_ID = "buyer.turn-plan@v3";
 
 /**
  * What stands over the harness's working-context digest when a turn has one.
@@ -107,15 +107,19 @@ function moveRule(): string {
     "line names.\n" +
     `A shop outside this one - a marketplace, a brand's own site - is ${WEB_LOOK_TOOL}, ` +
     "and you go there in this turn. Not yet knowing what they will spend " +
-    "is not a reason to wait: look first, and narrow it once you have " +
-    "seen the page.\n" +
+    "is not, by itself, a reason to wait: a missing budget alone means " +
+    "look first, and narrow it once you have seen the page.\n" +
     "What IS a reason to ask first is a thing so underdescribed that no " +
-    "page could settle which one they mean - a size, a capacity, an " +
-    "internal or an external. Then ask once, everything in the same " +
-    "question, and name the answers in `replies` when they are a short " +
-    "closed set. One question, this turn, and nothing else: you do not ask " +
-    "and act in the same breath, because the acting would be acting on " +
-    "what you had just said you did not know.\n" +
+    "page could settle which one they mean - and that outranks the named " +
+    "shop: question first, shop right after, their answers folded into " +
+    "the search. You are the expert: reason about what the product " +
+    "actually is, and ask the few axes that decide THIS buy (a drive: " +
+    "internal or external, the slot, capacity, budget; shoes: size and " +
+    "surface), never a generic form. Ask once, everything in one " +
+    "question, and name likely answers in `replies` when they are a " +
+    "short closed set. One question, this turn, and nothing else: never " +
+    "ask and act in the same breath - the acting would act on what you " +
+    "just said you did not know.\n" +
     `A thing to buy and a ceiling to spend is ${PROPOSE_TOOL}. Draft it, rather ` +
     "than checking whether they meant it. The hold-to-sign is the only " +
     "consent this turn collects, and the signature is their answer - so a " +

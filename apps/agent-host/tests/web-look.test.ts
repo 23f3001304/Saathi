@@ -15,7 +15,9 @@ import { RecordingLogger, StepClock } from "./support/fakes.js";
 const AMAZON = "https://www.amazon.in/s?k=1tb+ssd";
 
 /** How the page is named to a person: host and path, never the query. */
-const AMAZON_NAMED = "amazon.in/s";
+// The provenance line names the shop and counts the pages; the full slugs
+// live on the window card's journal, where they can be read.
+const AMAZON_NAMED = "1 page on amazon.in";
 
 function planOf(over: Partial<TurnPlan> = {}): TurnPlan {
   return {

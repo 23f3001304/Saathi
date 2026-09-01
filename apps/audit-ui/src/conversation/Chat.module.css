@@ -5,7 +5,10 @@
   height: 100%;
   min-height: 0;
   width: 100%;
-  max-width: 820px;
+  /* Wide enough that the work surfaces — cards, the sandbox window, the
+     bill — use the screen they were given. Prose keeps its own measure on
+     .bubble; it is the evidence that earns the width, not the sentences. */
+  max-width: 1080px;
   margin: 0 auto;
 }
 
@@ -41,7 +44,7 @@
    voices are distinct at a glance without chrome. */
 .bubble {
   margin: 0;
-  max-width: 52ch;
+  max-width: 64ch;
   font-family: var(--font-body);
   font-size: var(--t-body-l-size);
   line-height: var(--t-body-l-line);
@@ -115,7 +118,7 @@
   justify-content: space-between;
   gap: var(--sp-4);
   width: 100%;
-  max-width: 820px;
+  max-width: 1080px;
   margin: 0 auto;
   padding: var(--sp-4) var(--sp-7) 0;
 }
@@ -326,4 +329,13 @@
 
 .driveFull {
   display: contents;
+}
+
+/* The line above the sandbox card while a run is working and no live window
+   has arrived: the record below it is history, not a hang. */
+.paneNote {
+  margin: 0 0 var(--sp-2);
+  font-family: var(--font-body);
+  font-size: var(--t-body-s-size);
+  color: var(--ink-62);
 }

@@ -45,12 +45,30 @@ const NAMED = 3;
  * there. A harness sentence that describes a screen the shopper is not looking
  * at is the same failure as an agent naming a page it never opened.
  */
+/**
+ * DECISION (replacing per-page naming): the shop, not the slug. `pageName`
+ * keeps the path, so this line read a product URL's whole
+ * `/CRUCIAL-X9-SSD-External-…/dp/…/ref=…` back at the shopper — provenance
+ * nobody can read is provenance in name only. The count carries the "how
+ * much was looked at"; the hostname carries the "where"; the journal on the
+ * window card still holds every full address for whoever wants it.
+ */
 export function provenance(opened: readonly string[], offered: number): string {
-  const names = [...new Set(opened.map(pageName))];
-  const shown = names.slice(0, NAMED).join(", ");
-  const rest = names.length > NAMED ? ` and ${names.length - NAMED} more` : "";
-  const where = `Read off ${shown}${rest} in the sandbox window.`;
+  const shops = [...new Set(opened.map(shopOf))];
+  const shown = shops.slice(0, NAMED).join(", ");
+  const rest = shops.length > NAMED ? ` and ${shops.length - NAMED} more` : "";
+  const pages = opened.length === 1 ? "1 page" : `${opened.length} pages`;
+  const where = `Read ${pages} on ${shown}${rest} in the sandbox window.`;
   return offered === 0 ? `${where} ${UNSIGNED}` : `${where} ${ON_OFFER}`;
+}
+
+/** The shop a URL belongs to, never its path. */
+function shopOf(url: string): string {
+  try {
+    return new URL(url).hostname.replace(/^www\./, "");
+  } catch {
+    return pageName(url);
+  }
 }
 
 const UNSIGNED =

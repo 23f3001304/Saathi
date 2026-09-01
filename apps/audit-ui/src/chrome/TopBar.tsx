@@ -27,6 +27,7 @@ type TopBarProps = {
  */
 const LINKS: Array<{ route: Route; label: string; instrument?: true }> = [
   { route: { name: "bench" }, label: "Chat" },
+  { route: { name: "orders" }, label: "Orders" },
   { route: { name: "covenant" }, label: "Rules", instrument: true },
   { route: { name: "ledger" }, label: "Ledger", instrument: true },
 ];
