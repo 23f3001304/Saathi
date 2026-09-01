@@ -1,0 +1,447 @@
+.section {
+  position: relative;
+  max-width: var(--page-max);
+  margin: 0 auto;
+  padding: var(--sp-12) var(--page-pad) var(--sp-13);
+}
+
+.statement {
+  font-family: var(--font-display);
+  font-variation-settings:
+    "opsz" 90,
+    "wght" 420;
+  font-weight: normal;
+  font-size: var(--t-statement);
+  line-height: 1.04;
+  letter-spacing: -0.025em;
+  margin-top: var(--sp-10);
+  position: relative;
+  z-index: 1;
+}
+
+.body {
+  margin-top: var(--sp-8);
+  font-size: var(--t-body-l);
+  line-height: var(--t-body-l-line);
+  color: var(--ink-70);
+  max-width: 52ch;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: minmax(0, 6fr) minmax(0, 6fr);
+  gap: var(--sp-10);
+  margin-top: var(--sp-10);
+  align-items: start;
+}
+
+.leftCol {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-9);
+}
+
+/* Eight questions as eight toran tiles: ghost squares that take indigo as
+   they land, each holding its question for a hover or a keyboard focus. */
+.questions {
+  border: var(--rule);
+  border-radius: var(--r-1);
+  background: var(--paper-raised);
+  padding: var(--sp-8);
+}
+
+.tiles {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  gap: var(--sp-6);
+  flex-wrap: wrap;
+}
+
+.tile {
+  position: relative;
+  outline-offset: 4px;
+}
+
+.tileMark {
+  display: block;
+  width: 15px;
+  height: 15px;
+  border-radius: 3px;
+  transform: rotate(45deg) scale(0.7);
+  background: var(--ink-12);
+  transition:
+    background-color var(--d-stamp) var(--ease-stamp),
+    transform var(--d-stamp) var(--ease-stamp);
+  transition-delay: calc(var(--i) * var(--stagger) + 0.15s);
+}
+
+[data-reveal="in"] .tileMark,
+html:not([data-js]) .tileMark {
+  background: var(--indigo);
+  transform: rotate(45deg) scale(1);
+}
+
+.question {
+  position: absolute;
+  bottom: calc(100% + var(--sp-4));
+  left: 50%;
+  transform: translateX(-50%) translateY(3px);
+  white-space: nowrap;
+  font-family: var(--font-data);
+  font-size: var(--t-label);
+  letter-spacing: var(--t-label-tracking);
+  color: var(--paper);
+  background: var(--ink);
+  border-radius: var(--r-1);
+  padding: var(--sp-2) var(--sp-4);
+  opacity: 0;
+  transition:
+    opacity var(--d-hover) var(--ease-out),
+    transform var(--d-hover) var(--ease-out);
+  pointer-events: none;
+  z-index: 2;
+}
+
+.tile:hover .question,
+.tile:focus-visible .question {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+.verdict {
+  display: flex;
+  align-items: baseline;
+  gap: var(--sp-5);
+  flex-wrap: wrap;
+  margin-top: var(--sp-6);
+  padding-top: var(--sp-5);
+  border-top: var(--rule);
+}
+
+.verdictHead {
+  font-family: var(--font-display);
+  font-variation-settings:
+    "opsz" 40,
+    "wght" 520;
+  font-size: 19px;
+}
+
+.verdictText {
+  font-family: var(--font-data);
+  font-size: var(--t-label);
+  letter-spacing: var(--t-label-tracking);
+  text-transform: uppercase;
+  color: var(--ink-55);
+}
+
+/* The refusal moment: the demand struck through, the stamp landing again
+   each time it is asked. */
+.refusal {
+  border: var(--rule);
+  border-left: 2px solid var(--crimson);
+  border-radius: var(--r-1);
+  background: var(--paper-raised);
+  padding: var(--sp-8);
+}
+
+.demand {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+}
+
+.demandWho {
+  font-family: var(--font-data);
+  font-size: var(--t-label);
+  letter-spacing: var(--t-label-tracking);
+  text-transform: uppercase;
+  color: var(--ink-40);
+}
+
+.demandLine {
+  font-family: var(--font-data);
+  font-size: var(--t-data-m);
+  line-height: var(--t-data-m-line);
+  color: var(--ink-70);
+  text-decoration: line-through;
+  text-decoration-color: var(--crimson);
+  text-decoration-thickness: 1.5px;
+  max-width: 34ch;
+}
+
+.refusedStamp {
+  position: absolute;
+  right: 0;
+  top: 2px;
+  color: var(--crimson);
+  border-width: 2px;
+  font-size: 13px;
+  padding: var(--sp-3) var(--sp-5);
+  animation: stampLand var(--d-stamp) var(--ease-stamp) both;
+}
+
+@keyframes stampLand {
+  0% {
+    opacity: 0;
+    transform: rotate(-3deg) scale(1.5);
+  }
+  100% {
+    opacity: 1;
+    transform: rotate(-3deg) scale(1);
+  }
+}
+
+.refusalNote {
+  margin-top: var(--sp-6);
+  font-size: var(--t-body-m);
+  line-height: var(--t-body-m-line);
+  color: var(--ink-70);
+  max-width: 44ch;
+}
+
+.refusalRow {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-6);
+  flex-wrap: wrap;
+  margin-top: var(--sp-6);
+}
+
+.askAgain,
+.tamper {
+  font-family: var(--font-data);
+  font-size: var(--t-label);
+  letter-spacing: var(--t-label-tracking);
+  text-transform: uppercase;
+  border: var(--rule-strong);
+  border-radius: var(--r-1);
+  padding: var(--sp-4) var(--sp-6);
+  transition:
+    transform var(--d-hover) var(--ease-out),
+    background-color var(--d-hover) var(--ease-out);
+}
+
+.askAgain:hover,
+.tamper:hover {
+  background: var(--ink-06);
+  transform: translateY(-1px);
+}
+
+.askAgain:active,
+.tamper:active {
+  transform: scale(0.97);
+}
+
+.refusalCount {
+  font-family: var(--font-data);
+  font-size: var(--t-label);
+  letter-spacing: var(--t-label-tracking);
+  color: var(--ink-55);
+}
+
+/* The hisaab: each line holds the hand of the one before it through a
+   small woven knot on the margin thread. Break an old line and every line
+   after it lets go. */
+.ledger {
+  border: var(--rule);
+  border-radius: var(--r-1);
+  background: var(--paper-raised);
+  padding: var(--sp-8);
+}
+
+.ledgerTitle {
+  font-family: var(--font-data);
+  font-size: var(--t-label);
+  letter-spacing: var(--t-label-tracking);
+  text-transform: uppercase;
+  color: var(--ink-55);
+  padding-bottom: var(--sp-5);
+  border-bottom: var(--rule);
+}
+
+.rows {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 18px 1fr auto;
+  align-items: baseline;
+  gap: var(--sp-5);
+  padding: var(--sp-6) 0;
+  border-bottom: var(--rule);
+  font-size: var(--t-body-m);
+  transition:
+    color 0.25s var(--ease-out),
+    transform 0.25s var(--ease-snap);
+  transition-delay: calc((var(--i) - 1) * 60ms);
+}
+
+.knot {
+  width: 9px;
+  height: 9px;
+  border: 1.5px solid var(--indigo);
+  border-radius: 999px;
+  justify-self: center;
+  align-self: center;
+  position: relative;
+  transition: border-color 0.25s var(--ease-out);
+  transition-delay: calc((var(--i) - 1) * 60ms);
+}
+
+.knot::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: -14px;
+  width: 1.5px;
+  height: 12px;
+  transform: translateX(-50%);
+  background: var(--indigo-24);
+}
+
+.row:first-child .knot::before {
+  display: none;
+}
+
+.rowAmount {
+  font-family: var(--font-data);
+  font-size: var(--t-data-m);
+  transition: color 0.2s var(--ease-out);
+}
+
+.rows[data-broken] .row:nth-child(2) .rowAmount {
+  color: var(--saffron);
+  font-weight: 500;
+}
+
+.rows[data-broken] .row:nth-child(n + 3) {
+  color: var(--crimson);
+  transform: translateX(4px) rotate(0.4deg);
+}
+
+.rows[data-broken] .row:nth-child(n + 3) .knot {
+  border-color: var(--crimson);
+  border-style: dashed;
+}
+
+.ledgerNote {
+  margin-top: var(--sp-6);
+  font-family: var(--font-data);
+  font-size: var(--t-label);
+  line-height: 16px;
+  letter-spacing: var(--t-label-tracking);
+  text-transform: uppercase;
+  color: var(--ink-55);
+  min-height: 32px;
+}
+
+.ledgerRow {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-6);
+  margin-top: var(--sp-4);
+}
+
+.gadbad {
+  color: var(--crimson);
+  animation: stampLand var(--d-stamp) var(--ease-stamp) both;
+}
+
+/* The colophon: the oldest zero, kept for you. */
+.zero {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-8);
+  max-width: 60ch;
+  margin: var(--sp-12) auto 0;
+  color: var(--indigo);
+}
+
+.zeroMark {
+  flex-shrink: 0;
+  overflow: visible;
+}
+
+/* The oldest zero draws itself: the ring laid like a kolam line, the dot
+   stamped once the ring closes. Already whole without JavaScript. */
+.zeroRing {
+  stroke-dashoffset: 0;
+}
+
+.zeroDot {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  html[data-js] .zero .zeroRing {
+    stroke-dashoffset: 1;
+  }
+  html[data-js] .zero[data-reveal="in"] .zeroRing {
+    animation: drawRing 0.9s var(--ease-draw) 0.1s forwards;
+  }
+  html[data-js] .zero .zeroDot {
+    opacity: 0;
+    transform: scale(0);
+  }
+  html[data-js] .zero[data-reveal="in"] .zeroDot {
+    opacity: 1;
+    transform: scale(1);
+    transition:
+      transform var(--d-stamp) var(--ease-stamp),
+      opacity var(--d-stamp) var(--ease-out);
+    transition-delay: 0.85s;
+  }
+}
+
+@keyframes drawRing {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+.zeroText {
+  font-family: var(--font-display);
+  font-variation-settings:
+    "opsz" 40,
+    "wght" 440;
+  font-size: var(--t-display-l);
+  line-height: 1.3;
+  letter-spacing: -0.015em;
+  color: var(--ink);
+}
+
+@media (max-width: 979px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+  /* No hover on a thumb: the eight questions read as a plain list. */
+  .tiles {
+    flex-direction: column;
+    gap: var(--sp-4);
+  }
+  .tile {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-5);
+  }
+  .question {
+    position: static;
+    transform: none;
+    opacity: 1;
+    background: none;
+    color: var(--ink-55);
+    padding: 0;
+  }
+  .zero {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--sp-5);
+  }
+}

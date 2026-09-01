@@ -1,0 +1,27 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    // Same shape as audit-ui: root `tsc -b` type-checks via composite
+    // references, Vite's `dist` is the real output, and tsc's own emit is a
+    // throwaway routed into node_modules so it cannot collide with `dist`
+    // and stays outside `pnpm lint`.
+    "outDir": "../../node_modules/.tsc-cache/landing",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "lib": ["ES2023", "DOM", "DOM.Iterable"],
+    "jsx": "react-jsx",
+    "allowJs": false,
+    "resolveJsonModule": true,
+    "types": ["vite/client"],
+    // Relative imports spell out .ts/.tsx: the root dependency-cruiser
+    // resolver has no .tsx in its extensions list, so extension-less
+    // specifiers read as unresolvable there (see audit-ui's tsconfig).
+    "allowImportingTsExtensions": true,
+    "emitDeclarationOnly": true,
+    // Same three relaxations as audit-ui, for the same CSS-Modules reasons.
+    "noPropertyAccessFromIndexSignature": false,
+    "noUncheckedIndexedAccess": false,
+    "exactOptionalPropertyTypes": false
+  },
+  "include": ["src"]
+}

@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Saathi · The agent that cannot spend what you did not sign</title>
+    <meta
+      name="description"
+      content="Saathi is a shopping companion that asks before it spends, shows every step, and buys nothing until you press and hold. Every rupee written down where you can read it."
+    />
+    <meta name="theme-color" content="#FAF7F2" />
+    <meta property="og:title" content="Saathi · a shopping agent under a signed covenant" />
+    <meta
+      property="og:description"
+      content="It asks before it spends. It shows every step. It cannot spend what you did not sign."
+    />
+    <!-- The reveal choreography hides nothing unless this attribute lands,
+         so a browser without JavaScript reads the whole deed, settled. -->
+    <script>
+      document.documentElement.dataset.js = "true";
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="preconnect" href="https://api.fontshare.com" />
+    <link rel="preconnect" href="https://cdn.fontshare.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300..900&family=IBM+Plex+Mono:wght@400;500&family=Anek+Devanagari:wght@500&display=swap"
+    />
+    <link
+      rel="stylesheet"
+      href="https://api.fontshare.com/v2/css?f[]=general-sans@400,500,600&display=swap"
+    />
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

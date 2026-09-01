@@ -1,0 +1,61 @@
+.wordmark {
+  display: inline-block;
+  font-family: var(--font-display);
+  font-variation-settings:
+    "opsz" 144,
+    "wght" 540;
+  letter-spacing: -0.03em;
+  line-height: 0.94;
+  white-space: nowrap;
+}
+
+.letter {
+  display: inline-block;
+  will-change: transform;
+}
+
+/* The arrival: wet with pigment, drying to ink. Colour and a small rise,
+   nothing else moves. Runs once, CSS only, so it plays with or without
+   JavaScript; reduced motion collapses it to the settled name. */
+@media (prefers-reduced-motion: no-preference) {
+  .hero .letter {
+    opacity: 0;
+    animation: letterIn 0.62s var(--ease-out) both;
+    animation-delay: calc(var(--i) * 76ms + 120ms);
+  }
+}
+
+@keyframes letterIn {
+  0% {
+    opacity: 0;
+    transform: translateY(0.16em);
+    color: var(--pigment);
+  }
+  55% {
+    opacity: 1;
+    color: var(--pigment);
+  }
+  100% {
+    opacity: 1;
+    transform: none;
+    color: inherit;
+  }
+}
+
+/* The footer bookend: hovering the name re-inks it pigment by pigment,
+   left to right, and it dries again as the cursor leaves. */
+.footer .letter {
+  transition: color 0.3s var(--ease-out);
+  transition-delay: calc(var(--i) * var(--stagger));
+}
+
+.footer:hover .letter {
+  color: var(--pigment);
+}
+
+/* One pigment survives the drying: the tittle-bearing last letter settles
+   to indigo instead of ink, a permanent memory of the arrival. Small
+   enough to read as a signature, not a decoration. */
+.hero .letter:last-child {
+  color: var(--indigo);
+}

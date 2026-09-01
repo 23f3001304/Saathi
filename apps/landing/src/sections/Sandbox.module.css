@@ -1,0 +1,205 @@
+.window {
+  position: relative;
+  background: var(--paper-raised);
+  border: var(--rule-strong);
+  border-radius: var(--r-1);
+  overflow: hidden;
+  outline-offset: 4px;
+  transition: border-color var(--d-hover) var(--ease-out);
+}
+
+.window:hover,
+.window:focus-visible {
+  border-color: var(--indigo);
+}
+
+.bar {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  padding: var(--sp-4) var(--sp-6);
+  border-bottom: var(--rule);
+  background: var(--paper-sunk);
+}
+
+.dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: var(--ink-24);
+}
+
+.url {
+  margin-left: var(--sp-4);
+  font-family: var(--font-data);
+  font-size: var(--t-label);
+  letter-spacing: var(--t-label-tracking);
+  color: var(--ink-55);
+}
+
+.live {
+  margin-left: auto;
+  font-family: var(--font-data);
+  font-size: var(--t-label);
+  letter-spacing: var(--t-label-tracking);
+  text-transform: uppercase;
+  color: var(--green);
+}
+
+.live::before {
+  content: "";
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--green);
+  margin-right: var(--sp-2);
+  vertical-align: 1px;
+}
+
+.page {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.plate {
+  fill: var(--paper);
+  stroke: var(--ink-12);
+}
+
+.weave {
+  fill: var(--ink-06);
+}
+
+.line {
+  fill: var(--ink-12);
+}
+
+.price {
+  font-family: var(--font-data);
+  font-size: 10px;
+  fill: var(--ink-55);
+}
+
+/* The agent's presence: an indigo ring roaming the listings. It travels,
+   dwells on a tile, travels on; pausing it is the reader's discovery. */
+.agent {
+  transform: translate(72px, 68px);
+}
+
+.agentRing {
+  fill: none;
+  stroke: var(--indigo);
+  stroke-width: 1.5;
+  opacity: 0.9;
+}
+
+.agentCore {
+  fill: var(--indigo);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .agent {
+    animation: roam 13s linear infinite;
+  }
+  .agentRing {
+    animation: breathe 1.6s var(--ease-out) infinite;
+  }
+  .window:hover .agent,
+  .window:focus-visible .agent,
+  .window:hover .agentRing,
+  .window:focus-visible .agentRing {
+    animation-play-state: paused;
+  }
+}
+
+@keyframes roam {
+  0%,
+  10% {
+    transform: translate(72px, 68px);
+  }
+  22%,
+  32% {
+    transform: translate(200px, 68px);
+  }
+  44%,
+  54% {
+    transform: translate(328px, 68px);
+  }
+  64%,
+  76% {
+    transform: translate(72px, 180px);
+  }
+  86%,
+  96% {
+    transform: translate(200px, 180px);
+  }
+  100% {
+    transform: translate(72px, 68px);
+  }
+}
+
+@keyframes breathe {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.25);
+  }
+}
+
+/* The takeover: hover or focus, and the errand yields. */
+.wheel {
+  position: absolute;
+  inset: 33px 0 0 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-4);
+  background: color-mix(in oklab, var(--paper) 82%, transparent);
+  opacity: 0;
+  transition: opacity 0.2s var(--ease-out);
+  pointer-events: none;
+}
+
+.window:hover .wheel,
+.window:focus-visible .wheel {
+  opacity: 1;
+}
+
+.wheelStamp {
+  color: var(--indigo);
+  font-size: 13px;
+  padding: var(--sp-4) var(--sp-6);
+  border-width: 2px;
+  background: var(--paper);
+  transform: rotate(-2deg) scale(0.94);
+  transition: transform var(--d-stamp) var(--ease-stamp);
+}
+
+.window:hover .wheelStamp,
+.window:focus-visible .wheelStamp {
+  transform: rotate(-2deg) scale(1);
+}
+
+.wheelNote {
+  font-family: var(--font-data);
+  font-size: var(--t-label);
+  letter-spacing: var(--t-label-tracking);
+  text-transform: uppercase;
+  color: var(--ink-55);
+}
+
+.note {
+  padding: var(--sp-4) var(--sp-6);
+  border-top: var(--rule);
+  font-family: var(--font-data);
+  font-size: var(--t-label);
+  line-height: 16px;
+  letter-spacing: var(--t-label-tracking);
+  text-transform: uppercase;
+  color: var(--ink-40);
+}

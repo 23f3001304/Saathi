@@ -1,0 +1,122 @@
+.footer {
+  border-top: var(--rule-strong);
+  background: var(--paper-sunk);
+  overflow: hidden;
+}
+
+.inner {
+  max-width: var(--page-max);
+  margin: 0 auto;
+  padding: var(--sp-12) var(--page-pad) var(--sp-9);
+}
+
+.mark {
+  line-height: 0;
+}
+
+.wordmarkRow {
+  margin-top: var(--sp-7);
+  line-height: 0.9;
+}
+
+/* The bookend: hero scale again, cropped a breath by the page edge so the
+   name feels bigger than the room it stands in. */
+.wordmark {
+  font-size: clamp(72px, 14vw, 210px);
+  margin-left: -0.04em;
+}
+
+.hindi {
+  margin-top: var(--sp-9);
+  max-width: 52ch;
+  font-size: var(--t-body-l);
+  line-height: var(--t-body-l-line);
+  color: var(--ink-70);
+}
+
+.hindiWord {
+  font-family: var(--font-accent);
+  font-weight: 500;
+  font-size: 22px;
+  color: var(--ink);
+}
+
+.columns {
+  display: grid;
+  grid-template-columns: auto auto 1fr;
+  gap: var(--sp-12);
+  margin-top: var(--sp-11);
+  padding-top: var(--sp-8);
+  border-top: var(--rule);
+}
+
+.col {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+}
+
+.colHead {
+  font-family: var(--font-data);
+  font-size: var(--t-label);
+  letter-spacing: var(--t-label-tracking);
+  text-transform: uppercase;
+  color: var(--ink-40);
+  margin-bottom: var(--sp-2);
+}
+
+.link {
+  font-family: var(--font-data);
+  font-size: var(--t-data-m);
+  text-decoration: none;
+  color: var(--ink-70);
+  width: fit-content;
+  background-image: linear-gradient(var(--indigo), var(--indigo));
+  background-repeat: no-repeat;
+  background-size: 0% 1px;
+  background-position: 0 100%;
+  transition:
+    background-size 0.25s var(--ease-out),
+    color var(--d-hover) var(--ease-out);
+}
+
+.link:hover {
+  color: var(--ink);
+  background-size: 100% 1px;
+}
+
+.colWide {
+  justify-self: end;
+  align-self: end;
+  max-width: 34ch;
+  text-align: right;
+  font-size: var(--t-body-m);
+  line-height: var(--t-body-m-line);
+  color: var(--ink-55);
+}
+
+.utility {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--sp-6);
+  flex-wrap: wrap;
+  margin-top: var(--sp-10);
+  padding-top: var(--sp-5);
+  border-top: var(--rule);
+  font-family: var(--font-data);
+  font-size: var(--t-label);
+  letter-spacing: var(--t-label-tracking);
+  text-transform: uppercase;
+  color: var(--ink-40);
+}
+
+@media (max-width: 767px) {
+  .columns {
+    grid-template-columns: 1fr;
+    gap: var(--sp-8);
+  }
+  .colWide {
+    justify-self: start;
+    text-align: left;
+  }
+}

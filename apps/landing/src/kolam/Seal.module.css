@@ -1,0 +1,104 @@
+.seal {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--sp-4);
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.figure {
+  overflow: visible;
+  transition: transform var(--d-hover) var(--ease-out);
+}
+
+.seal[data-stage="holding"] .figure {
+  transform: scale(0.94);
+}
+
+.ghost {
+  fill: none;
+  stroke: var(--ink-12);
+  stroke-width: 1.5;
+}
+
+.ink {
+  fill: none;
+  stroke: var(--indigo);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-dashoffset: 1;
+  transition: stroke-dashoffset 0.2s var(--ease-out);
+}
+
+.seal[data-stage="holding"] .ink {
+  stroke-dashoffset: 0;
+  /* Linear on purpose: the drawing is the progress bar, and it must not lie. */
+  transition: stroke-dashoffset var(--d-draw) linear;
+}
+
+.seal[data-stage="done"] .ink {
+  stroke-dashoffset: 0;
+  transition: none;
+}
+
+.bloom {
+  fill: var(--indigo);
+  opacity: 0;
+  transition: opacity 0.3s var(--ease-out);
+}
+
+.seal[data-stage="done"] .bloom {
+  opacity: 0.1;
+}
+
+.seal[data-stage="done"] .figure {
+  animation: stampPop var(--d-stamp) var(--ease-stamp);
+}
+
+@keyframes stampPop {
+  0% {
+    transform: scale(0.94);
+  }
+  55% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* The one permitted flourish, spent at the moment of commitment. */
+.rays line {
+  stroke: var(--indigo);
+  stroke-width: 1;
+  opacity: 0;
+}
+
+.seal[data-stage="done"] .rays line {
+  animation: rayFlash 0.32s var(--ease-out) both;
+  animation-delay: 0.22s;
+}
+
+@keyframes rayFlash {
+  0% {
+    opacity: 0.4;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+.label {
+  font-family: var(--font-data);
+  font-size: var(--t-label);
+  line-height: var(--t-label-line);
+  letter-spacing: var(--t-label-tracking);
+  text-transform: uppercase;
+  color: var(--ink-55);
+}
+
+.seal[data-stage="done"] .label {
+  color: var(--indigo);
+}

@@ -1,0 +1,34 @@
+.head {
+  position: relative;
+}
+
+.row {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--sp-6);
+  padding-top: var(--sp-4);
+  border-top: var(--rule-strong);
+  font-family: var(--font-data);
+  font-size: var(--t-label);
+  line-height: var(--t-label-line);
+  letter-spacing: var(--t-label-tracking);
+  text-transform: uppercase;
+  color: var(--ink-55);
+}
+
+.numeral {
+  position: absolute;
+  top: calc(-0.18 * var(--t-numeral));
+  right: calc(-1 * var(--sp-6));
+  font-family: var(--font-display);
+  font-variation-settings:
+    "opsz" 144,
+    "wght" 340;
+  font-size: var(--t-numeral);
+  line-height: 1;
+  color: var(--ink-06);
+  pointer-events: none;
+  -webkit-user-select: none;
+  user-select: none;
+  z-index: 0;
+}

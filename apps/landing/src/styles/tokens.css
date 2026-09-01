@@ -1,0 +1,108 @@
+/* Landing tokens: the product's palette and motion vocabulary (audit-ui
+   tokens.css, motion/presets.ts) promoted to display scale. One source of
+   truth; every colour, size and curve on the page is a var() against this. */
+:root {
+  /* paper and ink */
+  --paper: #faf7f2;
+  --paper-sunk: #f4f0e9;
+  --paper-raised: #fffdfa;
+  --ink: #1e1e1e;
+  --ink-70: color-mix(in oklab, var(--ink) 70%, transparent);
+  --ink-55: color-mix(in oklab, var(--ink) 64%, transparent);
+  --ink-40: color-mix(in oklab, var(--ink) 55%, transparent);
+  --ink-24: color-mix(in oklab, var(--ink) 24%, transparent);
+  --ink-12: color-mix(in oklab, var(--ink) 12%, transparent);
+  --ink-06: color-mix(in oklab, var(--ink) 6%, transparent);
+
+  --indigo: #232196;
+  --indigo-24: color-mix(in oklab, var(--indigo) 24%, transparent);
+  --indigo-12: color-mix(in oklab, var(--indigo) 12%, transparent);
+  --green: #0e7a4d;
+  --green-12: color-mix(in oklab, var(--green) 12%, transparent);
+  --crimson: #b3261e;
+  --crimson-12: color-mix(in oklab, var(--crimson) 12%, transparent);
+  --saffron: #e8740c;
+  --marigold: #e8a33d;
+
+  /* the five pigments of the staggered arrival (StreamText's exact set) */
+  --pigment-1: #b4791b;
+  --pigment-2: #14706a;
+  --pigment-3: #b4441a;
+  --pigment-4: #363499;
+  --pigment-5: #a02d55;
+
+  /* the sunrise: the one gradient on the whole page, 3px of it */
+  --sunrise: linear-gradient(
+    100deg,
+    var(--saffron) 0%,
+    var(--marigold) 22%,
+    var(--indigo) 78%
+  );
+
+  --rule: 1px solid var(--ink-12);
+  --rule-strong: 1px solid var(--ink-24);
+  --r-1: 2px;
+  --hatch: repeating-linear-gradient(
+    45deg,
+    currentColor 0 1px,
+    transparent 1px 5px
+  );
+
+  /* faces: Fraunces and Plex Mono lack U+20B9, so a Noto face precedes the
+     generic fallbacks wherever a rupee can appear */
+  --font-display: "Fraunces", "Noto Serif", ui-serif, Georgia, serif;
+  --font-body: "General Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-data: "IBM Plex Mono", "Noto Sans Mono", ui-monospace, monospace;
+  --font-accent: "Anek Devanagari", "Noto Sans Devanagari", var(--font-body);
+
+  /* display scale */
+  --t-wordmark: clamp(88px, 17vw, 248px);
+  --t-numeral: clamp(140px, 24vw, 340px);
+  --t-statement: clamp(38px, 6vw, 88px);
+  --t-display-l: clamp(26px, 3.4vw, 44px);
+  --t-body-l: 18px;
+  --t-body-l-line: 28px;
+  --t-body-m: 15px;
+  --t-body-m-line: 23px;
+  --t-data-m: 13px;
+  --t-data-m-line: 20px;
+  --t-data-l: 18px;
+  --t-data-l-line: 24px;
+  --t-label: 11px;
+  --t-label-line: 12px;
+  --t-label-tracking: 0.04em;
+
+  /* spacing, 4px base */
+  --sp-2: 4px;
+  --sp-3: 6px;
+  --sp-4: 8px;
+  --sp-5: 10px;
+  --sp-6: 14px;
+  --sp-7: 18px;
+  --sp-8: 22px;
+  --sp-9: 32px;
+  --sp-10: 40px;
+  --sp-11: 56px;
+  --sp-12: 72px;
+  --sp-13: 96px;
+  --sp-14: 128px;
+
+  /* layout */
+  --measure: 62ch;
+  --page-max: 1360px;
+  --page-pad: clamp(20px, 4vw, 56px);
+  --rail: 76px;
+
+  /* motion vocabulary, verbatim from motion/presets.ts */
+  --ease-out: cubic-bezier(0.25, 1, 0.5, 1);
+  --ease-stamp: cubic-bezier(0.34, 1.2, 0.64, 1);
+  --ease-snap: cubic-bezier(0.7, 0, 0.84, 0);
+  --ease-draw: cubic-bezier(0.16, 0.84, 0.44, 1);
+  --d-hover: 0.12s;
+  --d-enter: 0.55s;
+  --d-stamp: 0.26s;
+  --d-strike: 0.18s;
+  --d-draw: 0.6s;
+  --stagger: 38ms;
+  --hold-ms: 600ms;
+}

@@ -1,0 +1,182 @@
+.section {
+  position: relative;
+  max-width: var(--page-max);
+  margin: 0 auto;
+  padding: var(--sp-12) var(--page-pad) var(--sp-13);
+}
+
+.grid {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+  gap: var(--sp-10);
+  margin-top: var(--sp-10);
+  align-items: start;
+}
+
+.statement {
+  font-family: var(--font-display);
+  font-variation-settings:
+    "opsz" 90,
+    "wght" 420;
+  font-weight: normal;
+  font-size: var(--t-statement);
+  line-height: 1.04;
+  letter-spacing: -0.025em;
+  max-width: 14ch;
+  text-wrap: balance;
+  position: relative;
+  z-index: 1;
+}
+
+.body {
+  margin-top: var(--sp-8);
+  font-size: var(--t-body-l);
+  line-height: var(--t-body-l-line);
+  color: var(--ink-70);
+  max-width: 46ch;
+}
+
+.kicker {
+  margin-top: var(--sp-8);
+  font-family: var(--font-display);
+  font-variation-settings:
+    "opsz" 40,
+    "wght" 480;
+  font-size: var(--t-display-l);
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  max-width: 24ch;
+}
+
+/* The only dark surface on the page: outside the covenant, outside the
+   house. Overlaps the statement column's baseline grid on wide screens so
+   the clause reads as two layers, not two columns. */
+.terminal {
+  background: var(--ink);
+  color: var(--paper);
+  border-radius: var(--r-1);
+  padding: var(--sp-6) var(--sp-7) var(--sp-7);
+  margin-top: var(--sp-9);
+  box-shadow: 0 24px 48px -32px rgba(30, 30, 30, 0.45);
+}
+
+.termBar {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  padding-bottom: var(--sp-5);
+  border-bottom: 1px solid color-mix(in oklab, var(--paper) 16%, transparent);
+  margin-bottom: var(--sp-5);
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--paper) 24%, transparent);
+}
+
+.termTitle {
+  margin-left: var(--sp-4);
+  font-family: var(--font-data);
+  font-size: var(--t-label);
+  letter-spacing: var(--t-label-tracking);
+  text-transform: uppercase;
+  color: color-mix(in oklab, var(--paper) 55%, transparent);
+}
+
+.prompt {
+  font-family: var(--font-data);
+  font-size: var(--t-data-m);
+  line-height: var(--t-data-m-line);
+  color: color-mix(in oklab, var(--paper) 62%, transparent);
+}
+
+.calls {
+  list-style: none;
+  margin: var(--sp-5) 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.call {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto auto 1fr;
+  gap: var(--sp-2) var(--sp-5);
+  padding: var(--sp-5) var(--sp-2);
+  border-bottom: 1px solid color-mix(in oklab, var(--paper) 10%, transparent);
+  font-family: var(--font-data);
+  font-size: var(--t-data-m);
+  line-height: var(--t-data-m-line);
+}
+
+.verb {
+  color: var(--marigold);
+}
+
+.amount {
+  color: var(--paper);
+}
+
+.note {
+  color: color-mix(in oklab, var(--paper) 55%, transparent);
+}
+
+/* The stamp waits under every cleared call; a hover surfaces it. */
+.noAsk {
+  position: absolute;
+  right: var(--sp-4);
+  top: 50%;
+  color: var(--marigold);
+  background: var(--ink);
+  opacity: 0;
+  transform: translateY(-50%) rotate(-2deg) scale(0.9);
+  transition:
+    opacity var(--d-stamp) var(--ease-stamp),
+    transform var(--d-stamp) var(--ease-stamp);
+  pointer-events: none;
+}
+
+.call:hover .noAsk {
+  opacity: 1;
+  transform: translateY(-50%) rotate(-2deg) scale(1);
+}
+
+.tally {
+  margin-top: var(--sp-6);
+  font-family: var(--font-data);
+  font-size: var(--t-data-l);
+  line-height: var(--t-data-l-line);
+  color: var(--paper);
+}
+
+.margin {
+  position: absolute;
+  right: 0;
+  bottom: calc(-1 * var(--sp-9));
+  max-width: 30ch;
+  font-family: var(--font-data);
+  font-size: var(--t-label);
+  line-height: 16px;
+  letter-spacing: var(--t-label-tracking);
+  text-transform: uppercase;
+  color: var(--ink-40);
+  text-align: right;
+}
+
+@media (max-width: 979px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+  .terminal {
+    margin-top: 0;
+  }
+  .margin {
+    position: static;
+    text-align: left;
+    margin-top: var(--sp-6);
+  }
+}

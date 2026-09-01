@@ -1,0 +1,193 @@
+.section {
+  position: relative;
+  max-width: var(--page-max);
+  margin: 0 auto;
+  padding: var(--sp-12) var(--page-pad) var(--sp-13);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: minmax(0, 6fr) minmax(0, 6fr);
+  gap: var(--sp-11);
+  margin-top: var(--sp-10);
+  align-items: start;
+}
+
+.statement {
+  font-family: var(--font-display);
+  font-variation-settings:
+    "opsz" 90,
+    "wght" 420;
+  font-weight: normal;
+  font-size: var(--t-statement);
+  line-height: 1.04;
+  letter-spacing: -0.025em;
+  max-width: 12ch;
+  position: relative;
+  z-index: 1;
+}
+
+.body {
+  margin-top: var(--sp-8);
+  font-size: var(--t-body-l);
+  line-height: var(--t-body-l-line);
+  color: var(--ink-70);
+  max-width: 46ch;
+}
+
+.beats {
+  margin-top: var(--sp-9);
+  padding-top: var(--sp-5);
+  border-top: var(--rule);
+  font-family: var(--font-data);
+  font-size: var(--t-data-m);
+  line-height: var(--t-data-m-line);
+  color: var(--ink-55);
+  max-width: 40ch;
+}
+
+.deedWrap {
+  position: relative;
+  z-index: 1;
+}
+
+.deed {
+  position: relative;
+  background: var(--paper-raised);
+  border: var(--rule-strong);
+  border-radius: var(--r-1);
+  padding: var(--sp-10) var(--sp-9) var(--sp-9);
+}
+
+.arch {
+  position: absolute;
+  top: -18px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--paper);
+  padding: 0 var(--sp-4);
+  line-height: 0;
+}
+
+.deedTitle {
+  font-family: var(--font-data);
+  font-size: var(--t-label);
+  letter-spacing: var(--t-label-tracking);
+  text-transform: uppercase;
+  color: var(--ink-55);
+  text-align: center;
+  margin-bottom: var(--sp-7);
+}
+
+.limits {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+/* Each limit line is a flippable fact: term and value at rest, the refusal
+   it becomes at run time on hover or keyboard focus. */
+.limit {
+  position: relative;
+  display: grid;
+  grid-template-columns: 16px 1fr auto;
+  align-items: baseline;
+  gap: var(--sp-5);
+  padding: var(--sp-5) 0;
+  border-bottom: var(--rule);
+  outline: none;
+}
+
+.term {
+  font-weight: 500;
+  font-size: var(--t-body-m);
+}
+
+.value {
+  font-family: var(--font-data);
+  font-size: var(--t-data-m);
+  color: var(--ink-70);
+}
+
+.refusal {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  padding-left: calc(16px + var(--sp-5));
+  background: var(--paper-raised);
+  font-family: var(--font-data);
+  font-size: var(--t-data-m);
+  color: var(--indigo);
+  opacity: 0;
+  transform: translateY(3px);
+  transition:
+    opacity var(--d-hover) var(--ease-out),
+    transform var(--d-hover) var(--ease-out);
+  pointer-events: none;
+}
+
+.limit:hover .refusal {
+  opacity: 1;
+  transform: none;
+}
+
+.tick {
+  font-size: 11px;
+  color: var(--green);
+  opacity: 0;
+  transform: scale(0.6);
+  transition:
+    opacity var(--d-stamp) var(--ease-stamp),
+    transform var(--d-stamp) var(--ease-stamp);
+  transition-delay: calc(var(--i) * var(--stagger) + 0.2s);
+}
+
+.limit[data-signed] .tick {
+  opacity: 1;
+  transform: none;
+}
+
+.sealRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-8);
+  margin-top: var(--sp-8);
+}
+
+.inForce {
+  color: var(--indigo);
+  opacity: 0;
+  transform: rotate(-4deg) scale(1.5);
+  transition:
+    opacity var(--d-stamp) var(--ease-stamp) 0.25s,
+    transform var(--d-stamp) var(--ease-stamp) 0.25s;
+  font-size: 15px;
+  padding: var(--sp-4) var(--sp-6);
+  border-width: 2px;
+}
+
+.deed[data-signed] .inForce {
+  opacity: 1;
+  transform: rotate(-4deg) scale(1);
+}
+
+.deedNote {
+  margin-top: var(--sp-5);
+  font-family: var(--font-data);
+  font-size: var(--t-label);
+  line-height: 16px;
+  letter-spacing: var(--t-label-tracking);
+  text-transform: uppercase;
+  color: var(--ink-40);
+  text-align: center;
+  min-height: 32px;
+}
+
+@media (max-width: 979px) {
+  .grid {
+    grid-template-columns: 1fr;
+    gap: var(--sp-9);
+  }
+}

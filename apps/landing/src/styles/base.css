@@ -1,0 +1,180 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  color-scheme: light;
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: var(--t-body-m);
+  line-height: var(--t-body-m-line);
+  -webkit-font-smoothing: antialiased;
+  overflow-x: clip;
+}
+
+/* The paper is a surface, not a void: the product's kolam tile at the
+   threshold of visibility, fixed so it reads as the ground the deed sits on. */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  opacity: 0.014;
+  background-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='64' height='64' viewBox='0 0 64 64'><g fill='none' stroke='%231E1E1E' stroke-width='1.2' stroke-linecap='round'><path d='M16 0 A16 16 0 0 1 32 16 M0 16 A16 16 0 0 0 16 32'/><path d='M32 48 A16 16 0 0 1 48 64 M48 32 A16 16 0 0 0 64 48'/><path d='M48 0 A16 16 0 0 0 32 16 M64 16 A16 16 0 0 1 48 32'/><path d='M0 48 A16 16 0 0 1 16 32 M16 64 A16 16 0 0 0 32 48'/></g></svg>");
+  background-size: 68px 68px;
+}
+
+/* The sunrise edge: three pixels of warmth across the top, the one gradient
+   on the page. It is Saathi's front door and it stays open. */
+body::after {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  z-index: 30;
+  pointer-events: none;
+  background: var(--sunrise);
+}
+
+#root {
+  min-height: 100vh;
+}
+
+h1,
+h2,
+h3,
+p,
+figure {
+  margin: 0;
+}
+
+a {
+  color: inherit;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+}
+
+:focus-visible {
+  outline: 2px solid var(--indigo);
+  outline-offset: 2px;
+}
+
+::selection {
+  background: var(--indigo-24);
+}
+
+/* Scrollbars in the house style: thin, quiet, no track. */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--ink-24) transparent;
+}
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+*::-webkit-scrollbar-thumb {
+  background: var(--ink-24);
+  border-radius: 999px;
+}
+
+.tabular {
+  font-variant-numeric: tabular-nums lining-nums;
+  font-feature-settings:
+    "tnum" 1,
+    "lnum" 1;
+}
+
+/* Reveal choreography. Elements are hidden only when JavaScript has raised
+   its hand (html[data-js]) AND the reader has not asked for stillness, so
+   the no-JS page and the reduced-motion page are both simply settled. */
+@media (prefers-reduced-motion: no-preference) {
+  html[data-js] [data-reveal] {
+    opacity: 0;
+    transform: translateY(16px);
+    filter: blur(8px);
+  }
+  html[data-js] [data-reveal="in"] {
+    opacity: 1;
+    transform: none;
+    filter: blur(0);
+    transition:
+      opacity var(--d-enter) var(--ease-out),
+      transform var(--d-enter) var(--ease-out),
+      filter var(--d-enter) var(--ease-out);
+    transition-delay: calc(var(--i, 0) * var(--stagger));
+  }
+
+  /* The toran arrives the way an arch is raised: tile by tile, each one
+     landing with the stamp ease, wherever a mark sits inside a reveal. */
+  html[data-js] [data-reveal] .saathi-tile {
+    opacity: 0;
+    transform: scale(0);
+    transform-box: fill-box;
+    transform-origin: center;
+  }
+  html[data-js] [data-reveal="in"] .saathi-tile {
+    opacity: 1;
+    transform: scale(1);
+    transition:
+      transform var(--d-stamp) var(--ease-stamp),
+      opacity var(--d-stamp) var(--ease-out);
+    transition-delay: calc(var(--i, 0) * 76ms + 0.2s);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  html {
+    scroll-behavior: auto;
+  }
+}
+
+/* Deed furniture shared across sections. */
+.stamp {
+  display: inline-block;
+  font-family: var(--font-data);
+  font-size: var(--t-label);
+  line-height: var(--t-label-line);
+  letter-spacing: var(--t-label-tracking);
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border: 1px solid currentColor;
+  border-radius: var(--r-1);
+  transform: rotate(-1.2deg);
+}
+
+.label {
+  font-family: var(--font-data);
+  font-size: var(--t-label);
+  line-height: var(--t-label-line);
+  letter-spacing: var(--t-label-tracking);
+  text-transform: uppercase;
+  color: var(--ink-55);
+}
