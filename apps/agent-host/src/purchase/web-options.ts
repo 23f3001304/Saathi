@@ -48,9 +48,17 @@ const SHOWN = 4;
 export function cardedListings(
   listings: readonly WebListingView[],
   query: string,
+  ceilingPaise: number | null = null,
 ): readonly WebListingView[] {
   return listings
     .filter((listing) => listing.price_paise !== null)
+    // The stated budget binds the shelf, not just the mandate: a shopper
+    // who said "50000 max" was shown two cards above it, and "none of
+    // these fit your ceiling" is the honest empty state instead.
+    .filter(
+      (listing) =>
+        ceilingPaise === null || (listing.price_paise ?? 0) <= ceilingPaise,
+    )
     // A case for the thing is not the thing: category before overlap.
     .filter((listing) => !accessoryFor(listing.title, query))
     // A stated capacity that contradicts the asked one is a different thing.
@@ -80,8 +88,9 @@ export function optionRowsFor(
 export function webOptionRows(
   listings: readonly WebListingView[],
   query: string,
+  ceilingPaise: number | null = null,
 ): readonly OptionRowData[] {
-  return cardedListings(listings, query).map(rowOf);
+  return cardedListings(listings, query, ceilingPaise).map(rowOf);
 }
 
 interface Scored {

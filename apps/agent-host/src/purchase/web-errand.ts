@@ -18,6 +18,10 @@ const ERRAND =
   "naming the kinds you saw. A case, a cover or a cable FOR a product is " +
   "not the product: do not offer it. A listing that contradicts a spec " +
   "they stated is not a candidate at any price.\n" +
+  "One marketplace is not the web. Unless they named a shop themselves, " +
+  "search across different shops (a marketplace, a category specialist, a " +
+  "brand's own store) rather than returning to the same one; where the " +
+  "same product is on two shops, verify both and let the pages compete.\n" +
   "Do not give up on one thin search. Reword it once (a synonym, fewer " +
   "words), and try a second shop's name in the query when the first is " +
   "thin. Only after that may you conclude nothing was found, and then you " +

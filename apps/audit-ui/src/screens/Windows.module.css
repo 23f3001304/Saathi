@@ -35,3 +35,18 @@
 .attention {
   color: var(--attention, #b3261e);
 }
+
+.forgetRow {
+  margin-top: var(--sp-3, 12px);
+  font-size: 0.8125rem;
+  color: var(--ink-soft, #6b6255);
+}
+
+.forget {
+  font: inherit;
+  border: none;
+  background: none;
+  text-decoration: underline;
+  cursor: pointer;
+  padding: 0;
+}

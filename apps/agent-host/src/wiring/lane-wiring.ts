@@ -1,3 +1,4 @@
+import { windowIdFor } from "../browser/sandbox-factory.js";
 import type { AgentSession } from "@covenant/agents";
 import type { Clock, IdGenerator } from "@covenant/domain";
 
@@ -36,7 +37,7 @@ import {
   wireWebSession,
 } from "./session-wiring.js";
 
-/** What every lane shares: the process singletons, and nothing a run mutates. */
+/** The process singletons; nothing a run mutates. */
 export interface LaneShared {
   readonly config: AgentHostConfig;
   readonly clock: Clock;
@@ -97,14 +98,15 @@ function laneWindowParts(shared: LaneShared) {
  * a named conversation gets an agent window of its own. Why: the CLI and the
  * e2e drive the primary by long-standing contract, and a conversation that
  * shared it would hand its page trail to whichever lane ran next — the
- * inherited-window bug, third time around. The id is minted, not derived from
- * the conversation string: conversation ids are client-chosen and reach
- * container names, and a client must not get to pick those.
+ * inherited-window bug, third time around. The id is DERIVED so the same
+ * chat reopens the same profile across restarts, but through a hash: the
+ * conversation string is client-chosen and reaches container names, and a
+ * client must not get to pick those characters.
  */
 function laneBrowser(shared: LaneShared, conversation: string | null) {
   return conversation === null
     ? shared.registry.primary()
-    : shared.registry.agentWindow(`web_lane_${shared.ids.uuid()}`);
+    : shared.registry.agentWindow(windowIdFor(conversation));
 }
 
 /** The four model conversations and the planner — lane-owned, every one.

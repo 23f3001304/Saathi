@@ -103,7 +103,7 @@ function webRunner(deps: DispatchDeps, shopper: WebShopper): WebToolRunner {
       deps.trail,
       deps.progress,
     ),
-    new VerifyVerbs(deps.reader, deps.findings, deps.trail),
+    new VerifyVerbs(deps.reader, deps.findings, deps.trail, steps),
   );
 }
 

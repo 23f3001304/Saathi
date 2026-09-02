@@ -49,3 +49,21 @@ export async function fetchLanes(base: string): Promise<readonly LaneRow[]> {
     return [];
   }
 }
+
+/** The Forget button: closes the window and deletes its stored profile -
+ *  the sign-in, the cookies - while the chat itself stays. */
+export async function forgetWindow(
+  base: string,
+  conversation: string,
+): Promise<void> {
+  try {
+    await fetch(`${base}/chat/window/forget`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ conversation }),
+    });
+  } catch {
+    // The next lanes poll shows whatever actually happened.
+  }
+}
+

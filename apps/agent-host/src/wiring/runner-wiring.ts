@@ -56,7 +56,7 @@ function sandboxOf(deps: BuyerDeps): SandboxOwner {
   };
 }
 
-function intentFlowOf(deps: BuyerDeps, gate: ConfirmationGate): IntentFlow {
+export function intentFlowOf(deps: BuyerDeps, gate: ConfirmationGate): IntentFlow {
   return new IntentFlow(
     new IntentDrafter(
       wireJudge({
@@ -96,6 +96,9 @@ function runnerConfigOf(deps: BuyerDeps): RunnerConfig {
 export interface RunnerShared {
   readonly webPick: WebPickResume;
   readonly intentGate: ConfirmationGate;
+  /** One intent flow for the lane: the runner's buys and the web pick's
+   *  sign-before-drive both wait on this same gate and ceiling. */
+  readonly intents: IntentFlow;
   readonly cartGate: ConfirmationGate;
   /** Built once above and handed in, because the read route behind
    *  `GET /chat/history` answers from this same instance. */
@@ -144,7 +147,7 @@ export function wireRunner(
       lastProposal: new LastProposal(),
       cartGate: shared.cartGate,
       buyer: loopOn(deps, deps.session, dispatcher),
-      intents: intentFlowOf(deps, shared.intentGate),
+      intents: shared.intents,
       fallback: new MerchantToolFallback(
         deps.gateway.hook,
         dispatcher,

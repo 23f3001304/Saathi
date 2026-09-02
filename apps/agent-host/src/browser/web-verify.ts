@@ -1,6 +1,7 @@
 import type { BatchRead, HeadlessReader } from "@covenant/browser-drive";
 
 import type { WebFindings } from "./web-listing.js";
+import type { StepSink } from "../purchase/web-steps.js";
 import type { WebResult } from "./web-result.js";
 import type { WebTrail } from "./web-trail.js";
 import { webFailure, webOk } from "./web-result.js";
@@ -18,11 +19,20 @@ export class VerifyVerbs {
     private readonly reader: HeadlessReader,
     private readonly findings: WebFindings,
     private readonly trail: WebTrail,
+    /** One pill per page read: research off the window still shows its
+     *  work, or a seventy-second search reads as a hang. */
+    private readonly steps: StepSink | null = null,
   ) {}
 
   async verify(urls: readonly string[]): Promise<WebResult> {
+    this.steps?.step(
+      urls.length === 1 ? "Checking 1 page" : `Checking ${urls.length} pages`,
+    );
     const reads = await this.reader.readMany(urls);
     const rows = reads.map((read) => this.rowOf(read));
+    for (const row of rows) {
+      this.steps?.step(pillFor(row));
+    }
     const carded = rows.filter((row) => row.ref !== null);
     if (carded.length === 0) {
       return webFailure(
@@ -101,4 +111,22 @@ function baseRow(
     price_text: listing === null ? null : listing.priceText,
     failure: read.failure,
   };
+}
+
+/** What one read says on its pill: the shop, and what stopped it if
+ *  anything did. Never the title (a pill is a glance, the card is the read). */
+function pillFor(row: VerifiedRow): string {
+  const shop = hostOf(row.url);
+  if (row.failure !== null) return `${shop} · did not load`;
+  if (row.sold_out) return `${shop} · out of stock`;
+  if (row.ref === null) return `${shop} · no listing readable`;
+  return `Read ${shop} · ${row.price_text ?? ""}`.trim();
+}
+
+function hostOf(url: string): string {
+  try {
+    return new URL(url).hostname.replace(/^www\./, "");
+  } catch {
+    return url.slice(0, 40);
+  }
 }

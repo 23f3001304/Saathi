@@ -109,6 +109,19 @@ function applyAsk(
   return { ...state, question: { id, prompt, replies, groups }, entries };
 }
 
+/** Speech closes the open work block rather than leaving it spinning. The
+ *  same sentence must not stand in the strip AND as a bubble: an announce
+ *  draft written past by later steps folds into a pill, and the say that
+ *  duplicates it then rendered the sentence twice. The pill goes; the say
+ *  still speaks (and `speak` claims a claimable settled draft itself). */
+function spoken(
+  entries: readonly ChatEntry[],
+  signal: Extract<AssistantSignal, { kind: "say" }>,
+): ChatEntry[] {
+  const held = dropEcho(closeWork([...entries]), signal.text);
+  return speak(held, signal.text, signal.system);
+}
+
 function applyEntrySignal(
   state: AssistantSnapshot,
   signal: EntrySignal,
@@ -117,11 +130,7 @@ function applyEntrySignal(
     case "ask":
       return applyAsk(state, signal);
     case "say":
-      // Speech closes the open work block rather than leaving it spinning.
-      return {
-        ...state,
-        entries: speak(closeWork(state.entries), signal.text, signal.system),
-      };
+      return { ...state, entries: spoken(state.entries, signal) };
     case "buyer": {
       // The answered question becomes history: it was never a transcript
       // entry while live, so it is written in now, above the answer it got.

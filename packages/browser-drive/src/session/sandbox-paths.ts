@@ -63,3 +63,23 @@ export function assertSandboxPath(path: string): void {
     throw new RealProfileError(target, profileRoot);
   }
 }
+
+/**
+ * The persistent store's own gate. It trades the tmp-only rule for two that
+ * matter as much here: never inside a real browser profile, and never at a
+ * filesystem root, so a bad constant cannot make "purge" mean "the disk".
+ * The root is a host-chosen constant, not client input; client-chosen text
+ * only ever reaches the SESSION segment, hashed before it gets here.
+ */
+export function assertPersistentSandboxPath(path: string): void {
+  const target = resolve(path);
+  const profileRoot = realProfileRoots().find((root) => isUnder(target, root));
+  if (profileRoot !== undefined) {
+    throw new RealProfileError(target, profileRoot);
+  }
+  const parent = resolve(target, "..");
+  if (parent === target) {
+    throw new SandboxOutsideTmpError(target);
+  }
+}
+

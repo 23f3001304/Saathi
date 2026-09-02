@@ -1,3 +1,7 @@
+import {
+  purgeSandboxProfile,
+  windowIdFor,
+} from "../browser/sandbox-factory.js";
 import type { Hono } from "hono";
 
 import type { ConversationMemory } from "../purchase/conversation-memory.js";
@@ -71,6 +75,19 @@ export function registerChatReads(
     ),
   );
   app.get("/chat/state", (context) => state(context, lanes));
+  app.post("/chat/window/forget", async (context) => {
+    const body = (await context.req.json().catch(() => ({}))) as {
+      conversation?: unknown;
+    };
+    const conversation = body.conversation;
+    if (typeof conversation !== "string" || conversation === "") {
+      return context.json({ ok: false, reason_code: "SCHEMA_VIOLATION" }, 400);
+    }
+    await lanes.closeWindow(conversation);
+    purgeSandboxProfile(windowIdFor(conversation));
+    return context.json({ ok: true }, 200);
+  });
+
   app.get("/chat/lanes", (context) =>
     context.json(
       { ok: true, cap: lanes.cap, running: lanes.running, lanes: lanesReport(lanes) },

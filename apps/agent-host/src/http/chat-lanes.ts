@@ -1,3 +1,7 @@
+import {
+  purgeSandboxProfile,
+  windowIdFor,
+} from "../browser/sandbox-factory.js";
 import type { BrowserService } from "../browser/browser-service.js";
 import { laneWaitingSentence } from "../browser/session-capacity.js";
 import type { PurchaseResult } from "../purchase/purchase-result.js";
@@ -7,8 +11,8 @@ import type { ChatState } from "./chat-state.js";
 import { pruneLanes } from "./lane-prune.js";
 import type { SortKeySignal } from "./sort-key-write.js";
 
-/** The engine surface a lane puts on the wire. `ChatService` satisfies it;
- *  a test stands a controllable fake behind the same routes. */
+/** The engine surface a lane puts on the wire; `ChatService` satisfies
+ *  it, a test stands a controllable fake in its place. */
 export interface LaneChat {
   readonly busy: boolean;
   start(
@@ -88,21 +92,16 @@ export class ChatLanes {
     return lane;
   }
 
-  /** The lane the last run started on: what the unscoped wire serves, so the
-   *  CLI and older clients keep the single-timeline reading they had. */
   latest(): ChatLane {
     return this.recent;
   }
-
   all(): readonly ChatLane[] {
     return [...this.lanes.values()];
   }
-
   /** Conversations waiting in line, in order. */
   queued(): readonly (string | null)[] {
     return this.waiting.map((entry) => entry.conversation);
   }
-
   get running(): number {
     return this.all().filter((lane) => lane.chat.busy).length;
   }
@@ -116,7 +115,6 @@ export class ChatLanes {
       lane.chat.start(message, conversation, replyLanguage),
     );
   }
-
   pick(ref: string, conversation: string | null): StartOutcome {
     return this.admit(conversation, (lane) => lane.chat.pick(ref));
   }
@@ -126,8 +124,7 @@ export class ChatLanes {
     run: (lane: ChatLane) => PurchaseResult,
   ): StartOutcome {
     const lane = this.laneFor(conversation);
-    // A chat already in line keeps its order: a second sentence files behind
-    // the first, not past it.
+    // A chat already in line keeps its order.
     const inLine = this.waiting.some(
       (entry) => entry.conversation === conversation,
     );
@@ -157,8 +154,7 @@ export class ChatLanes {
     return result;
   }
 
-  /** The head of the line starts on a free slot, or at once when its own
-   *  lane is already running (an in-lane queue adds no concurrency). */
+  /** The head of the line starts on a free slot, or at once in-lane. */
   private drain(): void {
     for (;;) {
       const next = this.waiting[0];
@@ -182,9 +178,15 @@ export class ChatLanes {
     this.lanes.delete(keyOf(conversation));
     if (this.recent === lane) this.recent = this.laneFor(null);
     await lane.close();
+    // Deleting the chat deletes the window's stored profile with it.
+    purgeSandboxProfile(windowIdFor(conversation));
     return true;
   }
 
+  /** Forget: closes the lane's window; the caller purges the profile. */
+  closeWindow(conversation: string): Promise<void> | undefined {
+    return this.lanes.get(keyOf(conversation))?.browser.close();
+  }
   /** Shutdown: every lane's run settled, then every lane's resources gone. */
   async settleAll(): Promise<void> {
     this.waiting.length = 0;

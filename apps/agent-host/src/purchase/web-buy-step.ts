@@ -1,6 +1,9 @@
 import type { Logger } from "@covenant/domain";
 
 import type { KnownAddress } from "../browser/web-address-fill.js";
+import type { IntentFlow } from "./intent-flow.js";
+import type { ResumeParts } from "./web-buy-resume.js";
+import { resumePick } from "./web-buy-resume.js";
 import type { WebFindings } from "../browser/web-listing.js";
 import type { WebProgress } from "../browser/web-progress.js";
 import type { WebResult } from "../browser/web-result.js";
@@ -8,13 +11,9 @@ import type { WebTrail } from "../browser/web-trail.js";
 import type { BeatHub } from "../http/beat-hub.js";
 import type { PurchaseResult } from "./purchase-result.js";
 import { emptyResult } from "./purchase-result.js";
-import {
-  buyErrandFor,
-  pickSummaryFor,
-  resumeErrandFor,
-} from "./web-buy-errand.js";
+import { buyErrandFor, pickSummaryFor } from "./web-buy-errand.js";
 import { runErrand } from "./errand-run.js";
-import { FORGOTTEN, NOT_OPENED, STILL_THEIRS } from "./web-buy-copy.js";
+import { FORGOTTEN, NOT_OPENED } from "./web-buy-copy.js";
 import type { Spoken } from "./web-pick-close.js";
 import { closePick, emitLine, settleAs } from "./web-pick-close.js";
 import type { WebPickPark } from "./web-pick-park.js";
@@ -65,42 +64,14 @@ export class WebBuyStep {
      *  compare against a shop's pre-selected account address. Values are
      *  typed only ever by `web_fill_address`; this is the comparison copy. */
     private readonly address: KnownAddress | null = null,
+    /** Sign-before-drive: the tapped listing becomes a drafted intent, the
+     *  run parks at the hold-to-sign, and only a signature opens the shop.
+     *  `null` keeps the old unsigned behaviour for tests that predate it. */
+    private readonly intents: IntentFlow | null = null,
   ) {}
 
   get parked(): boolean {
     return this.park.parked;
-  }
-
-  /** Picks up where it stopped, in the same window, on the same step. */
-  async resume(
-    stated: readonly string[],
-    replyLanguage: string | null = null,
-  ): Promise<PurchaseResult> {
-    const ref = this.park.held ?? "";
-    this.stage.reveal();
-    const base = emptyResult(`urn:covenant:pick:${ref}:resumed`, ref);
-    // Their turn is still theirs: an errand now would be refused by the
-    // state machine and throw the basket away over a slightly early line.
-    if (this.sandbox.theirs()) {
-      return this.refuseAs(base, STILL_THEIRS, "web_pick_waiting");
-    }
-    this.progress.resumeReset();
-    const from = this.trail.length;
-    // What the basket holds, from this host's own record of the pick — the
-    // listing the parked ref resolves to, never the errand's memory of it.
-    const holds = this.findings.find(ref)?.title ?? null;
-    const said = await this.errand(
-      resumeErrandFor(
-        stated,
-        this.currency,
-        this.park.reason,
-        replyLanguage,
-        holds,
-      ),
-      stated,
-      replyLanguage,
-    );
-    return this.close(base, ref, from, said);
   }
 
   async buy(
@@ -117,6 +88,7 @@ export class WebBuyStep {
       this.logger.warn("purchase.web_pick.unresolved", { ref });
       return this.refuseAs(base, FORGOTTEN, "web_pick_unknown");
     }
+    await this.covenantFirst(stated, listing.title);
     const from = this.trail.length;
     const landed = await this.sandbox.open(listing.url);
     if (landed.isError) {
@@ -138,7 +110,38 @@ export class WebBuyStep {
     return this.close(base, ref, from, said, listing.url);
   }
 
-  /** A pick that cannot start still answers, in one line, and settles. */
+  /** Picks up where it stopped: no re-open, no re-sign, the same window on
+   *  the same step. The body lives in web-buy-resume.ts. */
+  resume(
+    stated: readonly string[],
+    replyLanguage: string | null = null,
+  ): Promise<PurchaseResult> {
+    const parts: ResumeParts = {
+      park: this.park,
+      stage: this.stage,
+      sandbox: this.sandbox,
+      progress: this.progress,
+      trail: this.trail,
+      findings: this.findings,
+      currency: this.currency,
+      hub: this.hub,
+      errand: (prompt, asked, language) => this.errand(prompt, asked, language),
+      close: (base, ref, from, said) => this.close(base, ref, from, said),
+      refuse: (base, line, why) => this.refuseAs(base, line, why),
+    };
+    return resumePick(parts, stated, replyLanguage);
+  }
+
+  /** The covenant first: unsigned, the errand obeyed the cart check's own
+   *  "no signed rule" and stopped at the basket; signed, the same check has
+   *  a ceiling and the checkout proceeds under real bounds. */
+  private async covenantFirst(
+    stated: readonly string[],
+    title: string,
+  ): Promise<void> {
+    if (this.intents !== null) await this.intents.sign([...stated, title]);
+  }
+
   private refuseAs(
     base: PurchaseResult,
     line: string,
@@ -147,7 +150,6 @@ export class WebBuyStep {
     return settleAs(this.hub, base, [emitLine(this.hub, line, true)], why);
   }
 
-  /** One line per stated fact, empty when nothing is known. */
   private async profile(): Promise<string> {
     if (this.address === null) return "";
     const facts = await this.address.lookup();
@@ -175,9 +177,7 @@ export class WebBuyStep {
     );
   }
 
-  /** Drive the checkout, then say what happened: two legs, one conversation,
-   *  the look's own shape. The language gate and the wall clock sit on the
-   *  one commit, and a thrown page is still a turn that answers. */
+  /** Two legs, one conversation: drive, then say what happened. */
   private async errand(
     prompt: string,
     stated: readonly string[],

@@ -41,7 +41,11 @@ const CEILING_PHRASES: readonly RegExp[] = [
   // Hinglish bounds-from-above: "4000 tak", "5000 ke andar", "3000 se kam".
   // Written in English letters because that is how they arrive; a budget the
   // shopper stated in their own words must bind exactly like "under 4000".
-  new RegExp(String.raw`(?:₹|rs\.?|inr)?\s*${AMOUNT}\s*(?:tak|ke\s*andar|se\s*kam|se\s*neeche)`, "i"),
+  new RegExp(String.raw`(?:₹|rs\.?|inr)?\s*${AMOUNT}\s*(?:rs\.?|₹|inr)?\s*(?:tak|ke\s*andar|se\s*kam|se\s*neeche)`, "i"),
+  // Currency written after the number: "50000RS MAX", "50000 rs max". The
+  // earlier shape required rs BEFORE the amount and this stated ceiling
+  // never bound at all.
+  new RegExp(String.raw`${AMOUNT}\s*(?:rs\.?|₹|inr)?\s*(?:max|or\s*less)`, "i"),
 ];
 
 function rupeesOf(digits: string, scale: string | undefined): number | null {

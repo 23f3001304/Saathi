@@ -3,7 +3,7 @@ import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 
 import type { Sandbox, SandboxFactory } from "../ports.js";
-import { assertSandboxPath } from "./sandbox-paths.js";
+import { assertPersistentSandboxPath, assertSandboxPath } from "./sandbox-paths.js";
 
 const UNSAFE = /[^a-zA-Z0-9_-]/g;
 const OWNER_ONLY = 0o700;
@@ -110,3 +110,55 @@ function safe(sessionId: string): string {
 }
 
 export * from "./sandbox-paths.js";
+
+/**
+ * A sandbox that outlives its window. `dispose()` releases the running
+ * registration and nothing else: the profile directory - cookies, local
+ * storage, the signed-in session the shopper worked for - stays on disk, so
+ * reopening the same session id resumes where the window left off, however
+ * long ago that was. The directory is deleted only by `purge()`, which is
+ * the shopper's explicit act: deleting the chat, or forgetting the window.
+ */
+export class PersistentSandboxFactory implements SandboxFactory {
+  private readonly root: string;
+
+  constructor(root: string) {
+    this.root = resolve(root);
+    assertPersistentSandboxPath(this.root);
+  }
+
+  create(sessionId: string): Sandbox {
+    const path = resolve(this.root, `covenant-browse-${safe(sessionId)}`);
+    assertPersistentSandboxPath(path);
+    const downloads = join(path, "downloads");
+    ownerOnlyDir(path);
+    ownerOnlyDir(downloads);
+    const sandbox: Sandbox = {
+      path,
+      downloadDir: downloads,
+      dispose: () => {
+        SANDBOX_REGISTRY.release(sandbox);
+      },
+    };
+    SANDBOX_REGISTRY.track(sandbox);
+    return sandbox;
+  }
+
+  /** Deletes one session's profile for good. Chrome must already be closed;
+   *  a lock that lingers is retried the way the tmp factory retries. */
+  purge(sessionId: string): void {
+    const path = resolve(this.root, `covenant-browse-${safe(sessionId)}`);
+    assertPersistentSandboxPath(path);
+    try {
+      rmSync(path, {
+        recursive: true,
+        force: true,
+        maxRetries: 5,
+        retryDelay: 100,
+      });
+    } catch {
+      // A held lock leaves the directory for the next purge; non-fatal.
+    }
+  }
+}
+

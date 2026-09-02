@@ -5,7 +5,7 @@
 import { useEffect, useState, type JSX } from "react";
 import { agentBaseUrl } from "../api/liveMode.ts";
 import type { LaneRow } from "../api/lanes.ts";
-import { fetchLanes } from "../api/lanes.ts";
+import { fetchLanes, forgetWindow } from "../api/lanes.ts";
 import { SandboxPane } from "../conversation/SandboxPane.tsx";
 import { readChats } from "../conversation/sessionStore.ts";
 import styles from "./Windows.module.css";
@@ -99,6 +99,22 @@ export function Windows(): JSX.Element {
         record={null}
         busy={shown.running}
       />
+      <p className={styles.forgetRow}>
+        This window keeps its sign-in and cookies until you say otherwise,
+        even across days.{" "}
+        <button
+          type="button"
+          className={styles.forget}
+          onClick={() => {
+            const base = agentBaseUrl();
+            const held = shown.conversation;
+            if (base === null || held === null) return;
+            void forgetWindow(base, held);
+          }}
+        >
+          Forget this window
+        </button>
+      </p>
     </div>
   );
 }

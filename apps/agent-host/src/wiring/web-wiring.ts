@@ -1,3 +1,4 @@
+import type { IntentFlow } from "../purchase/intent-flow.js";
 import { ADDRESS_RECALL } from "./dispatch-wiring.js";
 import type { AgentToolDispatcher } from "../purchase/tool-dispatcher.js";
 import { WebBuyStep } from "../purchase/web-buy-step.js";
@@ -47,6 +48,7 @@ export function webLookOf(
 export function webBuyOf(
   deps: BuyerDeps,
   dispatcher: AgentToolDispatcher,
+  intents: IntentFlow,
 ): WebBuyStep {
   return new WebBuyStep(
     deps.hub,
@@ -64,5 +66,6 @@ export function webBuyOf(
     deps.browser.phase,
     deps.pin,
     { lookup: () => deps.traits.known(ADDRESS_RECALL) },
+    intents,
   );
 }

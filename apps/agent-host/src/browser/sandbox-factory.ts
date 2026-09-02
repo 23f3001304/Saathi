@@ -1,5 +1,7 @@
+import { createHash } from "node:crypto";
 import {
   BrowserSession,
+  PersistentSandboxFactory,
   CartCovenant,
   CartInspector,
   DEFAULT_HANDOFF_CONFIG,
@@ -8,7 +10,6 @@ import {
   Journal,
   NavigationPolicy,
   TimerWaiter,
-  TmpSandboxFactory,
 } from "@covenant/browser-drive";
 import type { JournalSink } from "@covenant/browser-drive";
 import type { Clock, Logger } from "@covenant/domain";
@@ -68,7 +69,11 @@ export async function buildFixtureShopSession(
   const chosen = await sandboxPlan(deps.logger);
   return new BrowserSession({
     launcher: chosen.launcherFor(sessionId),
-    sandboxes: new TmpSandboxFactory(),
+    // Persistent on purpose: the profile is the shopper's working state -
+    // the Amazon sign-in, the basket cookies - and it survives window
+    // retirement and host restarts alike. Only `purgeSandboxProfile`
+    // (deleting the chat, or the Forget button) removes it.
+    sandboxes: sandboxStore(),
     classifier: new FieldClassifier(),
     policy: new NavigationPolicy({
       fileRoots: [fixtureShopRoot(chosen.surface)],
@@ -89,3 +94,25 @@ export async function buildFixtureShopSession(
     },
   });
 }
+
+const SANDBOX_ROOT = "./data/sandboxes";
+let store: PersistentSandboxFactory | null = null;
+
+function sandboxStore(): PersistentSandboxFactory {
+  store = store ?? new PersistentSandboxFactory(SANDBOX_ROOT);
+  return store;
+}
+
+/** The one deliberate deletion path for a window's cookies and storage. */
+export function purgeSandboxProfile(sessionId: string): void {
+  sandboxStore().purge(sessionId);
+}
+
+/** Stable per conversation, opaque to the client: conversation strings are
+ *  client-chosen and reach container names, so the id is a hash of one,
+ *  never the string itself. The same chat reopens the same profile. */
+export function windowIdFor(conversation: string): string {
+  const digest = createHash("sha256").update(conversation).digest("hex");
+  return `web_${digest.slice(0, 24)}`;
+}
+
