@@ -29,7 +29,6 @@ export async function buyThrough(
   stated: readonly string[],
   replyLanguage: string | null = null,
 ): Promise<PurchaseResult> {
-  const request = stated.join("\n");
   const intent = await parts.intents.sign(stated);
   // Language is context, not a filter: the anchored prompt is trusted.
   const conversation = await parts.buyer.converse(
@@ -47,7 +46,7 @@ export async function buyThrough(
     intent.bounds.allowance.max_amount,
   );
   const retrieval = await retrieveForCart(parts, config, { sku, quote });
-  parts.narrator.present(request);
+  parts.narrator.present();
   const observed = observedFrom(base, {
     intent,
     conversation,

@@ -121,7 +121,7 @@ function webParts(
 }
 
 function narratorOf(deps: BuyerDeps, log: ToolLog): RunNarrator {
-  return new RunNarrator(deps.hub, log, deps.obs.journal, deps.obs.logger);
+  return new RunNarrator(deps.hub, log, deps.obs.journal);
 }
 
 /** The three things one run reads off the merchant, kept together so the

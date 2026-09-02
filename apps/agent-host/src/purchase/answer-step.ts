@@ -34,38 +34,17 @@ export interface AnswerParts {
   readonly logger: Logger;
 }
 
-/**
- * The harness's own sentence for an answer that counted this shop wrongly.
- *
- * DECISION: the model's sentence is dropped, not corrected. A turn that told
- * the shopper there were "two matching navy cotton kurtas" at a shop holding
- * one was asking them to choose between a real listing and one that does not
- * exist — and it was stored in `ConversationMemory`, so the next turn would
- * have read it back as something the shopper had been told. Saying nothing
- * about the shelf is recoverable; saying something false about it is not.
- */
-export const MISCOUNTED_SHELF =
-  "I described this shop's stock wrongly just then, so I have not said it. " +
-  "Ask me again and I will read the shelf before I answer.";
-
 /** The bubble, the outcome and the record — everything a turn that did not ask
- *  still has to emit. */
+ *  still has to emit. An empty reply emits no bubble. */
 function saidTurn(
   parts: AnswerParts,
   base: PurchaseResult,
   plan: TurnPlan,
   said: string,
-  wrong: boolean,
 ): PurchaseResult {
-  const lines = [wrong ? MISCOUNTED_SHELF : said].filter(
-    (line) => line.length > 0,
-  );
+  const lines = said.length > 0 ? [said] : [];
   for (const text of lines) {
-    parts.hub.emit({
-      kind: "message",
-      text,
-      ...(wrong ? { variant: "system" } : {}),
-    });
+    parts.hub.emit({ kind: "message", text });
   }
   parts.hub.emit({
     kind: "outcome",
@@ -89,12 +68,10 @@ export function answerTurn(
   // into `question`, so emitting both said everything twice; the separate
   // field is kept because the composer uses it to offer replies.
   const said = answerLine(plan);
-  // The model read the shelf through its own tool result and owns what it
-  // says about it; the shell no longer drops sentences it disagrees with.
   // An ask is its own beat, not a bubble: it is the one utterance of this
   // turn and the composer has to be able to find it.
   if (askedBy(plan) !== null && said.length > 0) {
     return askTurn(parts, base, said, plan.replies ?? [], plan.choiceGroups ?? []);
   }
-  return saidTurn(parts, base, plan, said, false);
+  return saidTurn(parts, base, plan, said);
 }

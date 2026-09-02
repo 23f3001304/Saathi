@@ -75,7 +75,6 @@ function narratedWithRows(transcript: readonly string[]): readonly string[] {
     hub,
     log,
     { ofKind: () => [] } as unknown as DecisionJournal,
-    new RecordingLogger(),
   ).replay({ transcript, blocked: [], turns: 1, completed: true });
   return hub
     .snapshot()
@@ -83,21 +82,45 @@ function narratedWithRows(transcript: readonly string[]): readonly string[] {
     .map((beat) => (beat.kind === "message" ? beat.text : ""));
 }
 
-describe("the bubble does not re-read the table under it", () => {
-  it("drops a line that copies a row across", () => {
+describe("what the model wrote about the rows is said as written", () => {
+  it("keeps a line that reads a row out, above the card printing it", () => {
+    // The row-restating filter judged a sentence by its overlap with a label
+    // and dropped it. What the model says about what it found is its own.
     expect(
       narratedWithRows([
         "Kolam Run Gc9 road shoe, UK 8 — ₹1,999 (footwear).",
         "It is refundable, so I can take it all the way.",
       ]),
-    ).toEqual(["It is refundable, so I can take it all the way."]);
+    ).toEqual([
+      "Kolam Run Gc9 road shoe, UK 8 — ₹1,999 (footwear).",
+      "It is refundable, so I can take it all the way.",
+    ]);
   });
-});
 
-describe("reasoning about a product is not reading its row out", () => {
   it("keeps a line that reasons about the same thing", () => {
     expect(
       narratedWithRows(["The Kolam Run is the only one that fits your cap."]),
     ).toEqual(["The Kolam Run is the only one that fits your cap."]);
+  });
+});
+
+describe("what a purchase presents", () => {
+  it("presents every row the model's own search pulled, in the shop's order", () => {
+    const hub = new BeatHub(new StepClock(), new RecordingLogger());
+    const log = new ToolLog();
+    const stole = {
+      ...LISTING,
+      sku: "sku_stole",
+      label: "Nilgiri handloom stole, cotton-silk",
+      category: "apparel",
+    } as unknown as CatalogListing;
+    log.recordListings([LISTING, stole]);
+    new RunNarrator(hub, log, {
+      ofKind: () => [],
+    } as unknown as DecisionJournal).present();
+    const options = hub.snapshot().find((beat) => beat.kind === "options");
+    expect(
+      options?.kind === "options" ? options.options.map((o) => o.sku) : [],
+    ).toEqual(["sku_shoe", "sku_stole"]);
   });
 });

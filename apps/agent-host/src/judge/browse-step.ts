@@ -100,9 +100,6 @@ export function browseTurn(
   const query = plan.query ?? base.request;
   const shelf = parts.shelf.current();
   const found = matchCatalog(shelf, query).slice(0, SHOWN);
-  // A sentence that counts the shop wrongly is dropped and the cards stand on
-  // their own: they are read off the shelf, so the shopper still sees what is
-  // there rather than a number the agent made up about it.
   const whole = plan.reply.trim();
   // Evidence first, ask second. A browse that ends "which one?" reported
   // something true and then wanted an answer, and the two belong on different
