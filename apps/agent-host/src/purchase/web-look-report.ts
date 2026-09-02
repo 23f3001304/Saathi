@@ -56,16 +56,24 @@ function closingLine(errand: ErrandRun): string {
 }
 
 /**
- * The findings, and only where a page was actually reached: the model's own
+ * The findings, and only where there is evidence behind them: the model's own
  * sentence, then the cards, then the harness's provenance line under them — so
  * the line saying a page price is not a signed quote sits directly beneath the
- * prices it is about. Nothing is offered on a turn that opened nothing.
+ * prices it is about.
+ *
+ * DECISION: evidence is a captured listing OR a page the window opened, not
+ * pages alone. Research runs on the provider's own web search now and opens
+ * no window at all, so a pages-only guard called every successful errand a
+ * failure: a live run recorded a real Samsung 980 at ₹9,390 and still told
+ * the shopper "I could not get a page open for that". What the guard is
+ * actually for is never speaking about a product nobody recorded, and
+ * `WebFindings` is that record.
  */
 export function reportFindings(
   hub: BeatHub,
   request: ReportRequest,
 ): readonly string[] {
-  if (request.opened.length === 0) {
+  if (request.opened.length === 0 && request.found.length === 0) {
     emit(hub, NOTHING_OPENED, true);
     return [NOTHING_OPENED];
   }

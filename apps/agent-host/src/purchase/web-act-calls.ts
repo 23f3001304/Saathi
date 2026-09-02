@@ -96,8 +96,9 @@ export function foundCall(
   if (findings === null) return unknown(call.tool);
   const rows = findings.record(
     parsed.data.found.map((row) => ({
-      title: row.title,
-      priceText: row.price_text,
+      title: row.title.slice(0, 200).trim(),
+      // The head of the claim is the price; annotations follow it.
+      priceText: row.price_text.slice(0, 60).trim(),
       href: row.url,
       imageUrl: row.image_url,
     })),

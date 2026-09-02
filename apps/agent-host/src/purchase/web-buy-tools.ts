@@ -48,8 +48,8 @@ export const RESEARCH_TOOL_DECLARATIONS: readonly ToolDeclaration[] = [
       found: z
         .array(
           z.object({
-            title: z.string().min(1).max(200),
-            price_text: z.string().max(40),
+            title: z.string().min(1).max(500),
+            price_text: z.string().max(300),
             url: z.url(),
             image_url: z.url().nullable().default(null),
           }),

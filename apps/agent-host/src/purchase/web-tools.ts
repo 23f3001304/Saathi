@@ -25,8 +25,12 @@ export const webFoundArgs = z.object({
   found: z
     .array(
       z.object({
-        title: z.string().min(1).max(200),
-        price_text: z.string().max(40),
+        // Generous caps, trimmed at the record: a model that wrote a long
+        // title or annotated a price has still found a real listing, and
+        // refusing the whole report over string length threw away a live
+        // errand's work. The card shows the head of each string.
+        title: z.string().min(1).max(500),
+        price_text: z.string().max(300),
         url: z.url(),
         image_url: z.url().nullable().default(null),
       }),
