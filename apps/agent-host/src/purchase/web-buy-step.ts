@@ -2,6 +2,7 @@ import type { Logger } from "@covenant/domain";
 
 import type { KnownAddress } from "../browser/web-address-fill.js";
 import type { IntentFlow } from "./intent-flow.js";
+import { covenantFirst, profileOf } from "./web-buy-covenant.js";
 import type { ResumeParts } from "./web-buy-resume.js";
 import { resumePick } from "./web-buy-resume.js";
 import type { WebFindings } from "../browser/web-listing.js";
@@ -88,7 +89,7 @@ export class WebBuyStep {
       this.logger.warn("purchase.web_pick.unresolved", { ref });
       return this.refuseAs(base, FORGOTTEN, "web_pick_unknown");
     }
-    await this.covenantFirst(listing);
+    await covenantFirst(this.intents, listing);
     const from = this.trail.length;
     const landed = await this.sandbox.open(listing.url);
     if (landed.isError) {
@@ -101,7 +102,7 @@ export class WebBuyStep {
         stated,
         this.currency,
         replyLanguage,
-        await this.profile(),
+        await profileOf(this.address),
       ),
       stated,
       replyLanguage,
@@ -132,22 +133,6 @@ export class WebBuyStep {
     return resumePick(parts, stated, replyLanguage);
   }
 
-  /** The covenant first: unsigned, the errand obeyed the cart check's own
-   *  "no signed rule" and stopped at the basket; signed, the same check has
-   *  a ceiling and the checkout proceeds under real bounds. */
-  private async covenantFirst(listing: {
-    readonly title: string;
-    readonly price_paise: number | null;
-    readonly url: string;
-  }): Promise<void> {
-    if (this.intents === null) return;
-    await this.intents.signListing({
-      title: listing.title,
-      pricePaise: listing.price_paise,
-      merchant: merchantOf(listing.url),
-    });
-  }
-
   private refuseAs(
     base: PurchaseResult,
     line: string,
@@ -156,14 +141,6 @@ export class WebBuyStep {
     return settleAs(this.hub, base, [emitLine(this.hub, line, true)], why);
   }
 
-  private async profile(): Promise<string> {
-    if (this.address === null) return "";
-    const facts = await this.address.lookup();
-    return facts.map((fact) => `${fact.key}: ${fact.value}`).join("\n");
-  }
-
-  /** How it ends is decided from what this host watched, never from what the
-   *  errand said — see `web-pick-close.ts`. */
   private close(
     base: PurchaseResult,
     ref: string,
@@ -183,7 +160,6 @@ export class WebBuyStep {
     );
   }
 
-  /** Two legs, one conversation: drive, then say what happened. */
   private async errand(
     prompt: string,
     stated: readonly string[],
@@ -202,14 +178,6 @@ export class WebBuyStep {
     } finally {
       release();
     }
-  }
-}
-
-function merchantOf(url: string): string {
-  try {
-    return new URL(url).hostname.replace(/^www\./, "");
-  } catch {
-    return "the shop";
   }
 }
 

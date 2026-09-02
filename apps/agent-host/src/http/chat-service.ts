@@ -48,13 +48,9 @@ export class ChatService {
   get busy(): boolean {
     return this.running !== null;
   }
-
-  /** One run at a time; a second sentence queues rather than being refused. */
   private conversation: string | null = null;
 
-  /** The picker as last stated; a tapped card carries no language, so the
-   *  the client sends a ref and nothing else — but the setting is a standing
-   *  instruction, so the errand behind the tap answers in it. */
+  /** The reply language as last stated; a tapped ref carries none. */
   private language: string | null = null;
 
   start(
@@ -85,17 +81,14 @@ export class ChatService {
     return pending;
   }
 
-  /** Waits for the predecessor however it settled, so a queued turn's beats
-   *  file after its predecessor's rather than interleaved. */
+  /** Waits for the predecessor, so queued turns' beats never interleave. */
   private async after(
     inFlight: Promise<PurchaseResult> | null,
     message: string,
     conversationId: string | null,
     replyLanguage: string | null,
   ): Promise<PurchaseResult> {
-    if (inFlight !== null) {
-      await inFlight.catch(() => undefined);
-    }
+    if (inFlight !== null) await inFlight.catch(() => undefined);
     // Each leg says what it was handed: dropped and never-sent look alike.
     this.logger.debug("chat.reply_language", {
       at: "service",
@@ -116,10 +109,9 @@ export class ChatService {
     }
   }
 
-  /** The shopper tapped an open-web card. It queues for the same reason a
+  /** A tapped open-web card queues like a sentence for the same reason a
    *  second sentence does — one window, one timeline. */
-  /** The wheel came back: a parked checkout carries on by itself, without
-   *  the shopper having to type "go on" at a window they just drove. */
+  /** Wheel back = carry on: the parked checkout resumes by itself. */
   carryOn(): PurchaseResult | null {
     if (!this.webPick.parked || this.busy) return null;
     const language = this.language;
@@ -146,11 +138,8 @@ export class ChatService {
     stated: string,
     replyLanguage: string | null,
   ): Promise<PurchaseResult> {
-    if (inFlight !== null) {
-      await inFlight.catch(() => undefined);
-    }
+    if (inFlight !== null) await inFlight.catch(() => undefined);
     try {
-      // Platform card rebuilds the cart; a web ref goes to the window.
       const reproposed = await this.runner.repropose(ref);
       if (reproposed !== null) return reproposed;
       return await this.webPick.buy(ref, [stated], replyLanguage);
@@ -159,13 +148,11 @@ export class ChatService {
     }
   }
 
-  /** Filed while the window still exists: the next run retires it. */
   private recordSandbox(): void {
     const session = this.recorder.sandbox();
     if (session !== null) this.hub.emit({ kind: "sandbox", session });
   }
 
-  /** Awaits the in-flight run; the CLI and the e2e need the value. */
   async settled(): Promise<PurchaseResult | null> {
     if (this.running !== null) {
       await this.running;
@@ -187,7 +174,6 @@ export class ChatService {
     };
   }
 
-  /** A deleted chat takes its working jobs with it. */
   cancel(conversationId: string): boolean {
     if (this.conversation !== conversationId) return false;
     this.conversation = null;

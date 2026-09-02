@@ -59,19 +59,9 @@ function keyOf(conversation: string | null): string {
   return conversation ?? "";
 }
 
-/**
- * One lane per conversation, a bounded number of them running at once.
- *
- * DECISION: the cap bounds *runs*, not lane objects. A lane costs nothing
- * until a run starts, so a stream for a not-yet-running chat may always
- * attach; what the machine cannot afford is concurrent errands, so the
- * (cap+1)th message waits in one FIFO and is told its place honestly.
- *
- * DECISION: a message for a lane already mid-run starts immediately and
- * queues *inside* that lane (`ChatService.start`), adding no concurrency; it
- * is usually the shopper answering that run's own question, which must not
- * wait behind other people's errands.
- */
+/** One lane per conversation, a bounded number running at once: the cap
+ * bounds RUNS, not lanes, and the line is global so the oldest wait goes
+ * first whichever chat it belongs to. */
 export class ChatLanes {
   private readonly lanes = new Map<string, ChatLane>();
   private readonly waiting: Waiting[] = [];

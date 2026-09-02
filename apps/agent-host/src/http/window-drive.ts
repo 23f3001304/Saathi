@@ -106,13 +106,9 @@ function registerWheel(
     const handle = resolve(context);
     if (!found(handle)) return handle;
     const resumed = handle.service.resume();
-    // Handing the wheel back IS "carry on": the parked checkout continues
-    // in the same window without the shopper typing anything.
+    // Handing the wheel back IS "carry on".
     if (resumed) handle.onWheelBack?.();
-    return context.json(
-      { ok: resumed, session: handle.service.view() },
-      200,
-    );
+    return context.json({ ok: resumed, session: handle.service.view() }, 200);
   });
 
   // Named for what it does on both surfaces: hand this page to the human. On

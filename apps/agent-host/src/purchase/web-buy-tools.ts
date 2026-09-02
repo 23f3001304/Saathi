@@ -4,6 +4,7 @@ import {
   WEB_CART_TOOL,
   WEB_ENTER_CODE_TOOL,
   WEB_FILL_ADDRESS_TOOL,
+  WEB_GLANCE_TOOL,
   WEB_VERIFY_TOOL,
   WEB_OPEN_TOOL,
   WEB_PRESS_TOOL,
@@ -86,6 +87,17 @@ export const WEB_TOOL_DECLARATIONS: readonly ToolDeclaration[] = [
       "refused if the button commits a payment, and a page that asks for a " +
       "card or a password hands the window to the shopper instead.",
     parameters: schemaOf({ ref: z.string() }),
+  },
+  {
+    tool: WEB_GLANCE_TOOL,
+    server: WEB_TOOL_SERVER,
+    description:
+      "SEE the open page: you get the window's own redacted screenshot " +
+      "with a coordinate grid burned in - orange lines every 100 pixels, " +
+      "the numbers along both edges. Read the exact point of the control " +
+      "you need off the picture and aim web_press or web_write at it. Call " +
+      "this whenever the reader's refs fail you or the page looks wrong.",
+    parameters: schemaOf({}),
   },
   {
     tool: WEB_PRESS_TOOL,

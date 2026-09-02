@@ -21,6 +21,7 @@ export * from "./chrome/headless-reader.js";
 export * from "./drive/final-review.js";
 
 export * from "./frame/png.js";
+export * from "./frame/grid-overlay.js";
 export * from "./frame/redact.js";
 export * from "./frame/frame-capture.js";
 export * from "./frame/screencast.js";

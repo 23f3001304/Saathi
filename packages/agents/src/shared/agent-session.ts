@@ -13,6 +13,8 @@ export interface AgentToolResult {
   readonly isError: boolean;
   /** See `ToolOutcome.terminal`. Absent means an ordinary result. */
   readonly terminal?: boolean;
+  /** See `ToolOutcome.image`. */
+  readonly image?: string;
 }
 
 export interface AgentTurnInput {
@@ -55,6 +57,10 @@ export interface AgentSession {
 export interface ToolOutcome {
   readonly content: string;
   readonly isError: boolean;
+  /** A picture riding beside the text result - the annotated page shot a
+   *  glance returns. Providers that can carry images attach it to the next
+   *  request as user content; the rest ignore it. Always already redacted. */
+  readonly image?: string;
   /**
    * A failure asking again cannot fix — this shelf does not carry that SKU,
    * this session has had its quotes. Optional, so a tool that has no such

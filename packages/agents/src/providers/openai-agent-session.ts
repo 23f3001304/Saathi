@@ -71,6 +71,20 @@ export class OpenAiExchange implements ProviderExchange {
         call_id: result.toolUseId,
         output: result.content,
       });
+      // Function outputs are text-only on this API; a result's picture (the
+      // redacted, grid-annotated page shot) rides as the next user item.
+      if (result.image !== undefined) {
+        this.items.push({
+          role: "user",
+          content: [
+            {
+              type: "input_text",
+              text: "The annotated screenshot for that call:",
+            },
+            { type: "input_image", image_url: result.image },
+          ],
+        });
+      }
     }
   }
 

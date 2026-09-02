@@ -14,6 +14,7 @@ import {
   WEB_ADD_TO_CART_TOOL,
   WEB_CART_TOOL,
   WEB_FILL_ADDRESS_TOOL,
+  WEB_GLANCE_TOOL,
   WEB_OPEN_TOOL,
   WEB_READ_TOOL,
   WEB_SHOP_TOOLS,
@@ -22,6 +23,7 @@ import {
 import type { WebFindings } from "../browser/web-listing.js";
 import type { WebShopper } from "../browser/web-shopper.js";
 import type { SignInVerbs } from "../browser/web-sign-in.js";
+import type { GlanceVerbs } from "../browser/web-glance.js";
 import type { VerifyVerbs } from "../browser/web-verify.js";
 import { CALL_CEILING_MS, withinCall } from "./call-ceiling.js";
 import type { WebPin } from "./web-pin.js";
@@ -62,6 +64,8 @@ export class WebToolRunner {
     private readonly vaultVerbs: SignInVerbs | null = null,
     /** The batched research reader; `null` where none is wired. */
     private readonly verifyVerbs: VerifyVerbs | null = null,
+    /** The errand's eyes; `null` where no window can be pictured. */
+    private readonly glanceVerbs: GlanceVerbs | null = null,
   ) {}
 
   async run(call: ToolCall): Promise<ToolOutcome> {
@@ -111,6 +115,8 @@ export class WebToolRunner {
         return outcomeOf(await this.shopper.cart());
       case WEB_FILL_ADDRESS_TOOL:
         return outcomeOf(await this.shopper.fillAddress());
+      case WEB_GLANCE_TOOL:
+        return await this.glance();
       default:
         return null;
     }
@@ -126,6 +132,14 @@ export class WebToolRunner {
       return offPin(parsed.data.url);
     }
     return outcomeOf(await this.shopper.open(parsed.data.url));
+  }
+
+  /** The picture rides beside the text outcome; see `ToolOutcome.image`. */
+  private async glance(): Promise<ToolOutcome> {
+    if (this.glanceVerbs === null) return unknown(WEB_GLANCE_TOOL);
+    const seen = await this.glanceVerbs.glance();
+    const outcome = outcomeOf(seen.result);
+    return seen.image === null ? outcome : { ...outcome, image: seen.image };
   }
 
   private async addToCart(call: ToolCall): Promise<ToolOutcome> {

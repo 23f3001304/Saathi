@@ -39,20 +39,9 @@ interface Ticket {
   granted: { readonly id: string; readonly key: string } | null;
 }
 
-/**
- * Every open sandbox on this host, and the queue behind them.
- *
- * DECISION: the registry holds `BrowserService` instances rather than replacing
- * it. A service already owns exactly one window and all the bookkeeping that
- * goes with it — the idle watch, the binding, the ceiling — and that was never
- * the thing that was wrong. What was wrong is that there was one of them.
- *
- * DECISION: a cap with a queue rather than a cap with an error. A machine that
- * is full is a fact about the machine, not a failure of the request, and the
- * honest answer is a place in a line. What it must never do is open a window
- * it cannot afford, because the failure mode there is every session getting
- * slower until the renderer deaths start.
- */
+/** Every open sandbox on this host, and the queue behind them: one primary
+ * that always exists, lane windows by id, a machine-derived cap, and a
+ * bounded line whose head starts as slots free. */
 export class BrowserRegistry {
   private readonly open = new Map<string, SessionHandle>();
   private readonly queue: Ticket[] = [];

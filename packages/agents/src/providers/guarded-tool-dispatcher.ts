@@ -70,6 +70,7 @@ export class GuardedToolDispatcher {
       content: outcome.content,
       isError: outcome.isError,
       ...(outcome.terminal === true ? { terminal: true } : {}),
+      ...(outcome.image === undefined ? {} : { image: outcome.image }),
     };
   }
 

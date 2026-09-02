@@ -26,6 +26,14 @@ const BUY =
   "- put this one thing in the shop's own basket with web_add_to_cart, using " +
   "a ref from that reading. Read again after every click: the page moves.\n" +
   "- go on toward the shop's checkout the same way, one control at a time.\n" +
+  "- when the reader's refs fail you (a mislabelled basket button, a size " +
+  "picker, a popup in the way), aim web_press at a control's own `at` " +
+  "coordinates from your last web_read, or web_write for a small text box. " +
+  "Both are judged like every click, so aim freely.\n" +
+  "- when refs and coordinates both fail, call web_glance: you get the " +
+  "page's own screenshot with a coordinate grid drawn on. Read the point " +
+  "you need off the picture and press it with web_press. Trust the " +
+  "picture over the control list whenever they disagree.\n" +
   "- when a delivery form is in front of you, call web_fill_address. It fills " +
   "only what the shopper has already told us about themselves, and you cannot " +
   "choose what it types. There is no other way to put an address on a form " +
