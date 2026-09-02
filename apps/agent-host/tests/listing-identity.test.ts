@@ -1,12 +1,9 @@
-// Tapping a card and typing its name are the same act. A live run found and
-// carded specific drives, the shopper typed "go with crucial E100", and the
-// turn went to the planner, came back `browse`, said this shop stocks nothing,
-// and opened a fresh errand that wandered onto Amazon's home page.
+// What a listing *is*, independent of how the shop decorated it, and which
+// window a buy errand may open. These cases lived beside the typed pick; the
+// pick is gone, the identity rules are not.
 import { describe, expect, it } from "vitest";
 
 import { cleanTitle, productKey } from "../src/browser/listing-identity.js";
-import { distilQuery } from "../src/purchase/query-distil.js";
-import { typedPick } from "../src/purchase/typed-pick.js";
 import { WebOffered } from "../src/purchase/web-offered.js";
 import { WebPin } from "../src/purchase/web-pin.js";
 
@@ -35,39 +32,6 @@ const OFFERED = [
   card("w4", "ADATA XPG GAMMIX S70 1TB SSD"),
 ];
 
-describe("naming a card in words is choosing it", () => {
-  it("routes the one they named", () => {
-    expect(typedPick("go with crucial E100", OFFERED)).toEqual({
-      ref: "w1",
-      between: [],
-    });
-  });
-
-  it("asks when their words fit more than one", () => {
-    const named = typedPick("the crucial one", OFFERED);
-
-    expect(named?.ref).toBeNull();
-    expect(named?.between.map((row) => row.ref)).toEqual(["w1", "w2"]);
-  });
-});
-
-describe("a sentence that names no card belongs to the planner", () => {
-  it("ignores a word every card carries", () => {
-    // "SSD" is in all four, so it discriminates nothing and this is a fresh
-    // request, not a pick.
-    expect(typedPick("get me another SSD", OFFERED)).toBeNull();
-  });
-
-  it("ignores a bare agreement", () => {
-    expect(typedPick("yes", OFFERED)).toBeNull();
-    expect(typedPick("go ahead", OFFERED)).toBeNull();
-  });
-
-  it("does nothing until there is a set on the table", () => {
-    expect(typedPick("crucial E100", [])).toBeNull();
-  });
-});
-
 describe("a buy errand cannot open a different product", () => {
   it("refuses another product and allows the shop's own search", () => {
     // A pick of an ADATA failed to open, and the errand searched Amazon and
@@ -90,18 +54,6 @@ describe("a buy errand cannot open a different product", () => {
     expect(pin.allows("https://www.amazon.in/WD-SN3000/dp/B0ZZZZZZZZ")).toBe(
       true,
     );
-  });
-});
-
-describe("what a shop is actually asked for", () => {
-  it("drops the turn-taking and keeps every line that states a want", () => {
-    expect(
-      distilQuery("Buy me a SSD\n1 TB internal\nFOR LAPTOP 20,000RS MAX\nOK"),
-    ).toBe("Buy me a SSD 1 TB internal FOR LAPTOP 20,000RS MAX");
-  });
-
-  it("keeps the whole thing rather than nothing", () => {
-    expect(distilQuery("ok\nyes")).toBe("ok\nyes");
   });
 });
 

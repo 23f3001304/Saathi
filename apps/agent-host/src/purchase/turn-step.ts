@@ -18,8 +18,7 @@ export interface WebPickResume {
     stated: readonly string[],
     replyLanguage: string | null,
   ): Promise<PurchaseResult>;
-  /** The same errand a tapped card drives. The shell reaches it directly when
-   *  the shopper names a card in words — see `typed-pick.ts`. */
+  /** The same errand a tapped card drives. */
   buy(
     ref: string,
     stated: readonly string[],

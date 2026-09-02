@@ -9,7 +9,6 @@ import { afterAll, describe, expect, it } from "vitest";
 import { openContextLog } from "../src/purchase/context-log.js";
 import type { Turn } from "../src/purchase/dialogue.js";
 import { emptyResult } from "../src/purchase/purchase-result.js";
-import { typedPick } from "../src/purchase/typed-pick.js";
 import { parseContext } from "../src/purchase/working-context.js";
 import { mapLog, recorderRig } from "./support/context-rig.js";
 import { SilentLogger, StepClock } from "./support/fakes.js";
@@ -56,9 +55,20 @@ describe("the record a research run leaves behind", () => {
     expect(record?.options[0]?.url).toContain("/dp/B0D1XYZ123");
   });
 
-  it("carries the constraints as their own distilled words", () => {
+  it("carries their newest line as the hint of what they are after", () => {
     expect(record?.asked).toBe("find me a 1tb portable ssd under 10000");
     expect(record?.outcome?.state).toBe("running");
+  });
+
+  it("takes the last line they wrote, not a distillation of all of them", () => {
+    const fresh = recorderRig();
+    fresh.offered.claim(CHAT);
+    fresh.recorder.claim(CHAT);
+    fresh.recorder.noted(emptyResult("urn:covenant:run:2", "ok"), [
+      asked("find me a 1tb portable ssd under 10000"),
+      asked("the crucial one", 1),
+    ]);
+    expect(fresh.recorder.current()?.asked).toBe("the crucial one");
   });
 
   it("is durably filed under its conversation", () => {
@@ -96,10 +106,10 @@ describe("rehydration after a restart", () => {
     revived.recorder.claim(CHAT);
     const live = revived.offered.live(CHAT);
     expect(live).toHaveLength(2);
-    // The typed pick works again: the sentence, the ref, the known URL.
-    const named = typedPick("go with the crucial e100", live);
-    expect(named?.ref).not.toBeNull();
-    const url = revived.findings.find(named?.ref ?? "")?.url;
+    // The cards resolve again: each ref this process minted maps to the URL
+    // the earlier process recorded landing on.
+    const first = live[0]?.ref ?? "";
+    const url = revived.findings.find(first)?.url;
     expect(url).toContain("/dp/B0D1XYZ123");
   });
 });

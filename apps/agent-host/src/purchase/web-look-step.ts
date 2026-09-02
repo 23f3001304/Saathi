@@ -11,7 +11,6 @@ import type { PurchaseResult } from "./purchase-result.js";
 import { reportFindings } from "./web-look-report.js";
 import type { WebOffered } from "./web-offered.js";
 import type { WebPin } from "./web-pin.js";
-import { distilQuery } from "./query-distil.js";
 import { cardedListings } from "./web-options.js";
 import type { WindowStage } from "./window-stage.js";
 import { OPEN_STAGE } from "./window-stage.js";
@@ -83,10 +82,9 @@ export class WebLookStep implements WebLook {
     stated: readonly string[] = [],
     replyLanguage: string | null = null,
   ): Promise<PurchaseResult> {
-    // The plan's own query when it named one, else what they asked for with
-    // the turn-taking taken out — this string is both the search seed and the
-    // overlap that decides which tiles become cards.
-    const query = distilQuery((plan.query ?? base.request).trim());
+    // The plan's own query when it named one, else what they asked for. The
+    // model wrote it; nothing here rewrites it.
+    const query = (plan.query ?? base.request).trim();
     this.pin?.release();
     this.stage.conceal();
     const from = this.trail.length;

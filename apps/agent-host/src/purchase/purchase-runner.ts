@@ -4,7 +4,6 @@ import { noStockTurn } from "../judge/no-stock-step.js";
 import { reproposeSku } from "./buy-step.js";
 import { planned } from "./planned-turn.js";
 import { plannerDigest } from "./context-digest.js";
-import { routeTypedPick } from "./typed-pick.js";
 import { unfolded } from "./dialogue-compaction.js";
 import type { Turn } from "./dialogue.js";
 import { shopperLines, transcriptOf } from "./dialogue.js";
@@ -107,27 +106,23 @@ export class PurchaseRunner {
     const dialogue = await this.parts.conversation.recall(request, chat);
     const traits = await this.parts.traits.recall(request);
     // Only the shopper's half may bound anything: the agent's own prose
-    // reaching `buy`'s join would let it widen a covenant by talking. It is
-    // also what the language gate reads the instruction off.
+    // reaching `buy`'s join would let it widen a covenant by talking.
     const stated = shopperLines(dialogue);
-    // Before the planner: a sentence naming a card already on their screen is
-    // that card being chosen, not a fresh errand to go and run.
-    const chose = await routeTypedPick(this.parts, base, request, {
-      chat,
-      replyLanguage,
-      stated,
-    });
     // Rolling compaction: lines already folded into the record's summary are
     // not replayed verbatim; the digest carries them, small, as data. What
     // may bound an intent is untouched — `stated` stays the whole half.
     const tail = unfolded(dialogue, this.parts.context.current()?.folded ?? null);
-    const result =
-      chose ??
-      (await planned(this.parts, this.config, base, [...traits, ...transcriptOf(tail)], {
+    const result = await planned(
+      this.parts,
+      this.config,
+      base,
+      [...traits, ...transcriptOf(tail)],
+      {
         stated,
         replyLanguage,
         digest: plannerDigest(this.parts.context.current()),
-      }));
+      },
+    );
     await this.said(result, chat);
     return this.filed(result, dialogue);
   }

@@ -7,7 +7,6 @@ import { foldInto } from "./dialogue-compaction.js";
 import type { Turn } from "./dialogue.js";
 import { shopperLines } from "./dialogue.js";
 import type { PurchaseResult } from "./purchase-result.js";
-import { distilQuery } from "./query-distil.js";
 import type { ParkReason } from "./web-pick-park.js";
 import type { ContextPick, WorkingContext } from "./working-context.js";
 import { optionOf, parseContext, seedOf } from "./working-context.js";
@@ -68,7 +67,7 @@ export function inertContext(): ContextRecall {
  * live errand fills — the stored options are re-minted through `WebFindings`
  * and put back on `WebOffered`'s table. That is what makes a restart honest
  * end to end: a typed "go with the Crucial" resolves to a ref this process
- * holds, `noStockTurn` re-presents cards that really are re-presentable, and a
+ * holds, a later errand reads cards that really are re-presentable, and a
  * pick opens a URL this host recorded itself landing on.
  */
 export class ContextRecorder implements ContextRecall {
@@ -127,12 +126,15 @@ export class ContextRecorder implements ContextRecall {
     };
   }
 
-  /** Their own lines with the turn-taking taken out — the same distillation
-   *  the errand query uses, so the record and the search agree on the want. */
+  /** Their newest line with words in it. The record used to distil every
+   *  line through a word list; the model reads the transcript itself now,
+   *  and this is only the digest's one-line hint of what they are after. */
   private askedOf(dialogue: readonly Turn[]): string | null {
-    const stated = shopperLines(dialogue).join("\n").trim();
-    if (stated === "") return null;
-    return distilQuery(stated).slice(0, ASKED_CLAMP);
+    const last = shopperLines(dialogue)
+      .map((line) => line.trim())
+      .filter((line) => line.length > 0)
+      .at(-1);
+    return last === undefined ? null : last.slice(0, ASKED_CLAMP);
   }
 
   /** The card a pick errand was about: the parked one, or the one this run's
