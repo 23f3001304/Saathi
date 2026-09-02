@@ -9,13 +9,20 @@ no-JS prerender). Repo gates that must stay green: `npx tsc -b`,
 `npx eslint . --max-warnings 0`, `npx depcruise apps packages tools`.
 Do not touch any other app in the repo.
 
-## CURRENT STATE: holding, waiting for founder references
+## CURRENT STATE: all landing work deleted at founder's request (09-02, late evening)
 
-Three complete drafts have been staged and struck. The founder is
-assembling visual references for the next direction; nothing new should
-be designed until those references arrive. The page currently shows a
-deliberately minimal holding screen (wordmark, one promise line, two
-links, footer). All gates pass; the prerendered no-JS build works.
+Five complete drafts were staged and struck in one day. After the fifth
+the founder said to delete the landing work entirely, and it is deleted.
+The page shows only the minimal holding screen (wordmark, one promise
+line, two links, footer). All gates pass; the prerendered no-JS build
+works. Do NOT design a sixth draft unprompted. If this page is picked
+up again, the realistic paths are: the founder steers micro-edits live,
+one at a time, while looking at the page; or the founder supplies one
+specific reference page to port faithfully; or the holding page ships
+as-is for the submission (it is presentable). Real screenshots of the
+running product were captured and liked in principle ("the real thing,
+not a mockup"); re-capture from :5173 in minutes (continue as demo
+user, hold the seal, then screenshot Chat / Ledger / the refused chip).
 
 ## What the product is (the story you are selling)
 
@@ -27,7 +34,7 @@ hold for 600ms; every rupee lands in a readable ledger (the hisaab). No
 technical vocabulary on the page ever: no covenant/mandate/ledger/AP2 words.
 NO EM DASHES in any copy (hard rule).
 
-## The taste map: three struck drafts and why they died
+## The taste map: five struck drafts and why they died
 
 1. Photo-editorial draft (multiple sections, product-UI mockups):
    rejected as fussy and generic SaaS.
@@ -40,9 +47,23 @@ NO EM DASHES in any copy (hard rule).
 3. Cardboard toy theatre (no images at all; CSS/SVG card proscenium,
    curtain rise, kraft floor, footlights, computed-geometry rod puppets
    on sticks, bazaar stall flats, scroll-scrubbed walk, refused stamps,
-   paper ledger scroll): rejected on sight, "looks bad". The code is
-   deleted. Screenshots of it exist in the session scratchpad if the
-   founder ever wants to point at what specifically failed.
+   paper ledger scroll): rejected on sight, "looks bad". Deleted.
+4. Zainab-style illustrated world (founder reference zainabkabira.com;
+   warm sky, cloud shapes, a geometric paper kite on a dashed string
+   threading the page, real product screenshots in scene): killed
+   mid-build as "a cheap looking bad copy" of the reference. The lesson:
+   copying a crafted page's layout with flat primitives reads as a
+   wireframe of it. Also from this round: santionispirits.com was the
+   other reference (single ink-illustration style, story panels, a HOLD
+   beat); museum CC0 Kalighat sourcing was explored and vetoed ("no
+   mythological reference, we are a SaaS product"); and the standing
+   rule NEVER MAKE ARTWORK, SOURCE IT was set.
+5. Calm type-and-texture (founder-chosen direction via explicit menu:
+   grain over a warm field, monumental faint kolam rosette as the one
+   ornament paying off as the pressable seal, real screenshots, one dusk
+   band, editorial spent-list): still hated ("font is very bad", "I hate
+   your every generation"). A six-option type specimen went unanswered;
+   then the delete order came. Deleted.
 
 Standing founder rules distilled across all three rejections:
 - The page must BE a live show, not a page about a show.

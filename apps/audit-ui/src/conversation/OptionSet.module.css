@@ -17,6 +17,11 @@
   padding-bottom: var(--sp-2);
 }
 
+/* Wide docks stretched three cards into slabs; a card is a card. */
+.grid > * {
+  max-width: 300px;
+}
+
 .more {
   align-self: flex-start;
   padding: var(--sp-2) var(--sp-4);

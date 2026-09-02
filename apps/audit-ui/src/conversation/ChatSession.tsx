@@ -136,6 +136,11 @@ export function ChatSession({
       setWebLaunched(false);
       return;
     }
+    // The tap reaches the server: the standing cart is rebuilt for this
+    // card, and the bill's total follows the cart beat. Without this the
+    // sheet showed the tapped card while the signature released the run's
+    // own default: what you see must be what you sign.
+    void pickWebOption(optionId, conversationId);
     setConfirmed(true);
     setBillOpen(true);
   }

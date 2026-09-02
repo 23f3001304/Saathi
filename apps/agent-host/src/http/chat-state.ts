@@ -10,6 +10,9 @@ export interface RunnerPort {
     chat?: string,
     replyLanguage?: string | null,
   ): Promise<PurchaseResult>;
+  /** The cart rebuilt for a tapped platform card; `null` when the ref is
+   *  not this runner's to serve (no standing proposal, or a web ref). */
+  repropose(ref: string): Promise<PurchaseResult | null>;
 }
 
 /**

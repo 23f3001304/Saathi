@@ -4,6 +4,7 @@
 import { WebFindings } from "../../src/browser/web-listing.js";
 import { WebProgress } from "../../src/browser/web-progress.js";
 import { BeatHub } from "../../src/http/beat-hub.js";
+import { LastProposal } from "../../src/purchase/last-proposal.js";
 import { ConfirmationGate } from "../../src/purchase/confirmation-gate.js";
 import type { ContextLog } from "../../src/purchase/context-log.js";
 import { ContextRecorder } from "../../src/purchase/context-record.js";
@@ -66,6 +67,7 @@ export function stillParts() {
     hub: new BeatHub(new StepClock(), new RecordingLogger()),
     narrator: forbidden("narrator"),
     cartGate: new ConfirmationGate(true),
+    lastProposal: new LastProposal(),
     shelf: { open: async () => [], current: () => [] },
     quotes: { newRun: () => undefined },
     logger: new SilentLogger(),

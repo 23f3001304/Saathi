@@ -35,7 +35,12 @@ function descriptionOf(
   if (refundable) {
     terms.push("refundable only");
   }
-  const echo = request.trim().slice(0, MAX_REQUEST_ECHO);
+  // The first line is the want; everything after it is conversation. The
+  // whole join once baked "i want to revert and choose different product"
+  // into a mandate's own description.
+  const echo = (request.trim().split("\n")[0] ?? "")
+    .trim()
+    .slice(0, MAX_REQUEST_ECHO);
   return `${echo}: ${terms.join(", ")}.`.slice(0, MAX_DESCRIPTION);
 }
 

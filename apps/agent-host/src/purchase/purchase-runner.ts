@@ -1,7 +1,7 @@
 
 import { NothingStocked } from "../judge/catalog-match.js";
 import { noStockTurn } from "../judge/no-stock-step.js";
-import { buyThrough } from "./buy-step.js";
+import { buyThrough, reproposeSku } from "./buy-step.js";
 import { plannerDigest } from "./context-digest.js";
 import { routeTypedPick } from "./typed-pick.js";
 import { unfolded } from "./dialogue-compaction.js";
@@ -38,6 +38,7 @@ export class PurchaseRunner {
     this.parts.hub.restart();
     this.parts.cartGate.reset();
     this.parts.log.reset();
+    this.parts.lastProposal.clear();
     this.parts.offered.claim(chat ?? null);
     // After the table is claimed, because rehydrating puts cards back on it:
     // a restarted host reads this conversation's record and re-seats what an
@@ -155,6 +156,16 @@ export class PurchaseRunner {
       answered ?? (await buyThrough(this.parts, this.config, base, turn.stated));
     if (slipped) this.noteSlip();
     return result;
+  }
+
+  /** The cart, rebuilt for a tapped platform card; `null` when the tap is
+   *  not this runner's to serve (no standing proposal, or a web ref). */
+  repropose(ref: string): Promise<PurchaseResult | null> {
+    const base = emptyResult(
+      `urn:covenant:pick:${this.parts.ids.uuid()}`,
+      ref,
+    );
+    return reproposeSku(this.parts, this.config, base, ref);
   }
 
   /** Said in the harness's own voice: the turn stands, the language was not

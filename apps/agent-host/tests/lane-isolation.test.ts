@@ -78,6 +78,7 @@ describe("gates are per lane", () => {
           await lane.intentGate.wait();
           return emptyResult(`urn:covenant:run:${name}`, request);
         },
+        repropose: async () => null,
       });
       return lane;
     };

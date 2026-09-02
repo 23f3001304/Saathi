@@ -5,6 +5,7 @@ import { CheckoutStep } from "../purchase/checkout-step.js";
 import type { ConfirmationGate } from "../purchase/confirmation-gate.js";
 import type { ConversationMemory } from "../purchase/conversation-memory.js";
 import { IntentFlow } from "../purchase/intent-flow.js";
+import { LastProposal } from "../purchase/last-proposal.js";
 import { PurchaseRunner } from "../purchase/purchase-runner.js";
 import { RunNarrator } from "../purchase/run-narrator.js";
 import type { RunnerConfig, SandboxOwner } from "../purchase/runner-parts.js";
@@ -140,6 +141,7 @@ export function wireRunner(
   return new PurchaseRunner(
     {
       log,
+      lastProposal: new LastProposal(),
       cartGate: shared.cartGate,
       buyer: loopOn(deps, deps.session, dispatcher),
       intents: intentFlowOf(deps, shared.intentGate),

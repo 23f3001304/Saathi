@@ -1,3 +1,5 @@
+import type { CatalogSku } from "@covenant/agents";
+
 import { asks, askTurn } from "./ask-step.js";
 import { listingFor } from "./intent-listing.js";
 import { observedFrom } from "./observation.js";
@@ -51,10 +53,51 @@ export async function buyThrough(
     retrieval,
     writes: parts.log.memoryWrites,
   });
+  parts.lastProposal.hold({ intent, conversation, sku: sku.sku });
   return await proposeCart(parts, config, {
     result: observed,
     intent,
     sku,
     quote,
   });
+}
+
+/**
+ * The cart, rebuilt for the card that was actually tapped. `null` when there
+ * is nothing to rebuild: no proposal standing, an unknown sku, or a tap on
+ * the sku the cart already holds.
+ */
+export async function reproposeSku(
+  parts: RunnerParts,
+  config: RunnerConfig,
+  base: PurchaseResult,
+  ref: string,
+): Promise<PurchaseResult | null> {
+  const held = parts.lastProposal.current();
+  if (held === null || held.sku === ref) return null;
+  const sku = skuIn(parts.shelf.current(), ref);
+  if (sku === null) return null;
+  parts.cartGate.reset();
+  const quote = await parts.fallback.ensureQuote(
+    sku,
+    held.intent.bounds.allowance.max_amount,
+  );
+  const retrieval = await retrieveForCart(parts, config, { sku, quote });
+  const observed = observedFrom(base, {
+    intent: held.intent,
+    conversation: held.conversation,
+    retrieval,
+    writes: parts.log.memoryWrites,
+  });
+  parts.lastProposal.hold({ ...held, sku: sku.sku });
+  return await proposeCart(parts, config, {
+    result: observed,
+    intent: held.intent,
+    sku,
+    quote,
+  });
+}
+
+function skuIn(shelf: readonly CatalogSku[], ref: string): CatalogSku | null {
+  return shelf.find((item) => item.sku === ref) ?? null;
 }

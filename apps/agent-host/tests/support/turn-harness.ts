@@ -5,6 +5,7 @@ import type { TurnPlan, TurnPlanner } from "@covenant/agents";
 
 import { BeatHub } from "../../src/http/beat-hub.js";
 import type { ConversationLine } from "../../src/purchase/dialogue.js";
+import { LastProposal } from "../../src/purchase/last-proposal.js";
 import { ConfirmationGate } from "../../src/purchase/confirmation-gate.js";
 import { inertContext } from "../../src/purchase/context-record.js";
 import type { RunnerParts } from "../../src/purchase/purchase-runner.js";
@@ -101,6 +102,7 @@ export function runnerFor(plan: TurnPlan) {
     hub,
     narrator: forbidden("narrator"),
     cartGate: new ConfirmationGate(true),
+    lastProposal: new LastProposal(),
     shelf: { open: async () => [], current: () => [] },
     quotes: { newRun: () => undefined },
     logger: new RecordingLogger(),

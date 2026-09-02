@@ -139,6 +139,10 @@ export class ChatService {
       await inFlight.catch(() => undefined);
     }
     try {
+      // A platform card rebuilds the standing cart; a web ref goes to the
+      // window. The runner answers null for anything not its to serve.
+      const reproposed = await this.runner.repropose(ref);
+      if (reproposed !== null) return reproposed;
       return await this.webPick.buy(ref, [stated], replyLanguage);
     } finally {
       this.recordSandbox();

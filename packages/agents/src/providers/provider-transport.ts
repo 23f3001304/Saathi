@@ -28,7 +28,12 @@ export class ProviderTransportError extends Error {
   }
 }
 
-export const DEFAULT_PROVIDER_TIMEOUT_MS = 60_000;
+/** DECISION (was 60s): high reasoning effort thinks past a minute on real
+ *  planner prompts, and the timeout was read as "openai request failed":
+ *  discovery failed, the errand opened nothing, and the host fell back to
+ *  the scripted reel mid-demo. Three minutes clears honest thinking; the
+ *  errand deadline and call ceilings still bound the run. */
+export const DEFAULT_PROVIDER_TIMEOUT_MS = 180_000;
 
 const MAX_DETAIL_CHARS = 500;
 
