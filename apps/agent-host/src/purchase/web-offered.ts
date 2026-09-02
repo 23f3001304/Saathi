@@ -32,6 +32,12 @@ export class WebOffered {
     return conversation === this.chat ? this.rows : [];
   }
 
+  /** The table as the run that claimed it sees it: what a read reports as
+   *  "on their screen" is exactly what a typed pick may resolve against. */
+  current(): readonly WebListingView[] {
+    return this.live(this.claimed);
+  }
+
   offer(rows: readonly WebListingView[]): void {
     this.rows = rows;
     this.chat = this.claimed;
