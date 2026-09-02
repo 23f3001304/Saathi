@@ -59,7 +59,7 @@ describe("where the working context sits in the prompt", () => {
       new TurnPlanCollector(),
       new RecordingLogger(),
     );
-    await planner.plan(TRANSCRIPT, null, "", context);
+    await planner.plan(TRANSCRIPT, null, context);
     return session.seen[0]?.userMessage ?? "";
   }
 

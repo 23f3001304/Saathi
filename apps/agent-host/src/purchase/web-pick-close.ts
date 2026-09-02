@@ -3,7 +3,6 @@ import type { Logger } from "@covenant/domain";
 import type { WebProgress } from "../browser/web-progress.js";
 import type { WebTrail } from "../browser/web-trail.js";
 import type { BeatHub } from "../http/beat-hub.js";
-import { LANGUAGE_SLIPPED } from "./language-gate.js";
 import type { PurchaseResult } from "./purchase-result.js";
 import {
   ADDRESS_REPLIES,
@@ -30,7 +29,6 @@ import type { WebPickPark } from "./web-pick-park.js";
  */
 export interface Spoken {
   readonly told: string;
-  readonly slipped: boolean;
   /** The errand ran past its wall clock: the closing names the clock. */
   readonly expired: boolean;
 }
@@ -95,14 +93,11 @@ export function settleAs(
   return { ...base, status: "answered", transcript };
 }
 
-/** The errand's own sentence when it has one, and the language note beside
- *  it. Nothing when it never spoke: a silent errand is the harness's to
- *  explain, in its own marked voice, not a fallback wearing the agent's. */
+/** The errand's own sentence when it has one. Nothing when it never spoke: a
+ *  silent errand is the harness's to explain, in its own marked voice, not a
+ *  fallback wearing the agent's. */
 function spoken(hub: BeatHub, spoke: Spoken): readonly string[] {
-  const said: string[] = [];
-  if (spoke.told !== "") said.push(emitLine(hub, spoke.told, false));
-  if (spoke.slipped) said.push(emitLine(hub, LANGUAGE_SLIPPED, true));
-  return said;
+  return spoke.told === "" ? [] : [emitLine(hub, spoke.told, false)];
 }
 
 /**

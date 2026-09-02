@@ -6,7 +6,6 @@ import { planned } from "./planned-turn.js";
 import { plannerDigest } from "./context-digest.js";
 import { routeTypedPick } from "./typed-pick.js";
 import { unfolded } from "./dialogue-compaction.js";
-import { LANGUAGE_SLIPPED } from "./language-gate.js";
 import type { Turn } from "./dialogue.js";
 import { shopperLines, transcriptOf } from "./dialogue.js";
 import type { PurchaseResult } from "./purchase-result.js";
@@ -141,16 +140,6 @@ export class PurchaseRunner {
       ref,
     );
     return reproposeSku(this.parts, this.config, base, ref);
-  }
-
-  /** Said in the harness's own voice: the turn stands, the language was not
-   *  the one they asked for, and pretending otherwise would be the lie. */
-  private noteSlip(): void {
-    this.parts.hub.emit({
-      kind: "message",
-      text: LANGUAGE_SLIPPED,
-      variant: "system",
-    });
   }
 
   /** The working context, written by the shell after the turn from what it

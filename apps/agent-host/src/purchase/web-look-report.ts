@@ -1,6 +1,5 @@
 import type { WebListingView } from "../browser/web-listing.js";
 import type { BeatHub } from "../http/beat-hub.js";
-import { LANGUAGE_SLIPPED } from "./language-gate.js";
 import type { ErrandRun } from "./errand-run.js";
 import {
   CUT_SHORT,
@@ -82,7 +81,6 @@ export function reportFindings(
   // up as one.
   const said = closingLine(request.errand);
   emit(hub, said, request.errand.told === "");
-  if (request.errand.slipped) emit(hub, LANGUAGE_SLIPPED, true);
   const offered = offer(hub, request.found, request.query);
   const closing = provenance(request.opened, offered);
   emit(hub, closing, true);

@@ -21,9 +21,6 @@ export interface TurnPlanner {
   plan(
     stated: readonly string[],
     replyLanguage?: string | null,
-    /** Prepended verbatim: what the harness rejected about the last attempt.
-     *  See `apps/agent-host/src/purchase/plan-gate.ts`. */
-    correction?: string,
     /** The harness's working-context digest — what this conversation already
      *  found, picked and stood at, written by the shell from its own record.
      *  Injected under `TURN_PLAN_CONTEXT_MARK`, before the closing; empty
@@ -71,10 +68,9 @@ export class SessionTurnPlanner implements TurnPlanner {
   async plan(
     stated: readonly string[],
     replyLanguage: string | null = null,
-    correction = "",
     context = "",
   ): Promise<TurnPlan> {
-    const spoken = await this.speak(stated, replyLanguage, correction, context);
+    const spoken = await this.speak(stated, replyLanguage, context);
     const chosen = this.collector.take();
     if (chosen === null) {
       return this.unchosen(spoken);
@@ -101,12 +97,11 @@ export class SessionTurnPlanner implements TurnPlanner {
   private async speak(
     stated: readonly string[],
     replyLanguage: string | null,
-    correction: string,
     context: string,
   ): Promise<Spoken> {
     try {
       const turn = await this.session.turn({
-        userMessage: correction + promptAround(stated, replyLanguage, context),
+        userMessage: promptAround(stated, replyLanguage, context),
         // Routing classifies this, not the instructions wrapped around it.
         subject: joined(stated),
         toolResults: [],

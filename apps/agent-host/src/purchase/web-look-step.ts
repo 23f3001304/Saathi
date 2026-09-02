@@ -149,8 +149,6 @@ export class WebLookStep implements WebLook {
               replyLanguage,
               cardedListings(this.findings.since(seen), query),
             ),
-          stated: asked,
-          replyLanguage,
         },
         this.logger,
       );

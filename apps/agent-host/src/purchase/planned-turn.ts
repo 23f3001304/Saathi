@@ -1,12 +1,17 @@
 import { buyThrough } from "./buy-step.js";
-import { plannedTurn } from "./plan-gate.js";
-import { LANGUAGE_SLIPPED } from "./language-gate.js";
-import { anchorLine } from "./web-errand.js";
 import type { PurchaseResult } from "./purchase-result.js";
 import type { RunnerConfig, RunnerParts } from "./runner-parts.js";
 import { nonPurchaseTurn } from "./turn-step.js";
 
-/** The model's move, and what the harness let follow from it. */
+/**
+ * The model's move, and what the harness let follow from it.
+ *
+ * DECISION: the planner is asked once. The gates that stood here re-planned
+ * a turn over its language or its length, and when the second answer
+ * disagreed too they printed a shell sentence apologising for the model. A
+ * sentence the model wrote is the model's; the language rule rides in the
+ * prompt's closing as context, and the plan that comes back is the turn.
+ */
 export async function planned(
   parts: RunnerParts,
   config: RunnerConfig,
@@ -18,14 +23,7 @@ export async function planned(
     digest: string;
   },
 ): Promise<PurchaseResult> {
-  const { plan, slipped } = await plannedTurn(
-    parts.planner,
-    lines,
-    turn.replyLanguage,
-    anchorLine(turn.stated),
-    parts.logger,
-    turn.digest,
-  );
+  const plan = await parts.planner.plan(lines, turn.replyLanguage, turn.digest);
   const answered = await nonPurchaseTurn(
     parts,
     base,
@@ -33,22 +31,8 @@ export async function planned(
     turn.stated,
     turn.replyLanguage,
   );
-  const result =
+  return (
     answered ??
-    (await buyThrough(
-      parts,
-      config,
-      base,
-      turn.stated,
-      turn.replyLanguage,
-    ));
-  if (slipped) noteSlip(parts);
-  return result;
-}
-
-
-/** Said in the harness's own voice: the turn stands, the language was not
- *  the one they asked for, and pretending otherwise would be the lie. */
-function noteSlip(parts: RunnerParts): void {
-  parts.hub.emit({ kind: "message", text: LANGUAGE_SLIPPED, variant: "system" });
+    (await buyThrough(parts, config, base, turn.stated, turn.replyLanguage))
+  );
 }

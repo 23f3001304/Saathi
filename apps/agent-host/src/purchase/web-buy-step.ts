@@ -170,11 +170,9 @@ export class WebBuyStep {
       const prompts = {
         look: prompt,
         summarise: () => pickSummaryFor(stated, replyLanguage),
-        stated,
-        replyLanguage,
       };
       const run = await runErrand(this.conversation, prompts, this.logger);
-      return { told: run.told, slipped: run.slipped, expired: run.expired };
+      return { told: run.told, expired: run.expired };
     } finally {
       release();
     }

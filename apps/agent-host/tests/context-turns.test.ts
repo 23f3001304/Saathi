@@ -66,7 +66,7 @@ function turnRig() {
   const tables = recorderRig(mapLog());
   const contexts: string[] = [];
   const planner: TurnPlanner = {
-    plan: async (_lines, _lang, _note, context = "") => {
+    plan: async (_lines, _lang, context = "") => {
       contexts.push(context);
       return look();
     },

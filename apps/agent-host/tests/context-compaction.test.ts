@@ -63,7 +63,7 @@ function longRig() {
   const tables = recorderRig(mapLog());
   const seen: { lines: readonly string[]; context: string }[] = [];
   const planner: TurnPlanner = {
-    plan: async (lines, _lang, _note, context = "") => {
+    plan: async (lines, _lang, context = "") => {
       seen.push({ lines, context });
       return answering();
     },
