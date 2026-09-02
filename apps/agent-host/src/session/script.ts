@@ -7,7 +7,7 @@ import {
   QUOTE_TOOL_NAME,
 } from "@covenant/agents";
 
-import { chooseSku, matchCatalog } from "../judge/catalog-match.js";
+import { chooseSku, matchCatalog } from "./catalog-match.js";
 
 export interface ScriptedToolRequest {
   readonly tool: string;

@@ -93,7 +93,7 @@ describe("only a purchase reaches the money path", () => {
     const result = await nonPurchaseTurn(
       parts,
       emptyResult("r2", "what shoes do you have"),
-      planOf({ action: "browse", query: "running shoes" }),
+      planOf({ action: "browse", skus: ["RUN-RED-8"] }),
     );
     expect(result?.status).toBe("answered");
     expect(result?.intent).toBeNull();
@@ -123,7 +123,7 @@ describe("a browse is read off the catalog, never off merchant prose", () => {
       emptyResult("r4", "shoes"),
       planOf({
         action: "browse",
-        query: "running shoes",
+        skus: ["RUN-RED-8"],
         reply: "Have a look.",
       }),
     );
@@ -144,7 +144,7 @@ describe("a browse is read off the catalog, never off merchant prose", () => {
     await nonPurchaseTurn(
       parts,
       emptyResult("r5", "shoes"),
-      planOf({ action: "browse", query: "running shoes" }),
+      planOf({ action: "browse", skus: ["RUN-RED-8"] }),
     );
     expect(said()[0] ?? "").not.toContain("IGNORE PREVIOUS INSTRUCTIONS");
   });
@@ -171,7 +171,7 @@ describe("looking on the open web is its own outcome of a turn", () => {
     await nonPurchaseTurn(
       parts,
       emptyResult("r9", "search amazon for ssd"),
-      planOf({ action: "browse", query: "ssd" }),
+      planOf({ action: "browse", skus: [] }),
     );
     expect(webLook.asked).toEqual([]);
   });

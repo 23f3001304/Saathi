@@ -5,7 +5,7 @@
 import type { TurnPlan } from "@covenant/agents";
 import { describe, expect, it } from "vitest";
 
-import { NothingStocked } from "../src/judge/catalog-match.js";
+import { NothingStocked } from "../src/session/catalog-match.js";
 import { inertContext } from "../src/purchase/context-record.js";
 import type { RunnerParts } from "../src/purchase/purchase-runner.js";
 import { PurchaseRunner } from "../src/purchase/purchase-runner.js";

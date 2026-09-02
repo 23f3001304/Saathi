@@ -46,6 +46,7 @@ function planOf(reply: string): TurnPlan {
     question: null,
     replies: ["Small", "Medium", "Large"],
     query: "navy kurta",
+    skus: ["sku_kurta_navy"],
     amendment: null,
     traits: [],
   };

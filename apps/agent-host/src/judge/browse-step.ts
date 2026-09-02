@@ -1,32 +1,28 @@
 import type { CatalogSku, ShelfView, TurnPlan } from "@covenant/agents";
+import { findSku } from "@covenant/agents";
 import type { IdGenerator, Logger } from "@covenant/domain";
 
 import type { BeatHub } from "../http/beat-hub.js";
 import type { OptionRowData } from "../http/chat-beat.js";
 import { askTurn, splitAsk } from "../purchase/ask-step.js";
 import type { PurchaseResult } from "../purchase/purchase-result.js";
-import { matchCatalog } from "./catalog-match.js";
-
-/** Enough to see what the shop has; more than this is a catalog dump. */
-const SHOWN = 4;
 
 /**
- * DECISION: nothing in this file writes a sentence. A catalog miss reaches the
- * model as `matches: 0` on its own tool result (`TurnPlanCollector`), and the
- * model says what that means in the shopper's language. The harness used to
- * append "This shop has nothing like that" here, which in a Hindi voice
- * session was welded, in English, onto the end of the agent's Hindi sentence
- * and read aloud. Harness-authored is a rule about the facts — the labels and
- * the prices below — not about the prose around them.
+ * DECISION: nothing in this file writes a sentence, and nothing in it judges
+ * one. The model read the shelf through `see_shelf` and named the skus it
+ * would show; the rows are built from the shelf for exactly those, at the
+ * shop's own prices. A token matcher used to decide what "matched" here, and
+ * the sentence the model wrote about the shelf was checked against it: both
+ * were the shell second-guessing a choice the model had made with the whole
+ * shelf in front of it.
  */
 
 /**
  * The card row, built from the catalog rather than from merchant prose.
  *
- * `rating` and `deliveryDays` are zero because no shelf this reads — the frozen
- * demo catalog or the merchant's live items — carries either, and inventing a
- * rating for a shoe is exactly the kind of confident fiction this system exists
- * to make impossible.
+ * `rating` and `deliveryDays` are zero because no shelf this reads carries
+ * either, and inventing a rating for a shoe is exactly the kind of confident
+ * fiction this system exists to make impossible.
  */
 export function browseRows(
   found: readonly CatalogSku[],
@@ -52,23 +48,19 @@ export interface BrowseParts {
   readonly logger: Logger;
 }
 
-/**
- * A turn the model decided was a look, not a purchase. It signs nothing,
- * quotes nothing and drafts no intent — the only thing that happens is that
- * the shopper is shown what is there.
- *
- * DECISION: the listing goes out as an `options` beat and not as prose. The
- * agent used to write the shop's stock into a sentence — "Kolam Run Gc9 road
- * shoe, UK 8 — ₹1,999 (footwear); cushioned socks, 3 pack — ₹499 (apparel)" —
- * directly above the cards rendering the same rows at the same prices. The
- * cards are the presentation; what the agent says is what it did and what it
- * thinks, never a second reading of the table underneath it. Prices still come
- * off the catalog and merchant prose still never reaches the screen.
- *
- * DECISION: one bubble, and only the model's own sentence. Two beats would be
- * two things said about one act, which is the shape that had every
- * conversational turn printing itself twice.
- */
+/** The rows the model named, in the order it named them. A sku the shelf does
+ *  not hold is skipped: the collector already refused it, so this is the
+ *  defensive half of one rule, not a second judgement. */
+function rowsFor(
+  shelf: readonly CatalogSku[],
+  skus: readonly string[],
+): readonly CatalogSku[] {
+  return skus.flatMap((sku) => {
+    const row = findSku(shelf, sku);
+    return row === null ? [] : [row];
+  });
+}
+
 /** A browse that asked ends parked; one that did not ends answered. Either
  *  way the sentence it did commit is the transcript's. */
 function settle(
@@ -92,20 +84,24 @@ function settle(
   return { ...base, status: "answered", transcript };
 }
 
+/**
+ * A turn the model decided was a look, not a purchase. It signs nothing,
+ * quotes nothing and drafts no intent: the only thing that happens is that
+ * the shopper is shown the rows the model chose.
+ *
+ * Evidence first, ask second. A browse that ends "which one?" reported
+ * something true and then wanted an answer, and the two belong on different
+ * surfaces: the sentence and the cards in the transcript, the question at
+ * the composer, in that order and never the other way round.
+ */
 export function browseTurn(
   parts: BrowseParts,
   base: PurchaseResult,
   plan: TurnPlan,
 ): PurchaseResult {
-  const query = plan.query ?? base.request;
-  const shelf = parts.shelf.current();
-  const found = matchCatalog(shelf, query).slice(0, SHOWN);
-  const whole = plan.reply.trim();
-  // Evidence first, ask second. A browse that ends "which one?" reported
-  // something true and then wanted an answer, and the two belong on different
-  // surfaces: the sentence and the cards in the transcript, the question at
-  // the composer, in that order and never the other way round.
-  const { said, question } = splitAsk(whole);
+  const skus = plan.skus ?? [];
+  const found = rowsFor(parts.shelf.current(), skus);
+  const { said, question } = splitAsk(plan.reply.trim());
   if (said.length > 0) {
     parts.hub.emit({ kind: "message", text: said });
   }
@@ -117,7 +113,7 @@ export function browseTurn(
   }
   parts.logger.info("purchase.browsed", {
     run_id: base.runId,
-    query,
+    named: skus.length,
     shown: found.length,
   });
   return settle(parts, base, said, question, plan.replies ?? []);

@@ -1,5 +1,12 @@
 import type { CatalogSku } from "@covenant/agents";
 
+/**
+ * The scripted fake model's reading of a sentence against the shelf. Live
+ * mode never runs this: the model reads the shelf through `see_shelf` and
+ * names skus. Scripted mode has no model, so the script decides here, and
+ * the rules below are the script's, not the shell's.
+ */
+
 function mentions(text: string, needle: string): boolean {
   return needle.length > 0 && text.includes(needle.toLowerCase());
 }
@@ -44,20 +51,6 @@ function tokensOf(text: string): ReadonlySet<string> {
   );
 }
 
-/**
- * How many of the request's words a piece of text carries.
- *
- * Exported because the open-web findings are chosen with it too: a card built
- * from a page is picked out of what the window was shown by the same overlap
- * that picks a card out of the shelf. A search result page carries the answer
- * and a storefront's promo rail beside it, and "Starting ₹99" is not what
- * somebody asking for an SSD found.
- */
-export function requestOverlap(text: string, request: string): number {
-  const wanted = tokensOf(request);
-  return [...tokensOf(text)].filter((word) => wanted.has(word)).length;
-}
-
 function scoreOf(item: CatalogSku, wanted: ReadonlySet<string>): number {
   const words = tokensOf(`${item.label} ${item.category}`);
   return [...words].filter((word) => wanted.has(word)).length;
@@ -68,7 +61,7 @@ function scoreOf(item: CatalogSku, wanted: ReadonlySet<string>): number {
  * default is the cheaper option, not the first one the merchant happened to
  * return. Ordering only: see `matchCatalog` for what is a match at all.
  */
-export function rankCatalog(
+function rankCatalog(
   catalog: readonly CatalogSku[],
   request: string,
 ): readonly CatalogSku[] {

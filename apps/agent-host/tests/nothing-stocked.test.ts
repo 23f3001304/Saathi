@@ -16,7 +16,7 @@ import {
   chooseSku,
   matchedSku,
   NothingStocked,
-} from "../src/judge/catalog-match.js";
+} from "../src/session/catalog-match.js";
 import { SessionPromptJudge } from "../src/judge/session-prompt-judge.js";
 import { StaticPromptJudge } from "../src/judge/static-prompt-judge.js";
 import { RecordingLogger } from "./support/fakes.js";

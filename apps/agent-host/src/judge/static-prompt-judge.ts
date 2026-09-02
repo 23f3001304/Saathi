@@ -6,7 +6,7 @@ import type {
   ResponseSchema,
 } from "@covenant/domain";
 
-import { matchedSku, NothingStocked } from "./catalog-match.js";
+import { matchedSku, NothingStocked } from "../session/catalog-match.js";
 import type { DraftPlanConfig } from "./draft-plan.js";
 import { draftFieldsFor } from "./draft-plan.js";
 

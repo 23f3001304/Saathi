@@ -1,6 +1,6 @@
-// Looking inside this shop. The listing is harness-authored — the agent cannot
-// describe stock it does not have — but the sentence around it is the model's,
-// in whatever language the shopper is using.
+// Looking inside this shop. The model read the shelf through see_shelf and
+// named the rows it would show; the cards are built from those rows at the
+// shop's own prices, and the sentence around them is the model's.
 import type { TurnPlan } from "@covenant/agents";
 import { DEMO_CATALOG } from "@covenant/agents";
 import { describe, expect, it } from "vitest";
@@ -8,12 +8,12 @@ import { describe, expect, it } from "vitest";
 import { BeatHub } from "../src/http/beat-hub.js";
 import { browseRows, browseTurn } from "../src/judge/browse-step.js";
 import { emptyResult } from "../src/purchase/purchase-result.js";
-import { RecordingLogger, StepClock } from "./support/fakes.js";
+import { RecordingLogger, SeqIds, StepClock } from "./support/fakes.js";
 
-const SHOES = {
+const KURTAS = {
   action: "browse" as const,
   reply: "Have a look.",
-  query: "running shoes",
+  skus: ["NF-KURTA-NAVY-M", "ST-KURTA-NAVY-M"],
 };
 
 function planOf(over: Partial<TurnPlan>): TurnPlan {
@@ -48,23 +48,27 @@ function browsed(over: Partial<TurnPlan>, catalog = DEMO_CATALOG) {
       hub,
       shelf: { current: () => catalog },
       merchantId: "kolam-run",
+      ids: new SeqIds(),
       logger: new RecordingLogger(),
     },
-    emptyResult("run_1", "running shoes"),
+    emptyResult("run_1", "navy kurtas"),
     planOf(over),
   );
   return { hub, result, said: saidBy(hub), cards: cardsIn(hub) };
 }
 
 describe("looking is not buying", () => {
-  it("shows the shop's rows as cards, priced off the catalog", () => {
-    const { cards } = browsed(SHOES);
-    expect(cards.length).toBeGreaterThan(0);
-    expect(cards.every((card) => card.pricePaise > 0)).toBe(true);
+  it("shows exactly the rows the model named, in its order, priced off the catalog", () => {
+    const { cards } = browsed(KURTAS);
+    expect(cards.map((card) => card.sku)).toEqual([
+      "NF-KURTA-NAVY-M",
+      "ST-KURTA-NAVY-M",
+    ]);
+    expect(cards.map((card) => card.pricePaise)).toEqual([141_000, 129_900]);
   });
 
   it("answers in one bubble and drafts nothing", () => {
-    const { result, said } = browsed({ ...SHOES, reply: "Plenty." });
+    const { result, said } = browsed({ ...KURTAS, reply: "Plenty." });
     expect(result.status).toBe("answered");
     expect(result.intent).toBeNull();
     expect(result.cart).toBeNull();
@@ -73,19 +77,15 @@ describe("looking is not buying", () => {
 });
 
 describe("the cards are the presentation, not the prose", () => {
-  /**
-   * The agent used to write the same rows out in a sentence directly above
-   * them — label, price and category, twice on one screen.
-   */
   it("says only the model's own sentence, never the rows underneath it", () => {
-    expect(browsed(SHOES).said).toEqual(["Have a look."]);
+    expect(browsed(KURTAS).said).toEqual(["Have a look."]);
   });
 
   it("carries no merchant prose and no price into the bubble", () => {
-    const poisoned = DEMO_CATALOG.find((item) => item.sku === "KR-TRAIL-42");
-    const { said } = browsed(SHOES);
+    const anchored = DEMO_CATALOG.find((item) => item.sku === "AG-KURTA-NAVY-M");
+    const { said } = browsed({ ...KURTAS, skus: ["AG-KURTA-NAVY-M"] });
     expect(said[0]).not.toContain("₹");
-    expect(said[0]).not.toContain(poisoned?.description ?? " ");
+    expect(said[0]).not.toContain(anchored?.description ?? " ");
   });
 
   it("never invents a rating or a delivery date the catalog does not hold", () => {
@@ -97,20 +97,17 @@ describe("the cards are the presentation, not the prose", () => {
   });
 });
 
-describe("the sentence around the listing is the model's", () => {
-  /**
-   * The harness used to append "This shop has nothing like that" here. In a
-   * Hindi session it was welded, in English, onto the end of the agent's own
-   * Hindi sentence and read aloud. The miss now reaches the model as a count
-   * on its own tool result, and the model writes the sentence.
-   */
-  const HINDI = "यहाँ कुछ नहीं है।";
+describe("the shelf is the record", () => {
+  it("skips a sku the shelf does not hold rather than inventing a row", () => {
+    // The collector already refused this; the skip here is the defensive
+    // half of one rule, never a second judgement about the model's words.
+    const { cards } = browsed({ ...KURTAS, skus: ["NOT-HERE", "ST-KURTA-NAVY-M"] });
+    expect(cards.map((card) => card.sku)).toEqual(["ST-KURTA-NAVY-M"]);
+  });
 
-  it("writes no sentence of its own when the shop holds nothing", () => {
-    const { said, cards } = browsed(
-      { action: "browse", reply: HINDI, query: "ssd" },
-      [],
-    );
+  it("shows no cards and says only the model's sentence when it named none", () => {
+    const HINDI = "यहाँ कुछ नहीं है।";
+    const { said, cards } = browsed({ action: "browse", reply: HINDI, skus: [] });
     expect(said).toEqual([HINDI]);
     expect(cards).toEqual([]);
   });
