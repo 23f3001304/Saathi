@@ -3,14 +3,15 @@ import type { Logger } from "@covenant/domain";
 
 import type { Deadline } from "./errand-deadline.js";
 import { ERRAND_CEILING_MS, errandDeadline } from "./errand-deadline.js";
+import type { ErrandEnd } from "./observed-block.js";
 import { lastSentence } from "./prose.js";
 
 /** A bounded conversation whose whole tool surface is the sandbox window. */
 export interface WebErrand {
   converse(userMessage: string): Promise<ConversationResult>;
   /**
-   * Abandon whatever this conversation was doing. Called only when the errand
-   * ran past its deadline: the turn it was in the middle of is one nobody
+   * Abandon whatever this conversation was doing. Called when the errand ran
+   * past its deadline or threw: the turn it was in the middle of is one nobody
    * awaited, and resuming it on the next question would append this errand's
    * unfinished half to somebody else's. Optional, so a test double need not
    * have one.
@@ -20,20 +21,25 @@ export interface WebErrand {
 
 export interface ErrandPrompts {
   readonly look: string;
-  /** Built after the looking leg, not before it: what the window was shown is
-   *  only known once it has been shown it. */
-  readonly summarise: () => string;
+  /** Built after the looking leg, and told how the errand ended: what the
+   *  window was shown is only known once it has been shown it, and the clock
+   *  is a fact the model has to be able to name. */
+  readonly summarise: (ended: ErrandEnd) => string;
 }
 
 export interface ErrandRun {
   readonly result: ConversationResult;
-  /** The composed answer — the summary turn's own prose, never the join. */
+  /** The composed answer: the summary turn's own prose, never the join. */
   readonly told: string;
-  /** The errand ran past its wall clock. There is no sentence from it; the
-   *  turn closes on the harness's own words and whatever was captured. */
+  /** The errand ran past its wall clock. */
   readonly expired: boolean;
   readonly failure: string | null;
 }
+
+/** How long the sentence about an abandoned errand may take. Shorter than
+ *  the errand's own ceiling: an afterword that hangs would be the stall it
+ *  exists to explain. */
+export const AFTERWORD_MS = 30_000;
 
 const EMPTY: ConversationResult = {
   transcript: [],
@@ -44,15 +50,14 @@ const EMPTY: ConversationResult = {
 
 /**
  * Look, then say. Both legs run on the same conversation, so the summary turn
- * still has every page it read in front of it — what changed is only that the
+ * still has every page it read in front of it; what changed is only that the
  * sentence it commits is written after the reading rather than during it.
  *
- * Every leg is raced against one wall clock. Not because any particular leg is
- * known to hang, but because the class of failure this belongs to keeps
- * producing new members — a crashed renderer, a pipe nobody reads, a CDP
- * command with no answer — and a turn that cannot end is the worst of them all:
- * `ChatService` queues behind it, so the shopper cannot even ask something
- * else. An errand ends. What it ends with is decided by what was captured.
+ * Every leg is raced against one wall clock, because the class of failure
+ * this belongs to keeps producing new members and a turn that cannot end is
+ * the worst of them: `ChatService` queues behind it. An errand ends. What it
+ * ends with is the model's sentence about what this host observed (§6.3),
+ * or, when even that cannot be had, nothing.
  */
 export async function runErrand(
   errand: WebErrand,
@@ -65,7 +70,10 @@ export async function runErrand(
     // One errand, one conversation. See `WebErrand.reset`.
     await errand.reset?.();
     const result = await clock.guard(errand.converse(prompts.look));
-    const summary = await clock.guard(errand.converse(prompts.summarise()));
+    const ended = { expired: false, failure: null };
+    const summary = await clock.guard(
+      errand.converse(prompts.summarise(ended)),
+    );
     const told = composed(summary, result);
     logger.debug("purchase.web_look.transcript", {
       turns: result.turns,
@@ -74,29 +82,64 @@ export async function runErrand(
     });
     return { result, told, expired: false, failure: null };
   } catch (cause) {
-    return await abandoned(errand, clock, cause, { logger, ceilingMs });
+    return await abandoned(errand, prompts, clock, cause, { logger, ceilingMs });
   } finally {
     clock.cancel();
   }
 }
 
-/** A turn that ended without a sentence, and why. An expiry is not a failure
- *  to report as one: nothing broke, the errand simply ran out of clock. */
+/**
+ * A leg that ended without a sentence, and why. An expiry is not a failure to
+ * report as one: nothing broke, the errand ran out of clock. Either way the
+ * hung conversation is abandoned first, and a fresh one is asked for the one
+ * sentence the shopper will read.
+ */
 async function abandoned(
   errand: WebErrand,
+  prompts: ErrandPrompts,
   clock: Deadline,
   cause: unknown,
   parts: { logger: Logger; ceilingMs: number },
 ): Promise<ErrandRun> {
-  const empty = { result: EMPTY, told: "" };
-  if (clock.passed) {
+  const expired = clock.passed;
+  const failure = expired
+    ? null
+    : cause instanceof Error
+      ? cause.message
+      : "unknown";
+  if (expired) {
     parts.logger.warn("purchase.errand.expired", { after_ms: parts.ceilingMs });
-    await errand.reset?.().catch(() => undefined);
-    return { ...empty, expired: true, failure: null };
+  } else {
+    parts.logger.warn("purchase.web_look.failed", { failure });
   }
-  const failure = cause instanceof Error ? cause.message : "unknown";
-  parts.logger.warn("purchase.web_look.failed", { failure });
-  return { ...empty, expired: false, failure };
+  await errand.reset?.().catch(() => undefined);
+  const told = await sayOnly(
+    errand,
+    prompts.summarise({ expired, failure }),
+    Math.min(parts.ceilingMs, AFTERWORD_MS),
+  );
+  return { result: EMPTY, told, expired, failure };
+}
+
+/**
+ * One turn whose only output is a sentence. Bounded by its own clock and
+ * silent on any failure: a caller that could get nothing else out of the
+ * model gets `""`, and says nothing rather than something fixed.
+ */
+export async function sayOnly(
+  errand: WebErrand,
+  prompt: string,
+  ceilingMs: number = AFTERWORD_MS,
+): Promise<string> {
+  const clock = errandDeadline(ceilingMs);
+  try {
+    const said = await clock.guard(errand.converse(prompt));
+    return lastSentence(said.transcript);
+  } catch {
+    return "";
+  } finally {
+    clock.cancel();
+  }
 }
 
 function composed(

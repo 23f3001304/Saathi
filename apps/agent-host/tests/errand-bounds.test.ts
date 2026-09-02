@@ -20,8 +20,6 @@ function promptsFor() {
   return {
     look: "go",
     summarise: () => "say",
-    stated: ["Shop an SSD for me at Amazon"],
-    replyLanguage: null,
   };
 }
 
