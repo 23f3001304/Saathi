@@ -88,7 +88,7 @@ export class WebBuyStep {
       this.logger.warn("purchase.web_pick.unresolved", { ref });
       return this.refuseAs(base, FORGOTTEN, "web_pick_unknown");
     }
-    await this.covenantFirst(stated, listing.title);
+    await this.covenantFirst(listing);
     const from = this.trail.length;
     const landed = await this.sandbox.open(listing.url);
     if (landed.isError) {
@@ -135,11 +135,17 @@ export class WebBuyStep {
   /** The covenant first: unsigned, the errand obeyed the cart check's own
    *  "no signed rule" and stopped at the basket; signed, the same check has
    *  a ceiling and the checkout proceeds under real bounds. */
-  private async covenantFirst(
-    stated: readonly string[],
-    title: string,
-  ): Promise<void> {
-    if (this.intents !== null) await this.intents.sign([...stated, title]);
+  private async covenantFirst(listing: {
+    readonly title: string;
+    readonly price_paise: number | null;
+    readonly url: string;
+  }): Promise<void> {
+    if (this.intents === null) return;
+    await this.intents.signListing({
+      title: listing.title,
+      pricePaise: listing.price_paise,
+      merchant: merchantOf(listing.url),
+    });
   }
 
   private refuseAs(
@@ -198,3 +204,12 @@ export class WebBuyStep {
     }
   }
 }
+
+function merchantOf(url: string): string {
+  try {
+    return new URL(url).hostname.replace(/^www\./, "");
+  } catch {
+    return "the shop";
+  }
+}
+

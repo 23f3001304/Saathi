@@ -89,6 +89,33 @@ export class IntentFlow {
     return this.commit(mandate, draft);
   }
 
+  /** Sign-before-drive for a tapped web listing: same beats, same gate,
+   *  same commit - only the draft comes from the card, not the catalog. */
+  async signListing(listing: {
+    readonly title: string;
+    readonly pricePaise: number | null;
+    readonly merchant: string;
+  }): Promise<SignedIntent> {
+    this.ceiling.bindCeiling(null);
+    const draft = this.drafter.draftForListing(listing);
+    this.hub.emit({
+      kind: "intent-draft",
+      description: draft.naturalLanguageDescription,
+    });
+    this.hub.emit({ kind: "signing-required" });
+    await this.gate.wait();
+    const mandate = await this.drafter.issue(
+      {
+        conversation: [listing.title],
+        userIss: this.config.userIss,
+        tenantId: this.config.tenantId,
+        agentInstanceId: this.config.agentInstanceId,
+      },
+      draft,
+    );
+    return this.commit(mandate, draft);
+  }
+
   private async commit(
     mandate: IssuedMandate,
     draft: IntentDraft,
