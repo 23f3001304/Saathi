@@ -49,13 +49,17 @@ export function recent<T extends ConversationLine>(
   lines: readonly T[],
   limit: number,
 ): readonly T[] {
+  // Newest occurrence wins. Deduplicating forward kept the FIRST "yes" and
+  // dropped the one the shopper just typed, so the planner never saw the
+  // confirmation and asked the same question again.
   const seen = new Set<string>();
   const unique: T[] = [];
-  for (const line of lines) {
+  for (let at = lines.length - 1; at >= 0; at -= 1) {
+    const line = lines[at] as T;
     const key = `${line.speaker}:${line.text.toLowerCase()}`;
     if (seen.has(key)) continue;
     seen.add(key);
-    unique.push(line);
+    unique.unshift(line);
   }
   return unique.slice(-limit);
 }

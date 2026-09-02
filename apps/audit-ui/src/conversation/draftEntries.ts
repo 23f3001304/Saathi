@@ -89,7 +89,9 @@ function lastSettled(entries: readonly ChatEntry[]): number {
   for (let at = entries.length - 1; at >= 0; at -= 1) {
     const entry = entries[at];
     if (entry === undefined || entry.kind === "buyer") return -1;
-    if (entry.kind === "agent" && entry.draft === "final" && !entry.system)
+    // "live" claims too: a question that lands before its draft settles is
+    // the same sentence, and leaving the live copy rendered it twice.
+    if (entry.kind === "agent" && entry.draft !== undefined && !entry.system)
       return at;
   }
   return -1;

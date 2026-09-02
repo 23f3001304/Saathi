@@ -43,18 +43,21 @@ function tokensOf(text: string): ReadonlySet<string> {
   );
 }
 
-/** Words that tell these cards apart: in at least one title, and not in all. */
-function discriminating(offered: readonly WebListingView[]): string {
+/** Words that tell these cards apart: in at least one title, and not in all.
+ *  A set of exact tokens: substring matching let "in" match "kingston" and
+ *  turned ordinary sentences into spurious picks. */
+function discriminating(offered: readonly WebListingView[]): ReadonlySet<string> {
   const counts = new Map<string, number>();
   for (const listing of offered) {
     for (const word of tokensOf(listing.title)) {
       counts.set(word, (counts.get(word) ?? 0) + 1);
     }
   }
-  return [...counts]
-    .filter(([, seen]) => seen < offered.length)
-    .map(([word]) => word)
-    .join(" ");
+  return new Set(
+    [...counts]
+      .filter(([, seen]) => seen < offered.length)
+      .map(([word]) => word),
+  );
 }
 
 function scoredBy(
@@ -62,7 +65,7 @@ function scoredBy(
   offered: readonly WebListingView[],
 ): readonly { readonly listing: WebListingView; readonly score: number }[] {
   const words = discriminating(offered);
-  const asked = [...tokensOf(message)].filter((word) => words.includes(word));
+  const asked = [...tokensOf(message)].filter((word) => words.has(word));
   const query = asked.join(" ");
   return offered.map((listing) => ({
     listing,

@@ -127,6 +127,9 @@ export function Composer({
     onSend(combined);
     setText("");
     setPicked([]);
+    // Left held, the answered groups rode into the NEXT message: "1TB,
+    // NVMe, hello" prepended to a sentence about something else entirely.
+    setByGroup({});
   }
 
   return (

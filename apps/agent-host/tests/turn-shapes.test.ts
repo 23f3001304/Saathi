@@ -90,10 +90,12 @@ describe("an ACT turn that ends by asking is split, never left dangling", () => 
 });
 
 describe("splitting a reply into what it reported and what it asked", () => {
-  it("keeps a reply that is nothing but its question whole", () => {
+  it("routes a reply that is nothing but its question as the question", () => {
+    // The old contract kept it whole as `said`, which rendered a bubble,
+    // armed nothing, and ended the turn: a question the composer never got.
     expect(splitAsk("What size do you need?")).toEqual({
-      said: "What size do you need?",
-      question: null,
+      said: "",
+      question: "What size do you need?",
     });
   });
 });

@@ -47,11 +47,13 @@ export function splitAsk(text: string): {
 } {
   const trimmed = text.trim();
   const found = /^([\s\S]*?)([^.!?\n]+\?)$/.exec(trimmed);
-  const said = found?.[1]?.trim() ?? trimmed;
-  const question = found?.[2]?.trim() ?? null;
-  // A reply that is nothing but its question stays whole: splitting it would
-  // leave an empty bubble above the ask.
-  return said === "" ? { said: trimmed, question: null } : { said, question };
+  if (found === null) return { said: trimmed, question: null };
+  const said = found[1]?.trim() ?? "";
+  const question = found[2]?.trim() ?? null;
+  // A reply that is nothing but its question is still the question: routed
+  // as `said` it rendered as a bubble, no ask beat fired, and the composer
+  // never armed. The empty `said` is simply not emitted at the call sites.
+  return { said, question };
 }
 
 export interface AskParts {
