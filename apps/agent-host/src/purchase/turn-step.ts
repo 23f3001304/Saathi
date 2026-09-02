@@ -1,12 +1,14 @@
 import type { ShelfView, TurnPlan } from "@covenant/agents";
 import type { IdGenerator, Logger } from "@covenant/domain";
 
+import type { WebListingView } from "../browser/web-listing.js";
 import type { BeatHub } from "../http/beat-hub.js";
 import { amendmentBeat } from "../judge/amendment-gate.js";
 import { browseTurn } from "../judge/browse-step.js";
 import { recordTraits } from "../judge/trait-gate.js";
 import { answerTurn } from "./answer-step.js";
 import { askedBy, askTurn } from "./ask-step.js";
+import { pickTurn } from "./pick-step.js";
 import type { PurchaseResult } from "./purchase-result.js";
 import type { TraitMemory } from "./trait-memory.js";
 import type { WebLook } from "./web-look-step.js";
@@ -31,6 +33,11 @@ export interface TurnParts {
   readonly traits: TraitMemory;
   readonly webLook: WebLook;
   readonly webPick: WebPickResume;
+  /** The cards on the table, so a ref the model named resolves to one. */
+  readonly offered: { current(): readonly WebListingView[] };
+  /** The cart rebuilt for a platform sku the model named; `null` when no
+   *  proposal stands. Handed in by `planned()`, which holds the config. */
+  readonly repropose: (ref: string) => Promise<PurchaseResult | null>;
   readonly shelf: ShelfView;
   readonly merchantId: string;
   readonly ids: IdGenerator;
@@ -43,7 +50,7 @@ export interface TurnParts {
  * `null` is the only answer that lets the run carry on into `buy`, so a move
  * nobody dispatched here cannot fall through into a purchase by accident. That
  * is the same fail-closed shape `PurchaseRunner.drive` had when there were
- * three moves; it is worth more now that there are six.
+ * three moves; it is worth more now that there are seven.
  *
  * DECISION: `look_on_web` is terminal here, beside `browse`, rather than a
  * detour on the way to `buy`. Looking somewhere else costs the shopper nothing
@@ -74,6 +81,9 @@ async function moveOf(
   }
   if (plan.action === "look_on_web") {
     return await parts.webLook.look(base, plan, stated, replyLanguage);
+  }
+  if (plan.action === "pick") {
+    return await pickTurn(parts, base, plan, stated, replyLanguage);
   }
   if (plan.action === "propose_amendment") {
     // On the wire at last: `ChatBeat` carries an `amendment` variant and

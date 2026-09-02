@@ -1,5 +1,6 @@
-import { buyThrough } from "./buy-step.js";
+import { buyThrough, reproposeSku } from "./buy-step.js";
 import type { PurchaseResult } from "./purchase-result.js";
+import { emptyResult } from "./purchase-result.js";
 import type { RunnerConfig, RunnerParts } from "./runner-parts.js";
 import { nonPurchaseTurn } from "./turn-step.js";
 
@@ -24,8 +25,14 @@ export async function planned(
   },
 ): Promise<PurchaseResult> {
   const plan = await parts.planner.plan(lines, turn.replyLanguage, turn.digest);
+  // A pick of a platform sku rebuilds the standing cart under a pick run id,
+  // exactly as a tap through `PurchaseRunner.repropose` does.
+  const repropose = (ref: string): Promise<PurchaseResult | null> => {
+    const under = emptyResult(`urn:covenant:pick:${ref}`, ref);
+    return reproposeSku(parts, config, under, ref);
+  };
   const answered = await nonPurchaseTurn(
-    parts,
+    { ...parts, repropose },
     base,
     plan,
     turn.stated,

@@ -76,7 +76,7 @@ function webParts() {
       resume: forbidden("webPick.resume"),
       buy: forbidden("webPick.buy"),
     },
-    offered: { live: () => [], claim: () => undefined },
+    offered: { live: () => [], current: () => [], claim: () => undefined },
     // These turns are about the fork; the record layer has its own tests.
     context: inertContext(),
     language: new TurnLanguage(),
