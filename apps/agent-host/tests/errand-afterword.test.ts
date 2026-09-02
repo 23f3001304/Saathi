@@ -130,3 +130,32 @@ describe("one sentence and nothing else", () => {
     ).toBe("");
   });
 });
+
+/**
+ * The prompt for that sentence is the caller's closure, and Task 26's reads
+ * the window: on one that has just closed it throws. An errand ends anyway.
+ */
+describe("even the afterword's own prompt may fail", () => {
+  it("ends on silence when building that sentence throws", async () => {
+    let reset = 0;
+    const errand = {
+      converse: () => NEVER,
+      reset: async () => {
+        reset += 1;
+      },
+    };
+    const prompts = {
+      look: "go",
+      summarise: (): string => {
+        throw new Error("Execution context was destroyed");
+      },
+    };
+
+    const run = await ran(errand, prompts, 20);
+
+    expect(run.told).toBe("");
+    expect(run.expired).toBe(true);
+    // The hung conversation was still abandoned before the prompt was tried.
+    expect(reset).toBe(2);
+  });
+});

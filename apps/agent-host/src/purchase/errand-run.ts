@@ -113,12 +113,33 @@ async function abandoned(
     parts.logger.warn("purchase.web_look.failed", { failure });
   }
   await errand.reset?.().catch(() => undefined);
-  const told = await sayOnly(
-    errand,
-    prompts.summarise({ expired, failure }),
-    Math.min(parts.ceilingMs, AFTERWORD_MS),
-  );
+  const told = await afterword(errand, prompts, { expired, failure }, parts);
   return { result: EMPTY, told, expired, failure };
+}
+
+/**
+ * The closing sentence, prompt and all. The prompt is built by a caller's
+ * closure that reads the window, and on a window that has just gone it can
+ * throw: guarding only the turn would leave the build outside every catch,
+ * and a throw there would escape `runErrand` itself. Nothing may: an errand
+ * ends, and a build that fails ends it on silence.
+ */
+async function afterword(
+  errand: WebErrand,
+  prompts: ErrandPrompts,
+  ended: ErrandEnd,
+  parts: { logger: Logger; ceilingMs: number },
+): Promise<string> {
+  let prompt: string;
+  try {
+    prompt = prompts.summarise(ended);
+  } catch (cause) {
+    parts.logger.warn("purchase.errand.afterword_prompt_failed", {
+      failure: cause instanceof Error ? cause.message : "unknown",
+    });
+    return "";
+  }
+  return await sayOnly(errand, prompt, Math.min(parts.ceilingMs, AFTERWORD_MS));
 }
 
 /**
