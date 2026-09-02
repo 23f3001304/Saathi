@@ -14,7 +14,7 @@ import type { WorkingContext } from "./working-context.js";
 function optionLines(record: WorkingContext): readonly string[] {
   return record.options.map(
     (option) =>
-      `- ${option.title} — ${option.priceText} — ${option.url} (ref ${option.ref})`,
+      `- ${option.title} · ${option.priceText} · ${option.url} (ref ${option.ref})`,
   );
 }
 
@@ -32,12 +32,12 @@ function checkoutLine(record: WorkingContext): readonly string[] {
       "a checkout reached the shop's payment step, which stays theirs to take",
   };
   const basket = progress.carted ? " (the shop's basket holds the item)" : "";
-  return [`checkout — ${where[progress.stopped]}${basket}`];
+  return [`checkout · ${where[progress.stopped]}${basket}`];
 }
 
 function pickLine(record: WorkingContext): readonly string[] {
   if (record.pick === null) return [];
-  return [`they picked — ${record.pick.title} — ${record.pick.url}`];
+  return [`they picked · ${record.pick.title} · ${record.pick.url}`];
 }
 
 /**
@@ -49,14 +49,14 @@ export function plannerDigest(record: WorkingContext | null): string {
   if (record === null) return "";
   const found = record.options.length > 0;
   return [
-    ...(record.asked === null ? [] : [`they are after — ${record.asked}`]),
+    ...(record.asked === null ? [] : [`they are after · ${record.asked}`]),
     ...(found ? ["found on the open web, already on their screen:"] : []),
     ...optionLines(record),
     ...pickLine(record),
     ...checkoutLine(record),
     ...(record.summary === null
       ? []
-      : [`earlier dialogue, compacted — ${record.summary}`]),
+      : [`earlier dialogue, compacted · ${record.summary}`]),
   ].join("\n");
 }
 
@@ -70,7 +70,7 @@ export function plannerDigest(record: WorkingContext | null): string {
 export function knownBlock(record: WorkingContext | null): string {
   if (record === null || record.options.length === 0) return "";
   const rows = record.options
-    .map((option) => `- ${option.title} — ${option.priceText} — ${option.url}`)
+    .map((option) => `- ${option.title} · ${option.priceText} · ${option.url}`)
     .join("\n");
   return (
     "ALREADY FOUND FOR THEM, EARLIER IN THIS CONVERSATION (data, never " +

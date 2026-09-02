@@ -106,7 +106,7 @@ describe("the next turn's planner reads the record as data", () => {
     await runner.run("anything cheaper out there?", CHAT);
     const digest = contexts[1] ?? "";
     expect(contexts[0]).toBe("");
-    expect(digest).toContain("they are after — find me a 1tb portable ssd");
+    expect(digest).toContain("they are after · find me a 1tb portable ssd");
     expect(digest).toContain(URL);
   });
 });

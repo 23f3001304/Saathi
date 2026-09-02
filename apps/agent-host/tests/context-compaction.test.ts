@@ -97,7 +97,7 @@ describe("what a long chat looks like to the planner", () => {
     await runner.run("what else is there", CHAT);
     await runner.run("and anything smaller", CHAT);
     expect(recorder.current()?.summary).toContain("(them) line number 0");
-    expect(seen[1]?.context).toContain("earlier dialogue, compacted —");
+    expect(seen[1]?.context).toContain("earlier dialogue, compacted ·");
     expect(seen[1]?.context).toContain("line number 0");
   });
 });
