@@ -22,6 +22,9 @@ type BrowserSessionCardProps = {
   onRelay?: (input: RelayInput) => void;
   refusal?: RelayRefusal | null;
   onFront?: () => void;
+  /** Tears the view's stream down and reattaches; the shopper's own way
+   *  out of a frozen picture. */
+  onReconnect?: () => void;
 };
 
 const HANDOFF_TITLE: Record<string, string> = {
@@ -150,6 +153,7 @@ export function BrowserSessionCard({
   onRelay,
   refusal,
   onFront,
+  onReconnect,
 }: BrowserSessionCardProps): JSX.Element {
   const handoff = session.handoff;
   // "You can always take over" was true of the host and invisible on screen:
@@ -176,6 +180,18 @@ export function BrowserSessionCard({
       {session.sample !== undefined && <Sample sample={session.sample} />}
 
       <Chrome session={session} idleAgent={idleAgent} />
+
+      {onReconnect !== undefined && !undriven(session) && (
+        <div className={styles.viewTools}>
+          <button
+            type="button"
+            className={styles.viewTool}
+            onClick={onReconnect}
+          >
+            Reconnect view
+          </button>
+        </div>
+      )}
 
       {session.notice !== undefined && (
         <div className={styles.refusal} role="alert">

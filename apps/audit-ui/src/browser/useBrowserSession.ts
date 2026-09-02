@@ -26,6 +26,8 @@ export type BrowserSession = {
   readonly status: BrowserStatus;
   /** Non-null when the last relayed action was refused, with its sentence. */
   readonly refusal: RelayRefusal | null;
+  /** Tears the stream down and reattaches: the way out of a wedged view. */
+  readonly reconnect: () => void;
   readonly resume: () => void;
   readonly takeover: () => void;
   readonly relay: (input: RelayInput) => void;
@@ -101,6 +103,9 @@ function useBrowserFeed(active: boolean, conversation: string | null) {
   const [frame, setFrame] = useState<BrowserFrame | null>(null);
   const [blackout, setBlackout] = useState<BrowserBlackout | null>(null);
   const [status, setStatus] = useState<BrowserStatus>("fixtures");
+  // Bumped by the Reconnect control: tears the transport down and attaches a
+  // fresh one, the shopper's own way out of a wedged stream.
+  const [epoch, setEpoch] = useState(0);
   const transport = useRef<BrowserTransport | null>(null);
 
   useEffect(() => {
@@ -111,9 +116,10 @@ function useBrowserFeed(active: boolean, conversation: string | null) {
       setBlackout,
       setStatus,
     });
-  }, [active, conversation]);
+  }, [active, conversation, epoch]);
 
-  return { view, frame, blackout, status, transport };
+  const reconnect = useCallback(() => setEpoch((held) => held + 1), []);
+  return { view, frame, blackout, status, transport, reconnect };
 }
 
 // Only explain a refusal when there was something to refuse. With no window
@@ -137,10 +143,8 @@ export function useBrowserSession(
   active: boolean,
   conversation: string | null = null,
 ): BrowserSession {
-  const { view, frame, blackout, status, transport } = useBrowserFeed(
-    active,
-    conversation,
-  );
+  const { view, frame, blackout, status, transport, reconnect } =
+    useBrowserFeed(active, conversation);
   const [refusal, setRefusal] = useState<RelayRefusal | null>(null);
 
   const relay = useCallback((input: RelayInput) => {
@@ -155,6 +159,7 @@ export function useBrowserSession(
     view: shown,
     status,
     refusal,
+    reconnect,
     relay,
     resume: () => {
       setRefusal(null);

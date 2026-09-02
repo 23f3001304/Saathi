@@ -168,7 +168,13 @@ export function wireTurnPlanner(deps: SessionDeps): PlannerParts {
     // The move IS the answer here: the prose is an argument to the tool that
     // records it, so a turn that called nothing has not answered at all.
     decidesByTool: true,
-    speaks: true,
+    // DECISION: the planner does not stream. Every sentence the shopper
+    // reads is emitted by the shell from the recorded plan - the answer
+    // line, the ask, the look announce - so a streamed planner draft was a
+    // second copy of each of them arriving first: the repeated questions
+    // and the pill-plus-bubble pairs, at their actual source. One
+    // utterance, one emitter.
+    speaks: false,
   });
   return {
     planner: new SessionTurnPlanner(session, collector, deps.obs.logger),

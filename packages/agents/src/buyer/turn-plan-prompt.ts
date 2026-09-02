@@ -16,7 +16,7 @@ import {
  *  the prompt's own prose models the same punctuation.
  *  v5: a sentence naming two different products is two purchases, taken one
  *  at a time, said so out loud. */
-export const TURN_PLAN_PROMPT_ID = "buyer.turn-plan@v7";
+export const TURN_PLAN_PROMPT_ID = "buyer.turn-plan@v8";
 
 /**
  * What stands over the harness's working-context digest when a turn has one.

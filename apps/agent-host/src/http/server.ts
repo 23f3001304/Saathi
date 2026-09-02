@@ -99,7 +99,13 @@ function laneWindowOf(deps: ServerDeps) {
       conversation === ""
         ? deps.browserRegistry.primary()
         : deps.lanes.laneFor(conversation).browser;
-    return { id: "primary", service, openedAt: 0 };
+    return {
+      id: "primary",
+      service,
+      openedAt: 0,
+      onWheelBack: () =>
+        deps.lanes.carryOn(conversation === "" ? null : conversation),
+    };
   };
 }
 

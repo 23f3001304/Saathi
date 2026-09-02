@@ -118,6 +118,20 @@ export class ChatService {
 
   /** The shopper tapped an open-web card. It queues for the same reason a
    *  second sentence does — one window, one timeline. */
+  /** The wheel came back: a parked checkout carries on by itself, without
+   *  the shopper having to type "go on" at a window they just drove. */
+  carryOn(): PurchaseResult | null {
+    if (!this.webPick.parked || this.busy) return null;
+    const language = this.language;
+    return this.queue(
+      emptyResult("urn:covenant:pick:carry-on", "carry on"),
+      async (busy) => {
+        if (busy !== null) await busy.catch(() => undefined);
+        return this.webPick.resume([], language);
+      },
+    );
+  }
+
   pick(ref: string): PurchaseResult {
     const stated = this.current?.request ?? "";
     const language = this.language;

@@ -52,6 +52,7 @@ export function SandboxPane({
       )}
       <BrowserSessionCard
         session={card}
+        onReconnect={live === null ? undefined : browser.reconnect}
         idleAgent={live !== null && live.state === "agent-drive" && !busy}
         fullscreen={driving}
         onResume={browser.resume}

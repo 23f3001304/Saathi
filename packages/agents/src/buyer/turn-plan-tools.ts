@@ -102,7 +102,11 @@ export const TURN_PLAN_TOOLS: readonly ToolDeclaration[] = [
       "cannot answer (a size, a budget they never gave). `blocked_by` names " +
       "the one thing you cannot find out by looking; if you cannot name one, " +
       "this is the wrong move and you should be looking instead. Ask " +
-      "everything you need in ONE question, never a second one next turn, and " +
+      "everything you need in ONE question, never a second one next turn. " +
+      "An answer that fills only some axes is complete: the axes they " +
+      "skipped are theirs to skip, so take them as you-decide and act - " +
+      "re-asking an axis you already asked once is the one question too " +
+      "many. And " +
       "when the answers are a short closed set (capacities, sizes, internal " +
       "or external), name them in `replies` so they can be tapped instead of " +
       "typed. `replies` are answers to your question, never actions.",
@@ -121,9 +125,15 @@ export const TURN_PLAN_TOOLS: readonly ToolDeclaration[] = [
         .nullable()
         .describe(
           "For a compound question only: one group per axis you asked " +
-            "(label is the axis, options are its answers). The person " +
-            "picks one per group and answers everything in one send. Use " +
-            "INSTEAD of replies when you ask about more than one axis.",
+            "(label is the axis, options are its answers). EVERY axis your " +
+            "question names must have its group - asking about budget in " +
+            "prose with no BUDGET group leaves the person typing what they " +
+            "should tap. For a budget axis, offer three or four rupee " +
+            "bands you judge sensible for this product class (for example " +
+            "Under ₹5,000 / ₹5,000-10,000 / ₹10,000-20,000); the text box " +
+            "beside the groups takes an exact figure. The person picks one " +
+            "per group and answers everything in one send. Use INSTEAD of " +
+            "replies when you ask about more than one axis.",
         ),
       blocked_by: z.string().min(1).max(200),
     },

@@ -7,7 +7,7 @@ import type { Page } from "puppeteer";
 /** Matched on the message because puppeteer throws a plain `Error` for all of
  *  them: there is no type to narrow on. */
 const STALE =
-  /detached|Target closed|Session closed|Execution context was destroyed/i;
+  /detached|Target closed|Session closed|Execution context was destroyed|Connection closed|Inspected target navigated or closed/i;
 
 /**
  * A page worth swapping to.

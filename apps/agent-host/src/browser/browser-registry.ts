@@ -18,6 +18,9 @@ export interface SessionHandle {
   readonly id: string;
   readonly service: BrowserService;
   readonly openedAt: number;
+  /** Set by the resolver that knows which lane this window belongs to:
+   *  handing the wheel back resumes that lane's parked checkout. */
+  onWheelBack?: () => void;
 }
 
 export type OpenOutcome =

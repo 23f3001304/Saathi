@@ -408,3 +408,20 @@
 details[open] > .outsideSummary::after {
   content: "";
 }
+
+.viewTools {
+  display: flex;
+  justify-content: flex-end;
+  padding: 2px 8px;
+}
+
+.viewTool {
+  font: inherit;
+  font-size: 0.75rem;
+  border: none;
+  background: none;
+  text-decoration: underline;
+  cursor: pointer;
+  color: var(--ink-soft, #6b6255);
+  padding: 0;
+}

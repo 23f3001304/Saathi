@@ -26,6 +26,13 @@ export interface WebPickRunner {
     stated: readonly string[],
     replyLanguage: string | null,
   ): Promise<PurchaseResult>;
+  /** Continue a parked checkout in the same window; see `WebBuyStep`. */
+  resume(
+    stated: readonly string[],
+    replyLanguage: string | null,
+  ): Promise<PurchaseResult>;
+  /** Whether a checkout is parked waiting on the shopper. */
+  readonly parked: boolean;
 }
 
 /** What the durable conversation log needs from a run, and nothing else. */

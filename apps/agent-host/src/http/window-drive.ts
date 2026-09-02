@@ -105,8 +105,12 @@ function registerWheel(
   app.post(`${prefix}/resume`, (context) => {
     const handle = resolve(context);
     if (!found(handle)) return handle;
+    const resumed = handle.service.resume();
+    // Handing the wheel back IS "carry on": the parked checkout continues
+    // in the same window without the shopper typing anything.
+    if (resumed) handle.onWheelBack?.();
     return context.json(
-      { ok: handle.service.resume(), session: handle.service.view() },
+      { ok: resumed, session: handle.service.view() },
       200,
     );
   });

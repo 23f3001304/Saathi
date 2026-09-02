@@ -21,6 +21,8 @@ export interface LaneChat {
     replyLanguage?: string | null,
   ): PurchaseResult;
   pick(ref: string): PurchaseResult;
+  /** Continue a parked checkout after the wheel came back; `null` if none. */
+  carryOn(): PurchaseResult | null;
   settled(): Promise<PurchaseResult | null>;
   state(): ChatState;
   cancel(conversationId: string): boolean;
@@ -181,6 +183,11 @@ export class ChatLanes {
     // Deleting the chat deletes the window's stored profile with it.
     purgeSandboxProfile(windowIdFor(conversation));
     return true;
+  }
+
+  /** The wheel handed back resumes the lane's parked checkout by itself. */
+  carryOn(conversation: string | null): void {
+    this.lanes.get(keyOf(conversation))?.chat.carryOn();
   }
 
   /** Forget: closes the lane's window; the caller purges the profile. */
