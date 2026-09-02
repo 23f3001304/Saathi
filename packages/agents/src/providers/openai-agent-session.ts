@@ -31,6 +31,11 @@ export interface OpenAiSessionConfig {
    *  planner spent weeks being corrected by shell gates for judgement calls
    *  the model makes fine once its reasoning is actually dialed up. */
   readonly reasoningEffort?: "low" | "medium" | "high";
+  /** Provider-hosted tools, sent verbatim beside the function tools. The one
+   *  in use is `{type: "web_search"}`: research runs on the provider's own
+   *  search rather than the sandbox window, which stays reserved for what
+   *  only it can do under guard, signing in and buying. */
+  readonly hostedTools?: readonly JsonRecord[];
 }
 
 type OpenAiInputItem = JsonRecord;
@@ -108,7 +113,10 @@ export class OpenAiExchange implements ProviderExchange {
       model: this.config.model,
       instructions: this.config.systemPrompt,
       input: [...this.items],
-      tools: this.config.tools.map(declarationPayload),
+      tools: [
+        ...(this.config.hostedTools ?? []),
+        ...this.config.tools.map(declarationPayload),
+      ],
       tool_choice: "auto",
       store: false,
       ...(this.config.reasoningEffort === undefined

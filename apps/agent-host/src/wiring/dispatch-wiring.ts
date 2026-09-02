@@ -68,7 +68,7 @@ export interface DispatchDeps {
  * gate still decides which rows come back, and only rows filed under a trait
  * predicate reach the form.
  */
-const ADDRESS_RECALL = "delivery address name phone city state pincode country";
+export const ADDRESS_RECALL = "delivery address name phone city state pincode country";
 
 /** The sandbox tools: every move written down for the shopper, and the pin
  *  that keeps a buy errand about the listing they tapped. */
@@ -81,7 +81,7 @@ function webRunner(deps: DispatchDeps, shopper: WebShopper): WebToolRunner {
         label,
       }),
   };
-  return new WebToolRunner(shopper, steps, undefined, deps.pin);
+  return new WebToolRunner(shopper, steps, undefined, deps.pin, deps.findings);
 }
 
 export function wireToolDispatch(deps: DispatchDeps): DispatchParts {

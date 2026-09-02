@@ -81,7 +81,9 @@ function refFor(page: Record<string, unknown>, text: string): string {
   return at.controls.find((c) => c.text === text)?.ref ?? "c999";
 }
 
-beforeAll(() => {
+beforeAll(async () => {
+  if (SKIP !== null) return;
+  await new Promise((resolve) => setTimeout(resolve, 500));
   const clock = new StepClock();
   const logger = new SilentLogger();
   service = new BrowserService({
@@ -103,7 +105,7 @@ beforeAll(() => {
     new WebOnlyDispatcher(new WebToolRunner(webShopperOn(service))),
     null,
   );
-});
+}, LAUNCH_MS);
 
 afterAll(async () => {
   await service.close();

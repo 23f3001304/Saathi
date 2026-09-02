@@ -50,6 +50,10 @@ export interface AgentSessionRequest {
    *  left at the API default is a reasoning model switched off. */
   readonly reasoningEffort?: "low" | "medium" | "high";
   readonly timeoutMs?: number;
+  /** Research on the provider's own web search (OpenAI hosted tool). Only the
+   *  OpenAI path can honour it; other providers ignore it and the errand
+   *  falls back to whatever tools it was declared. */
+  readonly hostedWebSearch?: boolean;
   /** Where the adapter opens a draft per model round trip. Absent means the
    *  blocking path: every adapter answers the same way with nobody watching. */
   readonly drafts?: DraftScope | null;
@@ -139,6 +143,9 @@ function httpSession(
     tools: resolved.tools,
     maxToolIterations: resolved.maxToolIterations,
     reasoningEffort: effortOf(request),
+    ...(request.hostedWebSearch === true && resolved.id === "openai"
+      ? { hostedTools: [{ type: "web_search" }] }
+      : {}),
   };
   const drafts = request.drafts ?? null;
   if (resolved.id === "gemini") {

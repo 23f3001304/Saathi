@@ -1,50 +1,39 @@
-/** What the open-web errand is asked to do, as the one message that starts
- *  its conversation. Copy, not control flow: the moves it may make are the
- *  sandbox tools, and those are declared elsewhere. */
+/** What the open-web research errand is asked to do, as the one message that
+ *  starts its conversation. Copy, not control flow: its moves are the
+ *  provider's own web search plus `web_found`, declared elsewhere. The
+ *  sandbox window does not appear in research at all; it opens on a tapped
+ *  card, for signing in and buying. */
 const ERRAND =
-  "Go and look on the open web now, in the sandbox window the shopper is " +
-  "watching. Open a shop you judge right for this with web_open, read it with " +
-  "web_read, and use its own search box with web_search. Do that before you " +
-  "answer: an answer with no page behind it is worth nothing here.\n" +
+  "Research this on the open web now, with your web search tool. Do not " +
+  "narrate; search. Run the searches you need (the product plus the specs " +
+  "that pick it out; the shop's name in the query when they named a shop), " +
+  "read the results, and compare like someone spending their own money: the " +
+  "spec they actually asked for, the rating and how many reviews stand " +
+  "behind it, the price for what is actually in the box, and whether a " +
+  "discount is anchored to an inflated was-price. Cheapest is not best.\n" +
   "Search the shopper's own words and nothing more. Never invent a " +
   "capacity, a size or a kind they did not say: if the kind is missing " +
   "(internal or external, how big), search the plain product word, look at " +
   "what exists, and end your errand by asking which kind they meant, " +
   "naming the kinds you saw. A case, a cover or a cable FOR a product is " +
-  "not the product: do not open it and do not offer it.\n" +
-  "Type into the search box what a person naming the product would type: the " +
-  "product and the specs that pick it out, three or four words. Never type " +
-  "the budget, the politeness or the story into the box; the budget is for " +
-  "you, when you choose what to open.\n" +
-  "A search-results page is a shelf, not an understanding of one. Open the " +
-  "two or three listings whose titles actually carry the spec they asked for " +
-  "(the capacity, the size, the form) and read them, so what you end up " +
-  "recommending is something you have read rather than the cheapest tile on " +
-  "a grid. web_open takes any link web_read gave you. A sponsored tile that " +
-  "does not match the spec is the shop selling, not you finding: skip it.\n" +
-  "Do not give up on one bad shelf. If a search returns nothing that IS " +
-  "the product, reword it once (a synonym, fewer words) and search again. " +
-  "If a popup or a chooser sits between you and the page, aim web_press at " +
-  "its close control's `at` coordinates from your read and carry on. " +
-  "If a page will not read, open a different listing rather than retrying " +
-  "the same one. If this whole shop is thin, open one other shop you judge " +
-  "right and look there too. Only after two searches, and a second shop " +
-  "when the first was thin, may you conclude nothing was found, and then " +
-  "you say what you tried.\n" +
-  "Cheapest is not best and you are nobody's price comparison. Weigh what the " +
-  "page itself puts in front of you: whether the spec is the one they asked " +
-  "for, the rating, how many reviews stand behind that rating, the price per " +
-  "unit of what they are actually buying, and whether a discount is anchored " +
-  "to an inflated was-price. A one-star listing priced below everything else " +
-  "is a warning, not a bargain, and you say so.\n" +
-  "Say nothing while you work. No running commentary between tool calls: when " +
-  "you have read enough you will be asked for your answer, and that answer is " +
-  "the only thing they will ever see.\n" +
-  "Nobody signed a price on that shop, so there is no settlement to run: you " +
-  "can put the thing in its own basket and the payment step stays the " +
-  "shopper's.\n\n" +
+  "not the product: do not offer it. A listing that contradicts a spec " +
+  "they stated is not a candidate at any price.\n" +
+  "Do not give up on one thin search. Reword it once (a synonym, fewer " +
+  "words), and try a second shop's name in the query when the first is " +
+  "thin. Only after that may you conclude nothing was found, and then you " +
+  "say what you tried.\n" +
+  "When you have three to six real candidates, call web_found once with " +
+  "them: each row the listing's own title, its price text exactly as the " +
+  "source printed it, and the direct product page URL on the shop itself. " +
+  "Never a redirect, an ad link, or a URL you have not seen in a result. " +
+  "If you could not see a price, write the price text you did see or leave " +
+  "it short; never make one up. The host builds the cards from what you " +
+  "report, and the sandbox window only opens later, when they tap one, for " +
+  "signing in and buying, which stay theirs.\n" +
+  "Prices in results are the pages' own claims, never quotes. Nobody " +
+  "signed them, and the payment step stays the shopper's.\n\n" +
   "Shop where they actually live. Their ceiling is denominated in the " +
-  "currency named below, so open the storefront that serves that market " +
+  "currency named below, so search the storefront that serves that market " +
   "and prints its prices in it - many shops run one per country, and the " +
   "right one is the one whose prices need no conversion. A price in any " +
   "other currency cannot be weighed against their ceiling, because nobody " +

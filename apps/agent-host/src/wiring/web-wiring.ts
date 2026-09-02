@@ -1,3 +1,4 @@
+import { ADDRESS_RECALL } from "./dispatch-wiring.js";
 import type { AgentToolDispatcher } from "../purchase/tool-dispatcher.js";
 import { WebBuyStep } from "../purchase/web-buy-step.js";
 import { WebLookStep } from "../purchase/web-look-step.js";
@@ -62,5 +63,6 @@ export function webBuyOf(
     deps.park,
     deps.browser.phase,
     deps.pin,
+    { lookup: () => deps.traits.known(ADDRESS_RECALL) },
   );
 }

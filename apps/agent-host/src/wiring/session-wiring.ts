@@ -10,7 +10,10 @@ import {
 } from "@covenant/agents";
 
 import { matchCatalog } from "../judge/catalog-match.js";
-import { WEB_TOOL_DECLARATIONS } from "../purchase/web-tools.js";
+import {
+  RESEARCH_TOOL_DECLARATIONS,
+  WEB_TOOL_DECLARATIONS,
+} from "../purchase/web-tools.js";
 import { ScriptedSession } from "../session/scripted-session.js";
 import type { SessionDeps } from "./routed-session.js";
 import { routedSession } from "./routed-session.js";
@@ -46,18 +49,21 @@ export function wireSession(deps: SessionDeps): AgentSession {
 }
 
 /**
- * The errand session: the sandbox tools and nothing else.
+ * The research session: the provider's own hosted web search plus the one
+ * reporting tool, and no sandbox at all.
  *
- * DECISION: its own conversation rather than the buyer's. Looking on the open
- * web now happens without an intent being drafted, so there is no purchase
- * conversation to append it to — and a session whose only declared tools are
- * the five browser ones cannot wander into a catalog search when the shopper
- * asked about Amazon. The hook is the same one, so the block matrix is
- * unchanged; only the tool list is narrower.
+ * DECISION (supersedes "the sandbox tools and nothing else"): research moved
+ * off the sandbox window onto the provider's web search, which reads the
+ * whole shelf in one call instead of driving a browser through it. The
+ * sandbox window is reserved for the two things only it can do under guard,
+ * signing in and buying, and it opens when the shopper taps a card. A
+ * session that cannot reach the window cannot wander into it; the hook is
+ * the same one, so the block matrix is unchanged.
  */
 export function wireWebSession(deps: SessionDeps): AgentSession {
   return routedSession(deps, {
-    tools: WEB_TOOL_DECLARATIONS,
+    tools: RESEARCH_TOOL_DECLARATIONS,
+    hostedWebSearch: true,
     systemPrompt: BUYER_SYSTEM_PROMPT,
     dispatcher: deps.dispatch.dispatcher,
     structured: false,

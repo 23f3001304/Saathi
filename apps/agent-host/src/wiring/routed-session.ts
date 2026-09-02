@@ -37,6 +37,8 @@ export interface SessionDeps {
 
 export interface SessionShape {
   readonly tools: readonly ToolDeclaration[];
+  /** Research rides the provider's own web search; see the factory. */
+  readonly hostedWebSearch?: boolean;
   readonly systemPrompt: string;
   readonly dispatcher: ToolDispatcher;
   readonly structured: boolean;
@@ -71,6 +73,7 @@ function routerDepsOf(deps: SessionDeps, shape: SessionShape): RouterDeps {
     hook: deps.hook,
     dispatcher: shape.dispatcher,
     tools: shape.tools,
+    hostedWebSearch: shape.hostedWebSearch === true,
     systemPrompt: shape.systemPrompt,
     env: deps.env ?? process.env,
     decidesByToolCall: shape.decidesByTool,

@@ -11,6 +11,7 @@ import {
 } from "./web-tool-guards.js";
 import {
   WEB_ADD_TO_CART_TOOL,
+  WEB_FOUND_TOOL,
   WEB_CART_TOOL,
   WEB_FILL_ADDRESS_TOOL,
   WEB_OPEN_TOOL,
@@ -18,13 +19,14 @@ import {
   WEB_SHOP_TOOLS,
 } from "@covenant/agents";
 
+import type { WebFindings } from "../browser/web-listing.js";
 import type { WebShopper } from "../browser/web-shopper.js";
 import { CALL_CEILING_MS, withinCall } from "./call-ceiling.js";
 import type { WebPin } from "./web-pin.js";
 import type { StepSink } from "./web-steps.js";
 import { stepLabel } from "./web-steps.js";
 import { actCall } from "./web-act-calls.js";
-import { webOpenArgs, webRefArgs } from "./web-tools.js";
+import { webFoundArgs, webOpenArgs, webRefArgs } from "./web-tools.js";
 
 export function isWebTool(tool: string): boolean {
   return WEB_SHOP_TOOLS.includes(tool);
@@ -50,6 +52,10 @@ export class WebToolRunner {
     private readonly ceilingMs: number = CALL_CEILING_MS,
     /** The one product a buy errand may be about; unset for a look. */
     private readonly pin: WebPin | null = null,
+    /** Where reported research candidates become cards. The refs are minted
+     *  by the host here, exactly as they are for tiles read off a page, so
+     *  a pick still resolves only to a row this host recorded. */
+    private readonly findings: WebFindings | null = null,
   ) {}
 
   async run(call: ToolCall): Promise<ToolOutcome> {
@@ -81,6 +87,8 @@ export class WebToolRunner {
         return outcomeOf(await this.shopper.read());
       case WEB_ADD_TO_CART_TOOL:
         return await this.addToCart(call);
+      case WEB_FOUND_TOOL:
+        return this.found(call);
       case WEB_CART_TOOL:
         return outcomeOf(await this.shopper.cart());
       case WEB_FILL_ADDRESS_TOOL:
@@ -100,6 +108,30 @@ export class WebToolRunner {
       return offPin(parsed.data.url);
     }
     return outcomeOf(await this.shopper.open(parsed.data.url));
+  }
+
+  /** Research candidates in, cards out. Untrusted rows: the host re-parses
+   *  every price and drops any URL that is not plain http(s). */
+  private found(call: ToolCall): ToolOutcome {
+    const parsed = webFoundArgs.safeParse(call.args);
+    if (!parsed.success) return badArgs(parsed.error);
+    if (this.findings === null) return unknown(call.tool);
+    const rows = this.findings.record(
+      parsed.data.found.map((row) => ({
+        title: row.title,
+        priceText: row.price_text,
+        href: row.url,
+        imageUrl: row.image_url,
+      })),
+    );
+    return {
+      content: JSON.stringify({
+        ok: true,
+        recorded: rows.length,
+        refs: rows.map((row) => row.ref),
+      }),
+      isError: false,
+    };
   }
 
   private async addToCart(call: ToolCall): Promise<ToolOutcome> {

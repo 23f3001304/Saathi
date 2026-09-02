@@ -1,5 +1,6 @@
 import type { Logger } from "@covenant/domain";
 
+import type { KnownAddress } from "../browser/web-address-fill.js";
 import type { WebFindings } from "../browser/web-listing.js";
 import type { WebProgress } from "../browser/web-progress.js";
 import type { WebResult } from "../browser/web-result.js";
@@ -60,14 +61,17 @@ export class WebBuyStep {
     /** Held for the length of this errand, so no other product can be opened
      *  from inside it. */
     private readonly pin: WebPin | null = null,
+    /** What the shopper has stated about where they live, for the errand to
+     *  compare against a shop's pre-selected account address. Values are
+     *  typed only ever by `web_fill_address`; this is the comparison copy. */
+    private readonly address: KnownAddress | null = null,
   ) {}
 
   get parked(): boolean {
     return this.park.parked;
   }
 
-  /** Picks up where it stopped, in the same window, on the same step: no
-   *  listing is re-opened, which is why `sandboxOf` refuses to retire it. */
+  /** Picks up where it stopped, in the same window, on the same step. */
   async resume(
     stated: readonly string[],
     replyLanguage: string | null = null,
@@ -75,16 +79,10 @@ export class WebBuyStep {
     const ref = this.park.held ?? "";
     this.stage.reveal();
     const base = emptyResult(`urn:covenant:pick:${ref}:resumed`, ref);
-    // Their turn is still theirs. Running the errand here would spend a model
-    // turn being refused by the state machine and release the park, throwing
-    // away the basket over a sentence that was only slightly early.
+    // Their turn is still theirs: an errand now would be refused by the
+    // state machine and throw the basket away over a slightly early line.
     if (this.sandbox.theirs()) {
-      return settleAs(
-        this.hub,
-        base,
-        [emitLine(this.hub, STILL_THEIRS, true)],
-        "web_pick_waiting",
-      );
+      return this.refuseAs(base, STILL_THEIRS, "web_pick_waiting");
     }
     this.progress.resumeReset();
     const from = this.trail.length;
@@ -117,31 +115,43 @@ export class WebBuyStep {
       // Refused, not approximated: picking a nearest match would be the host
       // inventing the shop it is about to drive. It still answers.
       this.logger.warn("purchase.web_pick.unresolved", { ref });
-      return settleAs(
-        this.hub,
-        base,
-        [emitLine(this.hub, FORGOTTEN, true)],
-        "web_pick_unknown",
-      );
+      return this.refuseAs(base, FORGOTTEN, "web_pick_unknown");
     }
     const from = this.trail.length;
     const landed = await this.sandbox.open(listing.url);
     if (landed.isError) {
-      return settleAs(
-        this.hub,
-        base,
-        [emitLine(this.hub, NOT_OPENED, true)],
-        "web_pick_shut",
-      );
+      return this.refuseAs(base, NOT_OPENED, "web_pick_shut");
     }
     this.progress.reset();
     const said = await this.errand(
-      buyErrandFor(listing, stated, this.currency, replyLanguage),
+      buyErrandFor(
+        listing,
+        stated,
+        this.currency,
+        replyLanguage,
+        await this.profile(),
+      ),
       stated,
       replyLanguage,
     );
     this.logger.info("purchase.web_pick", { ref, url: listing.url });
     return this.close(base, ref, from, said, listing.url);
+  }
+
+  /** A pick that cannot start still answers, in one line, and settles. */
+  private refuseAs(
+    base: PurchaseResult,
+    line: string,
+    why: string,
+  ): PurchaseResult {
+    return settleAs(this.hub, base, [emitLine(this.hub, line, true)], why);
+  }
+
+  /** One line per stated fact, empty when nothing is known. */
+  private async profile(): Promise<string> {
+    if (this.address === null) return "";
+    const facts = await this.address.lookup();
+    return facts.map((fact) => `${fact.key}: ${fact.value}`).join("\n");
   }
 
   /** How it ends is decided from what this host watched, never from what the
@@ -165,13 +175,9 @@ export class WebBuyStep {
     );
   }
 
-  /**
-   * Drive the checkout, then say what happened — two legs on one conversation,
-   * the same shape the look uses, so the sentence a shopper reads is composed
-   * once at the end rather than stitched out of what was said between clicks.
-   * The language gate and the wall clock both sit on that one commit, and a
-   * thrown page is still a turn that answers.
-   */
+  /** Drive the checkout, then say what happened: two legs, one conversation,
+   *  the look's own shape. The language gate and the wall clock sit on the
+   *  one commit, and a thrown page is still a turn that answers. */
   private async errand(
     prompt: string,
     stated: readonly string[],
@@ -179,16 +185,13 @@ export class WebBuyStep {
   ): Promise<Spoken> {
     const release = this.stage.hold();
     try {
-      const run = await runErrand(
-        this.conversation,
-        {
-          look: prompt,
-          summarise: () => pickSummaryFor(stated, replyLanguage),
-          stated,
-          replyLanguage,
-        },
-        this.logger,
-      );
+      const prompts = {
+        look: prompt,
+        summarise: () => pickSummaryFor(stated, replyLanguage),
+        stated,
+        replyLanguage,
+      };
+      const run = await runErrand(this.conversation, prompts, this.logger);
       return { told: run.told, slipped: run.slipped, expired: run.expired };
     } finally {
       release();

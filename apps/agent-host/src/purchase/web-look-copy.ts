@@ -54,12 +54,18 @@ const NAMED = 3;
  * window card still holds every full address for whoever wants it.
  */
 export function provenance(opened: readonly string[], offered: number): string {
+  // Research runs on live web search now, so most errands open no window at
+  // all; the sandbox line is kept for the errands that still drive one.
+  const where = opened.length === 0 ? "Found by live web search." : read(opened);
+  return offered === 0 ? `${where} ${UNSIGNED}` : `${where} ${ON_OFFER}`;
+}
+
+function read(opened: readonly string[]): string {
   const shops = [...new Set(opened.map(shopOf))];
   const shown = shops.slice(0, NAMED).join(", ");
   const rest = shops.length > NAMED ? ` and ${shops.length - NAMED} more` : "";
   const pages = opened.length === 1 ? "1 page" : `${opened.length} pages`;
-  const where = `Read ${pages} on ${shown}${rest} in the sandbox window.`;
-  return offered === 0 ? `${where} ${UNSIGNED}` : `${where} ${ON_OFFER}`;
+  return `Read ${pages} on ${shown}${rest} in the sandbox window.`;
 }
 
 /** The shop a URL belongs to, never its path. */

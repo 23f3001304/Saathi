@@ -58,6 +58,8 @@ export interface RouterDeps {
   readonly decidesByToolCall: boolean;
   /** See `SessionShape.sideEffects`. */
   readonly sideEffects: boolean;
+  /** See `SessionShape.hostedWebSearch`. */
+  readonly hostedWebSearch?: boolean;
   /** The merchant MCP mount; ignored on every provider except Claude. */
   readonly claude: ClaudeSessionOverrides;
 }
@@ -133,6 +135,7 @@ export function wireRoutedSessions(deps: RouterDeps): RoutedSessionFactory {
         txnId: null,
         systemPrompt: deps.systemPrompt,
         tools: deps.tools,
+        hostedWebSearch: deps.hostedWebSearch === true,
         maxToolIterations: deps.config.maxTurns,
         timeoutMs: deps.config.timeoutMs,
         claude: { ...deps.claude, maxTurns: deps.config.maxTurns },

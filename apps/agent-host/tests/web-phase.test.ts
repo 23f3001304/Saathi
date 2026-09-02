@@ -174,7 +174,7 @@ describe("the summary speaks about what the harness actually captured", () => {
   it("says nothing was found only when nothing was", () => {
     const prompt = summariseFor(["an SSD"], null, []);
 
-    expect(prompt).toContain("No listing was captured");
+    expect(prompt).toContain("No candidate was recorded");
     expect(prompt).not.toContain("Crucial");
   });
 });

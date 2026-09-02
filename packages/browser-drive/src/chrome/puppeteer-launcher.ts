@@ -108,8 +108,13 @@ async function denyDownloads(page: Page): Promise<void> {
 }
 
 async function firstPage(browser: Browser): Promise<Page> {
+  const page = await browser.newPage();
   const pages = await browser.pages();
-  const page = pages[0] ?? (await browser.newPage());
+  for (const p of pages) {
+    if (p !== page) {
+      await p.close().catch(() => undefined);
+    }
+  }
   await page.bringToFront().catch(() => undefined);
   return page;
 }
