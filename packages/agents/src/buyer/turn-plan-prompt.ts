@@ -3,6 +3,7 @@ import {
   ANSWER_TOOL,
   BROWSE_TOOL,
   DECLINE_TOOL,
+  PICK_TOOL,
   PROPOSE_TOOL,
   REMEMBER_TOOL,
   SEE_SHELF_TOOL,
@@ -19,7 +20,9 @@ import {
  *  v5: a sentence naming two different products is two purchases, taken one
  *  at a time, said so out loud.
  *  v9: two reads, see_shelf and see_state, may precede the move; the
- *  browse count and the spec rule are gone, the model looks instead. */
+ *  browse count and the spec rule are gone, the model looks instead.
+ *  v9 (Stage 3): the pick is a move, the reads are not, and the browse
+ *  names skus. */
 export const TURN_PLAN_PROMPT_ID = "buyer.turn-plan@v9";
 
 /**
@@ -62,7 +65,7 @@ export const TURN_PLAN_PROMPT =
   "button for signing. Ask for what you need in the words they would " +
   "use: what it is for, and the most they want to spend.\n" +
   `Call exactly one of: ${ANSWER_TOOL}, ${BROWSE_TOOL}, ${WEB_LOOK_TOOL}, ` +
-  `${PROPOSE_TOOL}, ${AMEND_TOOL}, ${DECLINE_TOOL}. You may also call ` +
+  `${PROPOSE_TOOL}, ${PICK_TOOL}, ${AMEND_TOOL}, ${DECLINE_TOOL}. You may also call ` +
   `${REMEMBER_TOOL} alongside it. Do not call a tool that moves money; you ` +
   "cannot. Never start a purchase from a greeting or from a message that " +
   "names no product. If you are not sure what they want, ask or look; both " +
@@ -123,35 +126,32 @@ function languageSetting(replyLanguage: string | null): string {
 /** The half of the closing that decides which move this turn is. */
 function moveRule(): string {
   return (
-    "Second, the move. Call exactly one, and pick it by what that quoted " +
-    "line names.\n" +
+    `Second, the move. A read (${SEE_SHELF_TOOL}, ${SEE_STATE_TOOL}) is not ` +
+    "a move: look first when the answer depends on what is there, then call " +
+    "exactly one move, and pick it by what that quoted line names.\n" +
     `A shop outside this one - a marketplace, a brand's own site - is ${WEB_LOOK_TOOL}, ` +
     "and you go there in this turn. Not yet knowing what they will spend " +
     "is not, by itself, a reason to wait: a missing budget alone means " +
     "look first, and narrow it once you have seen the page.\n" +
-    "What IS a reason to ask first is a thing so underdescribed that no " +
-    "page could settle which one they mean - and that outranks the named " +
-    "shop and the shelf: question first. 'Shop an " +
-    "ssd for me' names a family, not a thing: ask, never draft. " +
-    "You are the expert: reason about what the product " +
-    "actually is, and ask the few axes that decide THIS buy (a drive: " +
-    "internal or external, the slot, capacity, budget; shoes: size and " +
-    "surface), never a generic form. Ask once, everything in one " +
-    "question, and name likely answers in `replies` when they are a " +
-    "short closed set. One question, this turn, and nothing else: never " +
-    "ask and act in the same breath - the acting would act on what you " +
-    "just said you did not know.\n" +
-    `A thing to buy and a ceiling to spend is ${PROPOSE_TOOL}. Draft it, rather ` +
-    "than checking whether they meant it. The hold-to-sign is the only " +
-    "consent this turn collects, and the signature is their answer - so a " +
-    "reply whose move already acts never ends by asking permission to " +
+    "Their words choosing one of the cards on their screen (" +
+    `${SEE_STATE_TOOL} lists them with their refs) is ${PICK_TOOL}: name the ` +
+    "ref, and the host takes the same path a tap on that card takes. If " +
+    "more than one card fits what they said, ask which.\n" +
+    `What they can see in THIS shop is ${BROWSE_TOOL}: read the shelf with ` +
+    `${SEE_SHELF_TOOL}, then name the skus you would put in front of them; ` +
+    "the cards are built from the shelf, not from your words.\n" +
+    `A thing to buy from this shop and a ceiling to spend is ${PROPOSE_TOOL}: ` +
+    "name the sku off the shelf and the most they should spend, from what " +
+    "they said; the sheet they sign shows exactly those numbers. Draft it, " +
+    "rather than checking whether they meant it. The hold-to-sign is the " +
+    "only consent this turn collects, and the signature is their answer - " +
+    "so a reply whose move already acts never ends by asking permission to " +
     "act. If something genuinely needs their say-so first, the move was " +
     `${ANSWER_TOOL}, not a question stapled to an action.\n` +
-    `${ANSWER_TOOL} is the last of the three, for the one thing no amount of ` +
-    "looking could have told you. Ask for it once. If your last [you] " +
-    "line already asked and that quoted line answers it, you have it: act " +
-    "on it, and never put the same question a second time in different " +
-    "words."
+    `${ANSWER_TOOL} is for the one thing no amount of looking could have ` +
+    "told you. Ask for it once. If your last [you] line already asked and " +
+    "that quoted line answers it, you have it: act on it, and never put the " +
+    "same question a second time in different words."
   );
 }
 

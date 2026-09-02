@@ -106,6 +106,26 @@ describe("what the closing rules say", () => {
     const long = turnPlanClosing("x".repeat(2000));
     expect(long.length).toBeLessThan(2600);
   });
+
+  it("names the pick and the reads beside the moves", () => {
+    expect(closing).toContain("pick_option");
+    expect(closing).toContain("see_shelf");
+    expect(closing).toContain("see_state");
+    expect(closing).toContain("browse_catalog");
+    expect(closing).toContain("A read (see_shelf, see_state) is not a move");
+  });
+
+  it("puts the pick among the moves the opening lists", () => {
+    expect(TURN_PLAN_PROMPT).toContain("pick_option");
+  });
+});
+
+describe("what the closing rules no longer say", () => {
+  it("drops the deleted spec gate's paragraph", () => {
+    const closing = turnPlanClosing("mujhe ek sasta kurta chahiye");
+    expect(closing).not.toContain("names a family, not a thing");
+    expect(closing).not.toContain("ask, never draft");
+  });
 });
 
 describe("what the prompt says about looking", () => {
