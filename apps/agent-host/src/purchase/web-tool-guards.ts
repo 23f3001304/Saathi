@@ -13,11 +13,15 @@ import type { WebResult } from "../browser/web-result.js";
  *  shopper; the basket control beside them is the errand's whole job. */
 export const CART_INSTEAD =
   "That control was refused because it commits money or an account, which " +
-  "is the shopper's to press and never yours. Do not press pay, buy now or " +
-  "sign in. Read the page again, find the add-to-basket control, and press " +
-  "it by ref, or with web_press at its `at` coordinates when the ref is " +
-  "wrong. Only hand over the wheel if the page genuinely needs the shopper: " +
-  "a sign-in, a code, a payment.";
+  "is the shopper's to press and never yours. The basket control is a " +
+  "different button and still yours to press. Do this now, in order: call " +
+  "web_read; in its controls find the button whose own text says add to " +
+  "cart, add to basket or add to bag (never buy now, never pay); press " +
+  "that ref with web_add_to_cart; if that fails once, call web_press with " +
+  "that same control's `at` coordinates. Do not conclude the basket " +
+  "cannot be filled until web_press has been tried once. Only hand over " +
+  "the wheel if the page genuinely needs the shopper: a sign-in, a code, " +
+  "a payment.";
 
 /** A sponsored click-tracker is not a page: the one live run that opened
  *  /sspa/click wedged its window in a redirect chain and every read after

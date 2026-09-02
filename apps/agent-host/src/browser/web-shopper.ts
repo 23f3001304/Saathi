@@ -24,26 +24,18 @@ import {
   webRefusal,
 } from "./web-result.js";
 
-/**
- * Puppeteer's `keyboard.type` presses Return for a newline, so a search is one
- * guarded `type` and not a second, ungated key path into the window. The field
- * is classified before the newline lands, so a login form's boxes are refused
- * before a character is typed and this can submit nothing the agent may not.
- */
+/** Puppeteer's `keyboard.type` presses Return for a newline, so a search is
+ *  one guarded `type`, classified before the newline lands: no second key
+ *  path into the window, and no submit the classifier did not see. */
 const SUBMIT = "\n";
 
 /**
- * Shopping the open web, as six operations the buyer agent can call.
- *
- * Every one of them goes through `GuardedPage`, so the guarantees are the ones
- * the sandbox already had rather than a second set written for tools: the
- * classifier decides what may be typed and clicked, a block moves the wheel to
- * the user, and nothing here can reach a payment rail because nothing here can
- * reach anything but a DOM.
- *
- * Every read is checked first for the two things that end the agent's turn at
- * the window — a bot check and the payment step — and either hands it over
- * rather than being reported as a page. See `web-handover.ts`.
+ * Shopping the open web, as the operations the buyer agent can call. Every
+ * one goes through `GuardedPage`, so the guarantees are the sandbox's own:
+ * the classifier decides what may be typed and clicked, a block moves the
+ * wheel to the user, and nothing here can reach anything but a DOM. Every
+ * read is checked for the two things that end the agent's turn — a bot
+ * check, the payment step — and hands over instead of reporting a page.
  */
 export class WebShopper {
   private readonly refs = new PageRefs();
@@ -117,7 +109,10 @@ export class WebShopper {
       if (selector === null) {
         return webFailure(
           "unknown_ref",
-          `Nothing on the last page read was called ${ref}. Call web_read and use a ref from that reading.`,
+          `Nothing on the last page read was called ${ref}. Refs are re-minted ` +
+            "on every read and die on every navigation: call web_read now and " +
+            "use a ref from that fresh reading, or web_press at a control's " +
+            "own `at` coordinates from it.",
         );
       }
       const clicked = await session.page().click(selector);
@@ -149,19 +144,24 @@ export class WebShopper {
   }
 
   cart(): Promise<WebResult> {
-    return this.onSession((session) =>
-      checkCartAgainst(session, this.browser.ceiling),
-    );
+    return this.onSession(async (session) => {
+      const result = await checkCartAgainst(session, this.browser.ceiling);
+      // The host itself read rows in the shop's basket: that is the carted
+      // fact, however the item got there. A press that filled the basket
+      // used to leave the record empty and the closing line denied a basket
+      // the model had truthfully described.
+      const items = result.body["items"];
+      if (typeof items === "number" && items > 0) {
+        this.progress.recordCarted();
+      }
+      return result;
+    });
   }
 
-  /**
-   * Fills the delivery fields this host already knows the answers to, and only
-   * those. The values come from `TraitMemory` — what the shopper themselves
-   * stated — never from the model and never from the page, so there is no
-   * argument here for a model to choose. A field with no trait behind it is
-   * left blank and named in the result; a field the classifier calls sensitive
-   * is refused there, as it is for every other keystroke this class makes.
-   */
+  /** Fills only the delivery fields this host knows, from `TraitMemory` —
+   *  what the shopper themselves stated, never the model, never the page. A
+   *  field with no trait stays blank and is named in the result; a sensitive
+   *  field is refused, as for every keystroke this class makes. */
   fillAddress(): Promise<WebResult> {
     return this.onSession((session) =>
       fillKnownAddress(session, this.address, this.waiter, (slots) =>

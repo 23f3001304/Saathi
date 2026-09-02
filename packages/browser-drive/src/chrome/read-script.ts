@@ -73,17 +73,28 @@ export function readPageDom(): PageDom {
       y: Math.round(box.top + box.height / 2),
     };
   };
-  const buttons = take(
-    query("button,input[type='submit'],input[type='button'],[role='button']"),
-    MAX_CONTROLS,
-    (el) => ({
-      selector: selectorOf(el),
-      kind: "button" as const,
-      text: clean(el.textContent) || clean(el.getAttribute("value")),
-      type: el.getAttribute("type"),
-      at: centreOf(el),
-    }),
-  );
+  // Document order spent the whole control budget on a marketplace header
+  // before the buy box: 40 slots of nav, pickers and carousel arrows, and
+  // the one button the errand exists to press was cut. Buttons whose own
+  // text names a shopping action go first; the rest keep document order.
+  const ACTION_TEXT =
+    /add to (cart|basket|bag)|buy|checkout|proceed|continue|deliver|apply|qty|quantity|order/i;
+  const allButtons = query(
+    "button,input[type='submit'],input[type='button'],[role='button']",
+  ).filter(shown);
+  const textOf = (el: Element): string =>
+    clean(el.textContent) || clean(el.getAttribute("value"));
+  const ranked = [
+    ...allButtons.filter((el) => ACTION_TEXT.test(textOf(el))),
+    ...allButtons.filter((el) => !ACTION_TEXT.test(textOf(el))),
+  ];
+  const buttons = ranked.slice(0, MAX_CONTROLS).map((el) => ({
+    selector: selectorOf(el),
+    kind: "button" as const,
+    text: textOf(el),
+    type: el.getAttribute("type"),
+    at: centreOf(el),
+  }));
   const fields = take(
     query("input:not([type='hidden']),textarea,select"),
     MAX_CONTROLS,
