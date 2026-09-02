@@ -97,6 +97,18 @@ describe("a proposal carries the draft", () => {
       },
     });
   });
+
+  it("refuses a proposal missing what the sheet prints, attaching nothing", async () => {
+    const collector = boundCollector();
+    const body = await dispatched(collector, PROPOSE_TOOL, {
+      reply: "Drafting that now.",
+      sku: "ST-KURTA-NAVY-M",
+    });
+    expect(body).toMatchObject({ failure: "bad_arguments", isError: true });
+    expect(body["cap_paise"]).toBeUndefined();
+    expect(body["shelf"]).toBeUndefined();
+    expect(collector.take()).toBeNull();
+  });
 });
 
 /** A refusal hands back the one fact the retry needs and never a number of
