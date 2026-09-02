@@ -72,6 +72,10 @@ export function ChatSession({
   // A tapped open-web card is chosen, not launched: the errand costs a window
   // and a wait, so "Go to the shop" is its own gesture at the dock.
   const [webLaunched, setWebLaunched] = useState(false);
+  // Between the tap and the window's first beat, the run is busy on a
+  // window that does not exist yet; the strip says so and the composer
+  // waits rather than collecting a sentence nobody is reading.
+  const launching = webLaunched && chat.running && chat.sandbox === null;
   const [signed, setSigned] = useState(false);
   const [billOpen, setBillOpen] = useState(false);
   // A reload of a settled purchase must not re-arm the signing flow: the
@@ -349,6 +353,7 @@ export function ChatSession({
           <WindowStrip
             present={chat.sandbox !== null}
             busy={chat.running}
+            launching={launching}
             attention={attention ?? null}
           />
           {stage === "sign" && !billOpen && !signed && (
@@ -400,7 +405,7 @@ export function ChatSession({
       )}
       <Composer
         voiceStage={voiceStage}
-        blocked={offline}
+        blocked={offline || launching}
         onSend={answer}
         speakText={spokenLine}
         actions={replies}
@@ -409,7 +414,13 @@ export function ChatSession({
         stage={dockStage}
         prompt={askPrompt}
 
-        placeholder={question === null ? undefined : "Answer here…"}
+        placeholder={
+          launching
+            ? "Opening the shop's window…"
+            : question === null
+              ? undefined
+              : "Answer here…"
+        }
         openLabel={question === null ? undefined : "Type your answer"}
         primary={
           awaiting === "intent" ? (

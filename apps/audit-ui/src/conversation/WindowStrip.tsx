@@ -12,10 +12,17 @@ export type WindowStripProps = {
   /** A sandbox record exists for this conversation. */
   present: boolean;
   busy: boolean;
+  /** A window was asked for and has not yet reported: Chrome is starting. */
+  launching?: boolean;
   attention: AttentionKind | null;
 };
 
-function lineFor(attention: AttentionKind | null, busy: boolean): string {
+function lineFor(
+  attention: AttentionKind | null,
+  busy: boolean,
+  launching: boolean,
+): string {
+  if (launching) return "Opening the shop's window… a moment.";
   if (attention === "handoff") {
     return "The window needs you: a sign-in, a code, or the payment step.";
   }
@@ -26,17 +33,18 @@ function lineFor(attention: AttentionKind | null, busy: boolean): string {
 export function WindowStrip({
   present,
   busy,
+  launching = false,
   attention,
 }: WindowStripProps): JSX.Element | null {
   const { navigate } = useRoute();
-  // No window, no strip. Research runs entirely on live web search now, so
-  // a running turn is not evidence of a sandbox: this line over a windowless
-  // run claimed a window that did not exist.
-  if (!present) return null;
+  // No window, no strip - except while one is being opened on purpose.
+  // Research runs entirely on live web search now, so a running turn alone
+  // is not evidence of a sandbox.
+  if (!present && !launching) return null;
   const urgent = attention === "handoff";
   return (
     <div className={urgent ? styles.stripUrgent : styles.strip}>
-      <span className={styles.line}>{lineFor(attention, busy)}</span>
+      <span className={styles.line}>{lineFor(attention, busy, launching)}</span>
       <button
         type="button"
         className={styles.open}
