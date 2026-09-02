@@ -11,10 +11,7 @@ import {
 } from "../src/buyer/covenant-amendment.js";
 import { AMEND_TOOL, BUYER_TOOL_SERVER } from "../src/buyer/turn-plan.js";
 import { TURN_PLAN_TOOLS } from "../src/buyer/turn-plan-tools.js";
-import {
-  AMENDMENT_UNREADABLE_REPLY,
-  TurnPlanCollector,
-} from "../src/buyer/turn-plan-collector.js";
+import { TurnPlanCollector } from "../src/buyer/turn-plan-collector.js";
 import { amend, change, planFrom, SIGNED_CAP_PAISE } from "./amendments.js";
 
 describe("the fourth move", () => {
@@ -101,12 +98,12 @@ const REFUSED: readonly [string, Record<string, unknown>][] = [
 
 describe("the schema decides what may be shown", () => {
   for (const [what, args] of REFUSED) {
-    it(`refuses ${what}, and says so instead of proposing it`, async () => {
+    it(`refuses ${what}, and leaves the model to say so itself`, async () => {
       const { outcome, plan } = await planFrom(new TurnPlanCollector(), args);
       expect(outcome.isError).toBe(true);
-      expect(plan?.action).toBe("answer");
-      expect(plan?.amendment ?? null).toBeNull();
-      expect(plan?.reply).toBe(AMENDMENT_UNREADABLE_REPLY);
+      // No plan was recorded for it: the refusal went back to the model as a
+      // tool error, and whatever the model then says is the turn.
+      expect(plan).toBeNull();
     });
   }
 

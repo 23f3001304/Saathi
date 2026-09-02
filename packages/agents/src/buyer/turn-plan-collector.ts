@@ -29,10 +29,6 @@ const ACTIONS: Readonly<Record<string, TurnAction>> = {
   [DECLINE_TOOL]: "decline",
 };
 
-/** What the agent says when the change it heard was not one it could state. */
-export const AMENDMENT_UNREADABLE_REPLY =
-  "I could not make sense of that as a change to your rules. Tell me which " +
-  "rule and what it should become, and I will put it up for you to sign.";
 function ok(recorded: string): ToolOutcome {
   return { content: `{"ok":true,"recorded":"${recorded}"}`, isError: false };
 }
@@ -125,17 +121,12 @@ export class TurnPlanCollector implements ToolDispatcher {
 
   /**
    * A proposal is not an application, and an unreadable proposal is not shown
-   * at all. The model learns the call did not land; the shopper is told the
-   * instruction did not parse, rather than being offered garbage to sign.
+   * at all. The model learns the call did not land, through the tool error,
+   * and answers for itself: no plan is recorded here in its place.
    */
   private recordAmendment(args: ToolArgs): ToolOutcome {
     const parsed = parseAmendment(args, this.context);
     if (!parsed.ok) {
-      this.chosen = {
-        ...NEUTRAL_PLAN,
-        reply: AMENDMENT_UNREADABLE_REPLY,
-        traits: [],
-      };
       return refused(parsed.failure);
     }
     this.chosen = {

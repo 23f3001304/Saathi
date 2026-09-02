@@ -10,10 +10,7 @@ import {
 } from "./turn-plan-prompt.js";
 import type { TurnPlanCollector } from "./turn-plan-collector.js";
 
-export {
-  AMENDMENT_UNREADABLE_REPLY,
-  TurnPlanCollector,
-} from "./turn-plan-collector.js";
+export { TurnPlanCollector } from "./turn-plan-collector.js";
 
 /** What the buyer does with a shopper's message before anything is signed. */
 export interface TurnPlanner {
