@@ -56,7 +56,7 @@ function envelopesFor(
   sku: CatalogSku,
   ceiling: number,
 ): IntentDraftFields["envelopes"] {
-  if (sku.category === "") {
+  if (sku.category === "" || sku.category === "uncategorised") {
     return [];
   }
   return [

@@ -12,7 +12,7 @@ import styles from "./Greeting.module.css";
  */
 export function Greeting(): JSX.Element {
   return (
-    <div className={styles.greeting} aria-hidden="true">
+    <div className={styles.greeting}>
       <SaathiMark size={56} className={styles.mark} />
       <p className={styles.namaste} aria-label="Namaste.">
         {[..."Namaste."].map((ch, i) => (

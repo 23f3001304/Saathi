@@ -196,15 +196,20 @@ export function BrowserSessionCard({
       )}
 
       {interactive && (
-        <p className={styles.outsideNote}>
-          Anything you buy on this page is bought here, not through Saathi. No
-          rule you signed applies to it, there is no cool-off, and it will not
-          appear in your ledger. While the window is yours it shows everything
-          on it, including what you type. The picture goes to this tab and is
-          never written down. Saathi still cannot touch a password or a card
-          number on this page, and the moment you hand the window back those
-          fields are painted out of the picture again.
-        </p>
+        <details className={styles.outsideNote}>
+          {/* The two load-bearing sentences stay visible; the mechanics wait
+              behind a fold. Five sentences of safety copy buried the two
+              that matter. */}
+          <summary className={styles.outsideSummary}>
+            Anything you buy on this page is bought here, not through Saathi.
+            No rule you signed applies, and it will not appear in your ledger.
+          </summary>
+          While the window is yours it shows everything on it, including what
+          you type. The picture goes to this tab and is never written down.
+          Saathi still cannot touch a password or a card number on this page,
+          and the moment you hand the window back those fields are painted out
+          of the picture again.
+        </details>
       )}
 
       <div className={styles.viewport}>

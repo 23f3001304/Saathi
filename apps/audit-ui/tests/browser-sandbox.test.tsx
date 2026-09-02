@@ -190,7 +190,7 @@ describe("a purchase made through the relay is outside the covenant", () => {
       />,
     );
     expect(screen.getByText(/not through Saathi/i)).toBeTruthy();
-    expect(screen.getByText(/no cool-off/i)).toBeTruthy();
+    expect(screen.getByText(/will not appear in your ledger/i)).toBeTruthy();
   });
 
   it("stays quiet while the agent is driving, because it cannot buy", () => {

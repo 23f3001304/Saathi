@@ -4,8 +4,9 @@ import { asks, askTurn } from "./ask-step.js";
 import { listingFor } from "./intent-listing.js";
 import { observedFrom } from "./observation.js";
 import { lastSentence } from "./prose.js";
+import { CORRECTIVE, obeys } from "./language-gate.js";
 import { proposeCart, retrieveForCart } from "./propose-step.js";
-import { speakFor } from "./web-errand.js";
+import { anchorLine, speakFor } from "./web-errand.js";
 import type { PurchaseResult } from "./purchase-result.js";
 import type { RunnerConfig, RunnerParts } from "./runner-parts.js";
 

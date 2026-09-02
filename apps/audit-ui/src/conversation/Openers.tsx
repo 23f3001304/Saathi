@@ -25,9 +25,9 @@ const DEFAULTS: readonly Opener[] = [
     tags: ["shoes", "under ₹4,000", "shops you trust"],
   },
   {
-    prompt: "The cheapest 3-pack of cotton socks, delivered this week",
-    why: "A short run that ends at a bill you can sign.",
-    tags: ["clothes", "cheapest first", "this week"],
+    prompt: "Find a 1TB internal NVMe SSD under ₹5,000 on Amazon",
+    why: "Watch it walk a real shop in a window you control.",
+    tags: ["open web", "live window", "you hold the wheel"],
   },
 ];
 

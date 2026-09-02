@@ -394,3 +394,17 @@
 .full .actionList {
   display: none;
 }
+
+.outsideSummary {
+  cursor: pointer;
+  list-style: none;
+}
+
+.outsideSummary::after {
+  content: " · what changes while you drive";
+  color: var(--ink-40);
+}
+
+details[open] > .outsideSummary::after {
+  content: "";
+}
