@@ -25,8 +25,15 @@ function reveal(el: HTMLElement, pending: Set<HTMLElement>): void {
 
 function sweep(pending: Set<HTMLElement>): void {
   const line = window.innerHeight * 0.96;
-  for (const el of Array.from(pending)) {
-    if (el.getBoundingClientRect().top < line) reveal(el, pending);
+  // All reads, then all writes. Interleaving them forced a full reflow per
+  // node (every dataset write invalidates layout, every rect read pays for
+  // it), which on a page of large painted panels stalled scroll for whole
+  // seconds. Batched, the sweep costs one layout however many nodes it has.
+  const due = Array.from(pending).filter(
+    (el) => el.getBoundingClientRect().top < line,
+  );
+  for (const el of due) {
+    reveal(el, pending);
   }
 }
 

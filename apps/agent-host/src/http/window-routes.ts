@@ -16,11 +16,29 @@ const SSE_HEADERS: Readonly<Record<string, string>> = {
   "X-Accel-Buffering": "no",
 };
 
+/** A frame poll may never outlive a frame. The capture rides the window's
+ *  CDP session, and mid-errand that session can wedge for seconds; an
+ *  unbounded await here hung the poll, six hung polls exhausted the
+ *  browser's per-origin connection budget, and every other request from
+ *  that tab queued behind them: the "blank, frozen page" in one bug. */
+const FRAME_CEILING_MS = 600;
+
+function boundedFrame(
+  handle: SessionHandle,
+): Promise<Awaited<ReturnType<SessionHandle["service"]["frame"]>> | null> {
+  return Promise.race([
+    handle.service.frame(),
+    new Promise<null>((resolve) =>
+      setTimeout(() => resolve(null), FRAME_CEILING_MS),
+    ),
+  ]);
+}
+
 async function frame(
   context: AppContext,
   handle: SessionHandle,
 ): Promise<Response> {
-  const captured = await handle.service.frame();
+  const captured = await boundedFrame(handle);
   const view = handle.service.view();
   if (captured === null || view === null) {
     return context.json({ ok: false, reason_code: "NO_SESSION" }, 404);

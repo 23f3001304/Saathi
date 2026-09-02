@@ -43,7 +43,10 @@ const SUMMARISE =
   "buy for what they asked, and the one reason why. Then one markdown " +
   "bullet per option you would genuinely put in front of them, best first, " +
   "exactly this shape: `- **Name**, price:` then a single sentence you " +
-  "could defend. Two or three bullets, never more. If the cheapest is not " +
+  "could defend. Two or three bullets, never more. Offer only the product " +
+  "itself: a case for it, a cable, a cover is not it, and if everything " +
+  "shown fails that test, say you found accessories rather than the thing " +
+  "and ask which kind of the thing they meant. If the cheapest is not " +
   "the one you would buy, say so inside its bullet. You are the expert " +
   "here: judge each one on the axes that matter for THIS product, not on " +
   "the page's own selling points.\n" +

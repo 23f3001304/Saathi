@@ -1,0 +1,17 @@
+.band {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+.strand {
+  fill: none;
+  stroke: var(--indigo);
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  opacity: 0.55;
+}
+
+.pulli {
+  fill: var(--saffron);
+}

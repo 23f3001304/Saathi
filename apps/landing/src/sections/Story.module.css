@@ -1,0 +1,298 @@
+/* One theatre. Every scene is a full photograph wearing the same indigo
+   night scrim, with the words floating in its light; the type speaks in
+   three voices (kicker, line, sub) and never changes costume between
+   scenes. Motion is CSS only: [data-s] children rise as a scene enters.
+   No scroll listeners, no rAF, no ResizeObservers anywhere on this page. */
+
+.scene {
+  position: relative;
+  min-height: 100svh;
+  display: flex;
+  align-items: center;
+  overflow: clip;
+  padding: var(--sp-13) var(--page-pad);
+}
+
+.photo {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: saturate(0.94);
+}
+
+/* The house scrim: indigo night falling from the left, so every chapter
+   reads on every photograph and seven photographers become one theatre. */
+.scrim {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(
+      92deg,
+      rgba(16, 13, 38, 0.92) 0%,
+      rgba(16, 13, 38, 0.78) 38%,
+      rgba(16, 13, 38, 0.34) 68%,
+      rgba(16, 13, 38, 0.18) 100%
+    ),
+    linear-gradient(to top, rgba(16, 13, 38, 0.55) 0%, transparent 26%);
+}
+
+/* Scenes whose subject lives high in frame let the copy sit low instead. */
+.low {
+  align-items: flex-end;
+}
+
+.low .chapter {
+  padding-bottom: var(--sp-9);
+}
+
+.chapter {
+  position: relative;
+  width: 100%;
+  max-width: var(--page-max);
+  margin: 0 auto;
+}
+
+.chapter > * {
+  max-width: 660px;
+}
+
+/* ————— the three voices, in stage light ————— */
+
+.kicker {
+  margin: 0 0 var(--sp-5);
+  font-family: var(--font-data);
+  font-size: var(--t-label);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--marigold);
+}
+
+.line {
+  margin: 0 0 var(--sp-5);
+  font-family: var(--font-display);
+  font-variation-settings:
+    "opsz" 100,
+    "wght" 460;
+  font-size: clamp(36px, 4.8vw, 66px);
+  line-height: 1.04;
+  letter-spacing: -0.015em;
+  color: #f5f2ea;
+  text-wrap: balance;
+}
+
+.sub {
+  margin: 0;
+  max-width: 50ch;
+  font-size: 17px;
+  line-height: 1.65;
+  color: rgba(245, 242, 234, 0.75);
+}
+
+.name {
+  margin: 0 0 var(--sp-5);
+  font-size: clamp(72px, 10vw, 150px);
+  line-height: 0.94;
+  letter-spacing: -0.02em;
+  color: #f5f2ea;
+}
+
+/* ————— choreography (CSS only) ————— */
+
+@media (prefers-reduced-motion: no-preference) {
+  .scene [data-s] {
+    opacity: 0;
+    transform: translateY(20px);
+    transition:
+      opacity 0.75s var(--ease-out),
+      transform 0.75s var(--ease-out);
+    transition-delay: calc(var(--i, 0) * 110ms);
+  }
+  .scene [data-s]:global(.in) {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* ————— fittings ————— */
+
+.ctaRow {
+  display: flex;
+  gap: var(--sp-4);
+  margin: var(--sp-7) 0 0;
+  flex-wrap: wrap;
+}
+
+.cta,
+.ctaGhost {
+  display: inline-block;
+  padding: 13px 24px;
+  border-radius: 999px;
+  font-family: var(--font-data);
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-decoration: none;
+  transition: transform 160ms ease;
+}
+
+.cta {
+  background: var(--saffron);
+  color: #1c1206;
+}
+
+.ctaGhost {
+  border: 1px solid rgba(245, 242, 234, 0.4);
+  color: #f5f2ea;
+}
+
+.cta:hover,
+.ctaGhost:hover {
+  transform: translateY(-1px);
+}
+
+.cue {
+  position: absolute;
+  left: 50%;
+  bottom: var(--sp-5);
+  transform: translateX(-50%);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+  font-family: var(--font-data);
+  font-size: var(--t-label);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(245, 242, 234, 0.6);
+  text-decoration: none;
+}
+
+.spent {
+  margin: var(--sp-6) 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+}
+
+.spent li {
+  display: flex;
+  align-items: baseline;
+  gap: var(--sp-5);
+  padding: var(--sp-4) 0;
+  border-bottom: 1px solid rgba(245, 242, 234, 0.16);
+  font-size: 15px;
+  color: rgba(245, 242, 234, 0.75);
+}
+
+.spentAmount {
+  font-family: var(--font-data);
+  font-variant-numeric: tabular-nums lining;
+  font-size: 17px;
+  color: #f5f2ea;
+  min-width: 7ch;
+}
+
+.spentMark {
+  margin-left: auto;
+  font-family: var(--font-data);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #ff8d7e;
+  white-space: nowrap;
+}
+
+.vachan {
+  margin: 0 0 var(--sp-5);
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: clamp(22px, 2.6vw, 34px);
+  line-height: 1.35;
+  color: #ffd9a1;
+  border-left: 2px solid var(--saffron);
+  padding-left: var(--sp-5);
+}
+
+.tricks {
+  margin: var(--sp-6) 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+}
+
+.tricks li {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-5);
+  padding: var(--sp-4) 0;
+  border-bottom: 1px solid rgba(245, 242, 234, 0.16);
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: clamp(17px, 1.9vw, 23px);
+  color: rgba(245, 242, 234, 0.8);
+}
+
+.refusedStamp {
+  margin-left: auto;
+  padding: 4px 10px;
+  border: 1.5px solid #ff8d7e;
+  border-radius: 3px;
+  transform: rotate(-3deg);
+  font-family: var(--font-data);
+  font-style: normal;
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #ff8d7e;
+}
+
+.ledger {
+  margin: var(--sp-6) 0;
+  display: flex;
+  flex-direction: column;
+  border-top: 1px solid rgba(245, 242, 234, 0.16);
+}
+
+.ledger div {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--sp-6);
+  padding: var(--sp-4) 0;
+  border-bottom: 1px solid rgba(245, 242, 234, 0.16);
+}
+
+.ledger dt {
+  font-family: var(--font-data);
+  font-size: var(--t-label);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(245, 242, 234, 0.55);
+}
+
+.ledger dd {
+  margin: 0;
+  font-family: var(--font-data);
+  font-variant-numeric: tabular-nums lining;
+  font-size: 14px;
+  color: #f5f2ea;
+}
+
+.sealRow {
+  margin: var(--sp-6) 0;
+  /* the seal was drawn for paper; give it a lit plinth on the night stage */
+  display: inline-flex;
+  padding: var(--sp-5);
+  border-radius: 999px;
+  background: rgba(250, 247, 242, 0.92);
+}
+
+.builtNote {
+  margin: var(--sp-6) 0 0;
+  font-family: var(--font-data);
+  font-size: var(--t-label);
+  letter-spacing: 0.08em;
+  color: rgba(245, 242, 234, 0.5);
+}

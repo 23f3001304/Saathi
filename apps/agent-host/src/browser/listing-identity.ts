@@ -64,3 +64,25 @@ export function identityOf(listing: {
   const name = cleanTitle(listing.title).toLowerCase();
   return `${name}|${listing.price_paise ?? listing.price_text}`;
 }
+
+/** Words that name a thing FOR a product rather than the product: the tile
+ *  "ZORBES SSD Case Compatible with Crucial X9" carries every token an SSD
+ *  search wants and is a pouch. Word overlap cannot see category; this can. */
+const ACCESSORY_WORDS =
+  /\b(case|cover|pouch|sleeve|enclosure|adapter|cable|charger|protector|skin|bag|mount|stand|holder|caddy|tray|strap|film|guard)\b/i;
+
+/**
+ * Whether a listing is an accessory to the thing asked for rather than the
+ * thing. An accessory word in the title that the query never said is the
+ * signal; "compatible with" seals it. A shopper who asked for the case gets
+ * the case: their own word in the query clears it.
+ */
+export function accessoryFor(title: string, query: string): boolean {
+  const word = ACCESSORY_WORDS.exec(title)?.[1];
+  const compatible = /compatible (with|for)/i.test(title);
+  if (word === undefined && !compatible) return false;
+  if (word !== undefined && new RegExp(`\b${word}\b`, "i").test(query)) {
+    return false;
+  }
+  return word !== undefined || compatible;
+}

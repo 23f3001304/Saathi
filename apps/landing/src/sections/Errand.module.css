@@ -1,8 +1,23 @@
 .section {
   position: relative;
+  /* The sunk band: same shape as the dark leaves, in sunk paper, so the
+     three panels read as one system in two moods. */
+  background: none;
   max-width: var(--page-max);
-  margin: 0 auto;
+  margin: var(--sp-9) auto;
   padding: var(--sp-12) var(--page-pad) var(--sp-13);
+}
+
+/* The ground is painted, never laid out: an absolutely positioned leaf
+   stretched past the column costs no layout, so nothing downstream (the
+   margin thread's observer, the body's scroll width) can feed on it. */
+.section::before {
+  content: "";
+  position: absolute;
+  inset: 0 min(calc(50% - 50vw + 16px), 0px);
+  background: var(--paper-sunk);
+  border-radius: 6px;
+  z-index: -1;
 }
 
 .statement {

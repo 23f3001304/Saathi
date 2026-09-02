@@ -6,6 +6,12 @@ const ERRAND =
   "watching. Open a shop you judge right for this with web_open, read it with " +
   "web_read, and use its own search box with web_search. Do that before you " +
   "answer: an answer with no page behind it is worth nothing here.\n" +
+  "Search the shopper's own words and nothing more. Never invent a " +
+  "capacity, a size or a kind they did not say: if the kind is missing " +
+  "(internal or external, how big), search the plain product word, look at " +
+  "what exists, and end your errand by asking which kind they meant, " +
+  "naming the kinds you saw. A case, a cover or a cable FOR a product is " +
+  "not the product: do not open it and do not offer it.\n" +
   "Type into the search box what a person naming the product would type: the " +
   "product and the specs that pick it out, three or four words. Never type " +
   "the budget, the politeness or the story into the box; the budget is for " +

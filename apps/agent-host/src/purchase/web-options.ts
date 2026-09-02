@@ -1,6 +1,6 @@
 import type { WebListingView } from "../browser/web-listing.js";
 import { merchantOf } from "../browser/browser-view.js";
-import { cleanTitle } from "../browser/listing-identity.js";
+import { accessoryFor, cleanTitle } from "../browser/listing-identity.js";
 import type { OptionRowData } from "../http/chat-beat.js";
 import { requestOverlap } from "../judge/catalog-match.js";
 
@@ -51,6 +51,8 @@ export function cardedListings(
 ): readonly WebListingView[] {
   return listings
     .filter((listing) => listing.price_paise !== null)
+    // A case for the thing is not the thing: category before overlap.
+    .filter((listing) => !accessoryFor(listing.title, query))
     .map((listing) => ({
       listing,
       // The *cleaned* title: a tile whose only overlap with the query was

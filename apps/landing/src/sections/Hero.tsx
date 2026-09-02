@@ -1,4 +1,5 @@
 import { useRef, type JSX } from "react";
+import { Band } from "../kolam/Band.tsx";
 import { Wordmark } from "../chrome/Wordmark.tsx";
 import { HeroStack } from "./HeroStack.tsx";
 import { useInkPressure } from "../motion/useInkPressure.ts";
@@ -18,51 +19,17 @@ import styles from "./Hero.module.css";
  * statement's shoulder. Discoverable interactions: the wet ink of the
  * name under the cursor, and the seal that actually signs.
  */
-const HERO_LINE =
-  "M -24 60 " +
-  "C 60 96 130 128 190 165 " +
-  "a 10 10 0 1 0 20 6 " +
-  "C 300 240 380 300 440 350 " +
-  "C 520 420 640 480 760 512 " +
-  "L 850 524 " +
-  "a 10 10 0 0 0 20 0 a 10 10 0 0 0 -20 0 " +
-  "L 980 530 " +
-  "C 1090 545 1160 620 1195 700 " +
-  "a 10 10 0 1 0 18 8 " +
-  "C 1240 790 1268 860 1284 916";
-
-function HeroLine(): JSX.Element {
-  return (
-    <svg
-      className={styles.line}
-      viewBox="0 0 1440 900"
-      preserveAspectRatio="xMidYMid slice"
-      aria-hidden="true"
-    >
-      <path
-        className={styles.lineInk}
-        d={HERO_LINE}
-        pathLength={1}
-        strokeDasharray="1 1"
-      />
-    </svg>
-  );
-}
-
 export function Hero(): JSX.Element {
   const nameRef = useRef<HTMLHeadingElement>(null);
   useInkPressure(nameRef);
 
   return (
     <section className={styles.hero} id="top" aria-label="Saathi">
-      <p className={styles.ghost} aria-hidden="true" data-parallax="0.14">
-        साथी
-      </p>
-      <HeroLine />
       <p className={styles.eyebrow}>namaste · नमस्ते</p>
       <h1 className={styles.name} ref={nameRef}>
         <Wordmark mode="hero" />
       </h1>
+      <Band links={10} className={styles.band} />
       <p className={styles.ruleRow}>
         <span>
           <span className={styles.ruleHindi}>साथी</span> · companion · the one

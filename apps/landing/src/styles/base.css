@@ -112,16 +112,13 @@ button {
   html[data-js] [data-reveal] {
     opacity: 0;
     transform: translateY(16px);
-    filter: blur(8px);
   }
   html[data-js] [data-reveal="in"] {
     opacity: 1;
     transform: none;
-    filter: blur(0);
     transition:
       opacity var(--d-enter) var(--ease-out),
-      transform var(--d-enter) var(--ease-out),
-      filter var(--d-enter) var(--ease-out);
+      transform var(--d-enter) var(--ease-out);
     transition-delay: calc(var(--i, 0) * var(--stagger));
   }
 

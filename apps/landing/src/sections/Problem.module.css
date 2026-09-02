@@ -1,8 +1,30 @@
 .section {
   position: relative;
+  /* The dark leaf. The page's own tokens, inverted locally: warm ink
+     becomes the ground, cream becomes the writing, and every derived
+     tint recomputes, so this panel speaks the same language as the
+     paper it sits on: that is what cohesion means here. */
+  --paper: #211e19;
+  --paper-raised: #2a261f;
+  --paper-sunk: #1a1713;
+  --ink: #f2eee4;
+  color: var(--ink-70);
+  background: none;
   max-width: var(--page-max);
-  margin: 0 auto;
+  margin: var(--sp-9) auto;
   padding: var(--sp-12) var(--page-pad) var(--sp-13);
+}
+
+/* The ground is painted, never laid out: an absolutely positioned leaf
+   stretched past the column costs no layout, so nothing downstream (the
+   margin thread's observer, the body's scroll width) can feed on it. */
+.section::before {
+  content: "";
+  position: absolute;
+  inset: 0 min(calc(50% - 50vw + 16px), 0px);
+  background: var(--paper);
+  border-radius: 6px;
+  z-index: -1;
 }
 
 .grid {
