@@ -37,7 +37,11 @@ function useLanes(): readonly LaneRow[] {
     const tick = async (): Promise<void> => {
       const rows = await fetchLanes(base);
       if (stopped) return;
-      setLanes(rows.filter((row) => row.conversation !== null));
+      // Only lanes that actually hold a window: an idle chat is not a
+      // window, and a row of chips over an empty room read as a bug.
+      setLanes(
+        rows.filter((row) => row.conversation !== null && row.window),
+      );
       timer = setTimeout(() => void tick(), POLL_MS);
     };
     void tick();

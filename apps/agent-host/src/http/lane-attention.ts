@@ -10,6 +10,8 @@ export interface LaneReport {
   /** Place in the global line, or `null` when not waiting. */
   readonly queued: number | null;
   readonly attention: Attention;
+  /** Whether this lane holds an open sandbox window right now. */
+  readonly window: boolean;
 }
 
 /** The beat kinds that settle what a stopped run left on the table. */
@@ -56,12 +58,14 @@ export function lanesReport(lanes: ChatLanes): readonly LaneReport[] {
     running: lane.chat.busy,
     queued: null,
     attention: attentionOf(lane),
+    window: lane.browser.view() !== null,
   }));
   const waiting = lanes.queued().map((conversation, at) => ({
     conversation,
     running: false,
     queued: at + 1,
     attention: null,
+    window: false,
   }));
   const shown = new Set(waiting.map((row) => row.conversation));
   return [...held.filter((row) => !shown.has(row.conversation)), ...waiting];

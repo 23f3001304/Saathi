@@ -9,6 +9,8 @@ export interface LaneRow {
   /** Place in the global line, or `null` when not waiting. */
   readonly queued: number | null;
   readonly attention: AttentionKind | null;
+  /** Whether this lane holds an open sandbox window right now. */
+  readonly window: boolean;
 }
 
 const KINDS: readonly string[] = ["question", "pick", "sign", "handoff"];
@@ -27,6 +29,7 @@ function rowOf(value: unknown): LaneRow | null {
       typeof attention === "string" && KINDS.includes(attention)
         ? (attention as AttentionKind)
         : null,
+    window: row["window"] === true,
   };
 }
 

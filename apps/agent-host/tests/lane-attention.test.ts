@@ -82,12 +82,14 @@ describe("the lane list", () => {
       running: true,
       queued: null,
       attention: null,
+      window: false,
     });
     expect(rows).toContainEqual({
       conversation: "B",
       running: false,
       queued: 1,
       attention: null,
+      window: false,
     });
     // One row per conversation: the queued row replaces the lane row.
     expect(rows.filter((row) => row.conversation === "B")).toHaveLength(1);
