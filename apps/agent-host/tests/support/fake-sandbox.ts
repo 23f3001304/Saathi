@@ -90,6 +90,10 @@ export class FakeSandboxPage implements DrivenPage {
   scrapeCart(): Promise<CartDom> {
     return Promise.resolve({ rows: [], totalCandidates: [], url: this.at });
   }
+  stopLoading(): Promise<void> {
+    return Promise.resolve();
+  }
+
   readPage(): Promise<PageDom> {
     return Promise.resolve({ ...EMPTY_PAGE, url: this.at });
   }

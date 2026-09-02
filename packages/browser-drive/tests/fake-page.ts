@@ -146,6 +146,10 @@ export class FakePage implements DrivenPage {
     return Promise.resolve(this.options.cart ?? EMPTY_CART);
   }
 
+  stopLoading(): Promise<void> {
+    return Promise.resolve();
+  }
+
   readPage(): Promise<PageDom> {
     return Promise.resolve(
       this.options.page ?? { ...EMPTY_PAGE, url: this.current },

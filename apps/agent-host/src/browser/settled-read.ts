@@ -93,6 +93,10 @@ export async function settledRead(
   try {
     return await within(session.page().readPage(), ceilingMs);
   } catch {
+    // A timed-out read is usually a load that will never finish, and the
+    // retry fights the same stuck load: one live cascade burned the full
+    // ceiling four reads running. Cancel it, then read what is there.
+    await session.page().stopLoading();
     await waiter.sleep(SETTLE_MS);
     return await within(session.page().readPage(), ceilingMs);
   }

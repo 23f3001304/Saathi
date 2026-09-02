@@ -123,6 +123,25 @@ export class PuppeteerPage implements DrivenPage {
    * structure implies where it declared nothing. See `listing-script.ts` for
    * why the listings are a separate pass from the controls.
    */
+  async stopLoading(): Promise<void> {
+    // Its own CDP session so a wedged main session cannot hang this too;
+    // raced so a wedged browser cannot either. Failure is acceptable: this
+    // is a nudge, and the read ceiling still owns the worst case.
+    try {
+      const session = await this.page.createCDPSession();
+      const halt = session
+        .send("Page.stopLoading")
+        .then(() => session.detach())
+        .catch(() => undefined);
+      await Promise.race([
+        halt,
+        new Promise((resolve) => setTimeout(resolve, 1_000)),
+      ]);
+    } catch {
+      // A page that cannot even mint a session is beyond nudging.
+    }
+  }
+
   readPage(): Promise<PageDom> {
     return this.live(async (page) => {
       const dom = await page.evaluate(readPageDom);

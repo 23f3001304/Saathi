@@ -99,6 +99,11 @@ export class GuardedPage {
 
   /** The whole page as text, links and controls. A read: gated, never blocked
    *  — what may be *done* with what it finds is decided one call later. */
+  stopLoading(): Promise<void> {
+    // Watching-side, not acting-side: cancelling a stuck load drives nothing.
+    return this.page.stopLoading();
+  }
+
   async readPage(): Promise<PageDom> {
     this.state.assertAgentMayAct("read_page");
     const dom = await this.page.readPage();

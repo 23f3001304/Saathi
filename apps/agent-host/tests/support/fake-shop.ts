@@ -58,6 +58,10 @@ export class FakeShopPage implements DrivenPage {
   private here(): ShopPage {
     return pageAt(this.at);
   }
+  stopLoading(): Promise<void> {
+    return Promise.resolve();
+  }
+
   readPage(): Promise<PageDom> {
     if (this.failReads > 0) {
       this.failReads -= 1;

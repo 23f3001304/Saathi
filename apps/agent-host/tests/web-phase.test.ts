@@ -186,7 +186,10 @@ describe("a page that will not be read is abandoned, not waited on", () => {
     // behind a run that would never end.
     const never = new Promise<never>(() => undefined);
     const session = {
-      page: () => ({ readPage: () => never }),
+      page: () => ({
+        readPage: () => never,
+        stopLoading: () => Promise.resolve(),
+      }),
     } as unknown as Parameters<typeof settledRead>[0];
     const waiter = { sleep: async () => undefined };
 

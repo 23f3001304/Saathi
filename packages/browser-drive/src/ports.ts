@@ -116,6 +116,10 @@ export interface DrivenPage extends ObservablePage, InputPage {
   scrapeCart(): Promise<CartDom>;
   /** Text, links and controls, in one pass. Untrusted by construction. */
   readPage(): Promise<PageDom>;
+  /** Cancels whatever the page is still loading. A read that timed out is
+   *  usually a load that will never finish, and the next read fights the
+   *  same stuck load unless somebody stops it. Bounded and best-effort. */
+  stopLoading(): Promise<void>;
   typeInto(selector: string, text: string): Promise<void>;
   clickOn(selector: string): Promise<void>;
 }
