@@ -21,6 +21,7 @@ import { type BuyerParts, wireBuyer } from "./buyer-wiring.js";
 import type { BeatLogParts } from "./chat-wiring.js";
 import { wireChat, wireLaneBeats } from "./chat-wiring.js";
 import { type DispatchParts, wireToolDispatch } from "./dispatch-wiring.js";
+import type { CredentialVault } from "../session/credential-vault.js";
 import type { GatewayParts } from "./gateway-wiring.js";
 import type { KeyParts } from "./key-wiring.js";
 import type { BuyerIdentityParts, MerchantParts } from "./merchant-wiring.js";
@@ -46,6 +47,8 @@ export interface LaneShared {
   readonly registry: BrowserRegistry;
   /** Durable and shopper-scoped, not conversation-scoped: shareable. */
   readonly traits: TraitMemory;
+  /** The stored sign-ins; read only by the host's sign-in routine. */
+  readonly vault: CredentialVault;
   readonly contextLog: ContextLog;
   readonly beats: BeatLogParts;
 }

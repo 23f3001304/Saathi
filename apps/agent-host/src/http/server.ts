@@ -21,6 +21,8 @@ import {
 import { registerBrowser } from "./browser-routes.js";
 import { registerChat } from "./chat-routes.js";
 import { registerCovenantAmend } from "./covenant-routes.js";
+import { registerVault } from "./vault-routes.js";
+import type { CredentialVault } from "../session/credential-vault.js";
 import type { BrowserRegistry } from "../browser/browser-registry.js";
 import type { SessionKeys } from "./session-keys.js";
 import { requestContext } from "./request-context.js";
@@ -33,6 +35,7 @@ export interface ServerDeps {
   readonly browserRegistry: BrowserRegistry;
   readonly browserKeys: SessionKeys;
   readonly amend: AmendFlow;
+  readonly vault: CredentialVault;
   readonly logger: Logger;
   readonly store: ContextStore;
   readonly clock: Clock;
@@ -146,5 +149,6 @@ export function buildServer(deps: ServerDeps): BuiltServer {
   const socket = registerBeatSocket(app, deps.lanes);
   registerBrowserOn(app, deps);
   registerCovenantAmend(app, deps.amend);
+  registerVault(app, deps.vault);
   return { app, injectWebSocket: socket.injectWebSocket };
 }

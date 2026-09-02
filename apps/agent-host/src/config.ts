@@ -48,6 +48,7 @@ const configSchema = z.strictObject({
    * so a single-machine demo lands on one file without being told.
    */
   dbFile: z.string().min(1),
+  vaultFile: z.string().min(1),
   /** The shared secret `/browser/*` requires. Minted at boot when unset. */
   browserKey: z.string().min(32),
   /** Origins allowed to read the key back over the handshake route. */
@@ -116,16 +117,20 @@ function uiOriginsOf(env: Env): readonly string[] {
     .filter((entry) => entry !== "");
 }
 
+function readOr(env: Env, name: string, fallback: string): string {
+  return read(env, name) ?? fallback;
+}
+
 function draftOf(env: Env): unknown {
   return {
     port: intOf(env, "PORT", 8788),
-    gatewayUrl: read(env, "COVENANT_GATEWAY_URL") ?? "http://localhost:8787",
-    keyDir: read(env, "COVENANT_KEY_DIR") ?? DEFAULT_KEY_DIR,
-    tenantId: read(env, "COVENANT_TENANT") ?? "tnt_demo",
-    apiVersion: read(env, "COVENANT_API_VERSION") ?? COVENANT_API_VERSION,
-    logLevel: read(env, "LOG_LEVEL") ?? "info",
+    gatewayUrl: readOr(env, "COVENANT_GATEWAY_URL", "http://localhost:8787"),
+    keyDir: readOr(env, "COVENANT_KEY_DIR", DEFAULT_KEY_DIR),
+    tenantId: readOr(env, "COVENANT_TENANT", "tnt_demo"),
+    apiVersion: readOr(env, "COVENANT_API_VERSION", COVENANT_API_VERSION),
+    logLevel: readOr(env, "LOG_LEVEL", "info"),
     mode: modeOf(env),
-    model: read(env, "COVENANT_AGENT_MODEL") ?? "gpt-5.6-luna",
+    model: readOr(env, "COVENANT_AGENT_MODEL", "gpt-5.6-luna"),
     capPaise: intOf(env, "COVENANT_AGENT_CAP_PAISE", 250_000),
     maxTurns: intOf(env, "COVENANT_AGENT_MAX_TURNS", 12),
     timeoutMs: intOf(env, "COVENANT_AGENT_TIMEOUT_MS", 15_000),
@@ -134,7 +139,8 @@ function draftOf(env: Env): unknown {
     // which is the one thing this system exists to make impossible. The CLI
     // and the e2e harness opt in explicitly.
     autoSign: flag(env, "COVENANT_AGENT_AUTOSIGN", false),
-    dbFile: read(env, "COVENANT_DB") ?? "./data/covenant.db",
+    dbFile: readOr(env, "COVENANT_DB", "./data/covenant.db"),
+    vaultFile: readOr(env, "COVENANT_VAULT", "./data/credentials.json"),
     browserKey: browserKeyOf(env),
     uiOrigins: uiOriginsOf(env),
   };

@@ -14,6 +14,7 @@ import type { ConversationBeatStore } from "./http/beat-store.js";
 import { ChatLanes } from "./http/chat-lanes.js";
 import type { ChatService } from "./http/chat-service.js";
 import type { AmendFlow } from "./covenant/amend-flow.js";
+import { CredentialVault } from "./session/credential-vault.js";
 import type { BuyerParts } from "./wiring/buyer-wiring.js";
 import type { DispatchParts } from "./wiring/dispatch-wiring.js";
 import { type GatewayParts, wireGateway } from "./wiring/gateway-wiring.js";
@@ -58,6 +59,8 @@ export interface CompositionRoot {
   readonly browserRegistry: BrowserRegistry;
   readonly browserKeys: SessionKeys;
   readonly amend: AmendFlow;
+  /** The shopper's stored sign-ins; read only by the sign-in routine. */
+  readonly vault: CredentialVault;
 }
 
 /**
@@ -106,7 +109,7 @@ function sandboxOf(config: AgentHostConfig, parts: ReturnType<typeof baseOf>) {
 function sharedOf(
   parts: ReturnType<typeof baseOf>,
   sandbox: ReturnType<typeof sandboxOf>,
-): LaneShared {
+): Omit<LaneShared, "vault"> {
   return {
     ...parts,
     registry: sandbox.browserRegistry,
@@ -128,7 +131,8 @@ function sharedOf(
 export function buildRoot(config: AgentHostConfig): CompositionRoot {
   const parts = baseOf(config);
   const sandbox = sandboxOf(config, parts);
-  const shared = sharedOf(parts, sandbox);
+  const vault = new CredentialVault(config.vaultFile);
+  const shared = { ...sharedOf(parts, sandbox), vault };
   // Built eagerly and pinned into the factory: the CLI and the shutdown path
   // hold this lane's parts directly, so it must be the same object the
   // manager serves for `null`.
@@ -151,5 +155,6 @@ export function buildRoot(config: AgentHostConfig): CompositionRoot {
     chat: lane.chat,
     lanes,
     amend: wireAmendFlow(parts),
+    vault,
   };
 }

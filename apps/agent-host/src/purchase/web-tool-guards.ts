@@ -104,3 +104,10 @@ export function badArgs(error: z.ZodError): ToolOutcome {
     }),
     isError: true,
   };}
+
+export function unknown(tool: string): ToolOutcome {
+  return {
+    content: JSON.stringify({ ok: false, failure: "unknown_tool", tool }),
+    isError: true,
+  };
+}

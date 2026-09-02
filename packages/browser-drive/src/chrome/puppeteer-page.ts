@@ -60,7 +60,6 @@ export class PuppeteerPage implements DrivenPage {
     }
   }
 
-  /** Real Chrome always has one; the fallback exists for surfaces that do not. */
   caster(): Caster {
     return this.cast;
   }

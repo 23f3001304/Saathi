@@ -27,6 +27,15 @@ export const ADDRESS_REPLIES: readonly string[] = [
   "Change the address",
 ];
 
+/** Asked when the shop sent a one-time code after the host signed in. The
+ *  code goes through chat by the shopper's own choice; the other tap is the
+ *  wheel, where they type it without it ever crossing this process. */
+export const ASK_CODE =
+  "The shop has sent a one-time code to you. Tell me the code and I will " +
+  "type it in, or take the wheel and enter it yourself.";
+
+export const CODE_REPLIES: readonly string[] = ["I will type it myself"];
+
 /** Said when the shopper tells the agent to carry on while the window is still
  *  theirs — the wheel has to come back before anything can. */
 export const STILL_THEIRS =

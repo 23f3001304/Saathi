@@ -1,15 +1,26 @@
 import type { ToolCall, ToolOutcome } from "@covenant/agents";
 import {
+  WEB_ENTER_CODE_TOOL,
+  WEB_FOUND_TOOL,
   WEB_PRESS_TOOL,
   WEB_SEARCH_TOOL,
+  WEB_SIGN_IN_TOOL,
   WEB_WRITE_TOOL,
 } from "@covenant/agents";
 import type { z } from "zod";
 
 import type { WebShopper } from "../browser/web-shopper.js";
+import type { SignInVerbs } from "../browser/web-sign-in.js";
+import type { WebFindings } from "../browser/web-listing.js";
 import type { WebResult } from "../browser/web-result.js";
-import { badArgs, outcomeOf } from "./web-tool-guards.js";
-import { webPressArgs, webSearchArgs, webWriteArgs } from "./web-tools.js";
+import { badArgs, outcomeOf, unknown } from "./web-tool-guards.js";
+import {
+  webEnterCodeArgs,
+  webFoundArgs,
+  webPressArgs,
+  webSearchArgs,
+  webWriteArgs,
+} from "./web-tools.js";
 
 /**
  * The act calls that are pure argument-parsing over the shopper: a search, a
@@ -47,4 +58,56 @@ async function parsedCall<S extends z.ZodType>(
   return parsed.success
     ? outcomeOf(await run(parsed.data))
     : badArgs(parsed.error);
+}
+
+/** The vault's two calls. `null` for any other tool; `unknown` when a host
+ *  has no vault wired, so the model hears "not a tool here" rather than a
+ *  silent success that signed nobody in. */
+export function vaultCall(
+  call: ToolCall,
+  verbs: SignInVerbs | null,
+): Promise<ToolOutcome> | null {
+  switch (call.tool) {
+    case WEB_SIGN_IN_TOOL:
+      return verbs === null
+        ? Promise.resolve(unknown(call.tool))
+        : verbs.signIn().then(outcomeOf);
+    case WEB_ENTER_CODE_TOOL:
+      return verbs === null
+        ? Promise.resolve(unknown(call.tool))
+        : parsedCall(webEnterCodeArgs, call, (args) =>
+            verbs.enterCode(args.code),
+          );
+    default:
+      return null;
+  }
+}
+
+/** Research candidates in, cards out. Untrusted rows: the host re-parses
+ *  every price and drops any URL that is not plain http(s); refs are minted
+ *  by the findings table, exactly as for tiles read off a page. */
+export function foundCall(
+  call: ToolCall,
+  findings: WebFindings | null,
+): ToolOutcome | null {
+  if (call.tool !== WEB_FOUND_TOOL) return null;
+  const parsed = webFoundArgs.safeParse(call.args);
+  if (!parsed.success) return badArgs(parsed.error);
+  if (findings === null) return unknown(call.tool);
+  const rows = findings.record(
+    parsed.data.found.map((row) => ({
+      title: row.title,
+      priceText: row.price_text,
+      href: row.url,
+      imageUrl: row.image_url,
+    })),
+  );
+  return {
+    content: JSON.stringify({
+      ok: true,
+      recorded: rows.length,
+      refs: rows.map((row) => row.ref),
+    }),
+    isError: false,
+  };
 }

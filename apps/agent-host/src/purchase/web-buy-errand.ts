@@ -36,6 +36,12 @@ const BUY =
   "own change-address or add-address control, and when the form opens call " +
   "web_fill_address; boxes the profile does not answer stay empty and " +
   "stay theirs. If the profile below is empty, change nothing.\n" +
+  "- if the shop asks you to sign in, call web_sign_in. The host types the " +
+  "sign-in the shopper stored in the app; you cannot read, choose or see " +
+  "it. If nothing is stored, or the shop wants a human check, the window " +
+  "is theirs: say so and wait. If a one-time code page follows, stop and " +
+  "ask them for the code; they can also take the wheel and type it " +
+  "themselves.\n" +
   "- stop at the payment step. Never press a button that pays. A refusal " +
   "there is the design working, not a fault.\n" +
   "- if the shop asks to check you are human, you have already stopped: " +
@@ -115,6 +121,13 @@ const WHY: Readonly<Record<string, string>> = {
     "step, and stop there. If it is not agreement, or it corrects the " +
     "address, do not go forward: say what you understood and ask them to " +
     "state the address they want, so it can be remembered.",
+  code:
+    "The host signed in and the shop then asked for a one-time code, so you " +
+    "stopped and asked them for it. If their line below carries the code, " +
+    "call web_enter_code with exactly those digits and then carry on to the " +
+    "payment step and stop there. If they said they will type it " +
+    "themselves, say the window is theirs and wait. Never guess a code and " +
+    "never reuse an old one.",
   handback:
     "The shop asked for something only they can give (a sign-in, a check " +
     "that they are human) and you handed them the window. Read it again " +

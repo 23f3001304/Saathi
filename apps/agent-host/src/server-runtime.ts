@@ -70,6 +70,7 @@ function depsFor(
     browserRegistry: root.browserRegistry,
     browserKeys: root.browserKeys,
     amend: root.amend,
+    vault: root.vault,
     logger: root.obs.logger,
     store: root.obs.store,
     clock: root.clock,

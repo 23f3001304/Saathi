@@ -4,6 +4,8 @@ import type { Clock, IdGenerator } from "@covenant/domain";
 import type { BrowserService } from "../browser/browser-service.js";
 import type { BeatHub } from "../http/beat-hub.js";
 import type { WebFindings } from "../browser/web-listing.js";
+import { SignInVerbs } from "../browser/web-sign-in.js";
+import type { CredentialVault } from "../session/credential-vault.js";
 import type { WebProgress } from "../browser/web-progress.js";
 import { WebShopper } from "../browser/web-shopper.js";
 import type { WebTrail } from "../browser/web-trail.js";
@@ -43,6 +45,9 @@ export interface DispatchDeps {
   /** What the shopper stated about themselves — the only source a delivery
    *  form is ever filled from. */
   readonly traits: TraitMemory;
+  /** The stored sign-ins, matched by page host; values cross only into the
+   *  drive's own hands. */
+  readonly vault: CredentialVault;
   readonly keys: KeyParts;
   readonly obs: ObsParts;
   readonly gateway: GatewayParts;
@@ -81,7 +86,20 @@ function webRunner(deps: DispatchDeps, shopper: WebShopper): WebToolRunner {
         label,
       }),
   };
-  return new WebToolRunner(shopper, steps, undefined, deps.pin, deps.findings);
+  return new WebToolRunner(
+    shopper,
+    steps,
+    undefined,
+    deps.pin,
+    deps.findings,
+    new SignInVerbs(
+      deps.browser,
+      deps.vault,
+      new TimerWaiter(),
+      deps.trail,
+      deps.progress,
+    ),
+  );
 }
 
 export function wireToolDispatch(deps: DispatchDeps): DispatchParts {

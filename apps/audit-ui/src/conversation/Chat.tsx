@@ -18,6 +18,7 @@ import {
 import { cancelRun } from "../api/agent.ts";
 import type { AttentionKind } from "../api/lanes.ts";
 import { notifyAttention } from "./attentionNotify.ts";
+import { chime } from "./chime.ts";
 import { badgesFor } from "./laneBadges.ts";
 import { useLaneAttention } from "./useLaneAttention.ts";
 import { newConversationId, readChats, writeChats } from "./sessionStore.ts";
@@ -107,6 +108,9 @@ export function Chat({ offline, trust }: ChatProps): JSX.Element {
     const onScreen =
       target.id === activeRef.current &&
       document.visibilityState === "visible";
+    // The ping sounds either way: the window lives in its own tab now, so
+    // "on screen" no longer means the shopper can see what needs them.
+    chime();
     if (onScreen) return;
     notifyAttention(kind, target.title, () => setActiveId(target.id));
   }, []);
@@ -230,6 +234,11 @@ export function Chat({ offline, trust }: ChatProps): JSX.Element {
           <ChatSession
             offline={offline}
             trust={trust}
+            attention={
+              session.conversationId === null
+                ? null
+                : (lanes.get(session.conversationId)?.attention ?? null)
+            }
             conversationId={session.conversationId}
             onTitle={titleFor(session.id)}
             onStatus={statusFor(session.id)}

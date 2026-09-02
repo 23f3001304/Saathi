@@ -1,0 +1,37 @@
+.screen {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: var(--sp-4, 16px);
+}
+
+.empty {
+  padding: var(--sp-6, 32px) 0;
+  color: var(--ink-soft, #6b6255);
+  max-width: 46ch;
+}
+
+.lanes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-2, 8px);
+  margin-bottom: var(--sp-3, 12px);
+}
+
+.lane {
+  font: inherit;
+  font-size: 0.8125rem;
+  padding: 4px 12px;
+  border: 1px solid var(--line, #d8d2c6);
+  border-radius: 999px;
+  background: transparent;
+  cursor: pointer;
+}
+
+.laneOn {
+  composes: lane;
+  border-color: var(--ink, #1f1b13);
+}
+
+.attention {
+  color: var(--attention, #b3261e);
+}

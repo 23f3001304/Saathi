@@ -1,5 +1,6 @@
 import type { GuardedPage } from "../drive/guarded-page.js";
 import type { PointActions } from "../drive/point-actions.js";
+import type { SignInDrive } from "../drive/sign-in.js";
 import type { UserInput } from "../drive/user-input.js";
 import type { FinalReview } from "../drive/final-review.js";
 import type { Capture } from "../frame/frame-capture.js";
@@ -67,6 +68,12 @@ export class BrowserSession {
     return this.required().points;
   }
 
+  /** The vault's hands; no model reads a value that passes through here. */
+  signIn(): SignInDrive {
+    return this.required().signIn;
+  }
+
+
   url(): string {
     return this.required().driven.url();
   }
@@ -81,10 +88,8 @@ export class BrowserSession {
     return this.required().browser.sandboxId;
   }
 
-  /**
-   * A PNG of the window with every sensitive field already blanked — or a
-   * blackout, when a protected field holds focus and no picture was taken.
-   */
+  /** A PNG of the window with every sensitive field already blanked, or a
+   *  blackout when a protected field holds focus and no picture was taken. */
   screenshot(): Promise<Capture> {
     return this.required().frames.capture();
   }
@@ -104,17 +109,9 @@ export class BrowserSession {
     return this.required().driven.snapshotFields();
   }
 
-  /**
-   * Where the user should go when this session is the wrong place to be.
-   *
-   * On the native surface that is the window on their desktop, raised here so
-   * the sentence the UI shows — "it just came to the front" — is already true
-   * when it arrives. A container has no window to raise, and saying it did
-   * would be the one thing on screen that was lying: the answer there is the
-   * URL, opened in the browser on their own machine, for the cases a container
-   * fundamentally cannot do — a passkey, a security key, anything bound to the
-   * device itself.
-   */
+  /** Where the user should go when this session is the wrong place to be:
+   *  the desktop window raised here, or the container's URL to open in
+   *  their own browser. */
   async handToUser(): Promise<HandoffTarget> {
     const live = this.required();
     const url = live.driven.url();

@@ -26,15 +26,11 @@ export interface OpenAiSessionConfig {
   readonly systemPrompt: string;
   readonly tools: readonly ToolDeclaration[];
   readonly maxToolIterations: number;
-  /** Reasoning effort for models that reason. Absent, the API's own default
-   *  applies, which for a reasoning model is far below what it can do: the
-   *  planner spent weeks being corrected by shell gates for judgement calls
-   *  the model makes fine once its reasoning is actually dialed up. */
+  /** Reasoning effort. Absent, the API default applies, which for a
+   *  reasoning model is far below what it can do. */
   readonly reasoningEffort?: "low" | "medium" | "high";
-  /** Provider-hosted tools, sent verbatim beside the function tools. The one
-   *  in use is `{type: "web_search"}`: research runs on the provider's own
-   *  search rather than the sandbox window, which stays reserved for what
-   *  only it can do under guard, signing in and buying. */
+  /** Provider-hosted tools, sent verbatim beside the function tools; the one
+   *  in use is `{type: "web_search"}` for research off the sandbox. */
   readonly hostedTools?: readonly JsonRecord[];
 }
 

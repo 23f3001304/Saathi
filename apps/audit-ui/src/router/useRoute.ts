@@ -5,6 +5,7 @@ export type Route =
   | { name: "covenant" }
   | { name: "ledger" }
   | { name: "orders" }
+  | { name: "windows" }
   | { name: "ledger-sku"; sku: string }
   | { name: "settings" };
 
@@ -16,6 +17,7 @@ function parse(pathname: string): Route {
   if (pathname === "/settings") return { name: "settings" };
   if (pathname === "/ledger") return { name: "ledger" };
   if (pathname === "/orders") return { name: "orders" };
+  if (pathname === "/windows") return { name: "windows" };
   return { name: "bench" };
 }
 
@@ -42,6 +44,7 @@ function getSnapshot(): Route {
 
 const ROUTE_PATH: Record<Route["name"], string> = {
   bench: "/",
+  windows: "/windows",
   covenant: "/covenant",
   ledger: "/ledger",
   orders: "/orders",

@@ -6,6 +6,7 @@ import { FinalReview } from "../drive/final-review.js";
 import { GuardedPage } from "../drive/guarded-page.js";
 import type { NavigationPolicy } from "../drive/navigation-policy.js";
 import { PointActions } from "../drive/point-actions.js";
+import { SignInDrive } from "../drive/sign-in.js";
 import { UserInput } from "../drive/user-input.js";
 import type { FieldClassifier } from "../field/field-classifier.js";
 import { FrameCapture } from "../frame/frame-capture.js";
@@ -60,6 +61,8 @@ export interface Live {
   readonly input: UserInput;
   /** The agent's coordinate verbs, judged by the same classifier. */
   readonly points: PointActions;
+  /** The vault's hands; values cross here and are never journaled. */
+  readonly signIn: SignInDrive;
   readonly frames: FrameCapture;
   /** `null` on a surface whose page cannot push frames; the shutter still can. */
   readonly cast: LiveCast | null;
@@ -160,6 +163,7 @@ export function assembleLive(
     page: guardedFor(deps, state, driven, handoff),
     input: relayFor(deps, state, browser, driven),
     points: pointsFor(deps, state, driven, handoff),
+    signIn: new SignInDrive(driven, deps.classifier, state, deps.journal),
     frames: new FrameCapture(driven, deps.classifier, () => state.current()),
     cast: castOf(driven, deps, state),
     review: new FinalReview(

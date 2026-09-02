@@ -17,7 +17,7 @@
  */
 /** Why a checkout is standing still: a question this host asked, or a door
  *  only the shopper can open. Both resume; they resume differently. */
-export type ParkReason = "address" | "handback";
+export type ParkReason = "address" | "handback" | "code";
 
 export class WebPickPark {
   private ref: string | null = null;

@@ -1,0 +1,38 @@
+.strip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-3, 12px);
+  padding: var(--sp-2, 8px) var(--sp-3, 12px);
+  border: 1px solid var(--line, #d8d2c6);
+  border-radius: 8px;
+  margin: var(--sp-2, 8px) 0;
+}
+
+.stripUrgent {
+  composes: strip;
+  border-color: var(--attention, #b3261e);
+  box-shadow: 0 0 0 1px var(--attention, #b3261e);
+  animation: windowPulse 1.6s ease-in-out infinite;
+}
+
+@keyframes windowPulse {
+  50% {
+    box-shadow: 0 0 0 4px rgba(179, 38, 30, 0.18);
+  }
+}
+
+.line {
+  font-size: 0.875rem;
+}
+
+.open {
+  flex-shrink: 0;
+  font: inherit;
+  font-size: 0.8125rem;
+  padding: 4px 10px;
+  border: 1px solid var(--line, #d8d2c6);
+  border-radius: 6px;
+  background: transparent;
+  cursor: pointer;
+}

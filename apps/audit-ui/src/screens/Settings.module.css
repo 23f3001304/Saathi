@@ -103,3 +103,46 @@
   color: var(--ink);
   text-wrap: balance;
 }
+
+.vaultRow {
+  font-size: 0.875rem;
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.vaultForget {
+  font: inherit;
+  font-size: 0.75rem;
+  border: none;
+  background: none;
+  text-decoration: underline;
+  cursor: pointer;
+  padding: 0;
+}
+
+.vaultForm {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.vaultField {
+  font: inherit;
+  font-size: 0.875rem;
+  padding: 6px 10px;
+  border: 1px solid var(--line, #d8d2c6);
+  border-radius: 6px;
+  min-width: 180px;
+}
+
+.vaultSave {
+  font: inherit;
+  font-size: 0.875rem;
+  padding: 6px 14px;
+  border: 1px solid var(--ink, #1f1b13);
+  border-radius: 6px;
+  background: transparent;
+  cursor: pointer;
+}

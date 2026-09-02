@@ -7,7 +7,9 @@ import { LANGUAGE_SLIPPED } from "./language-gate.js";
 import type { PurchaseResult } from "./purchase-result.js";
 import {
   ADDRESS_REPLIES,
+  ASK_CODE,
   closing,
+  CODE_REPLIES,
   CONFIRM_ADDRESS,
   detailOf,
   endedWith,
@@ -61,6 +63,17 @@ export function emitLine(hub: BeatHub, text: string, harness: boolean): string {
 
 /** A parked checkout is owed an answer, so it goes out as a question rather
  *  than as one more system line in a transcript nobody can act on. */
+function askCodeAt(hub: BeatHub, ref: string): string {
+  hub.emit({
+    kind: "question",
+    questionId: `urn:covenant:ask:code:${ref}`,
+    prompt: ASK_CODE,
+    replies: [...CODE_REPLIES],
+    groups: [],
+  });
+  return ASK_CODE;
+}
+
 function askAt(hub: BeatHub, ref: string): string {
   hub.emit({
     kind: "question",
@@ -110,7 +123,12 @@ export function closePick(
   const asking = progress.awaitsAddress;
   const waiting = progress.resumable;
   const said = [...spoken(hub, request.spoke)];
-  if (asking) {
+  if (progress.awaitsCode) {
+    // Observed, not claimed: the host itself saw a code box stand after its
+    // own sign-in, so the checkout is held and the shopper owed the ask.
+    park.hold(request.ref, "code");
+    said.push(askCodeAt(hub, request.ref));
+  } else if (asking) {
     park.hold(request.ref, "address");
     said.push(askAt(hub, request.ref));
   } else if (waiting) {

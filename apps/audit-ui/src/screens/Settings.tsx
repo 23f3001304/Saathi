@@ -1,3 +1,4 @@
+import { SignInVault } from "./SignInVault.tsx";
 import { useState, type JSX } from "react";
 import { useAuth } from "../auth/AuthProvider.tsx";
 import { authorityNote } from "../auth/authority.ts";
@@ -140,6 +141,7 @@ export function Settings(): JSX.Element {
       <Section title="You" fields={identity} footer={authorityNote(session)} />
       <Section title="Payment" fields={PAYMENT} />
       <Section title="Delivery" fields={DELIVERY} editable />
+      <SignInVault />
       <section className={styles.section}>
         <h2 className={styles.heading}>Your data</h2>
         <p className={styles.note}>

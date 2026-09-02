@@ -33,6 +33,8 @@ export const WEB_FILL_ADDRESS_TOOL = "web_fill_address";
 export const WEB_PRESS_TOOL = "web_press";
 export const WEB_WRITE_TOOL = "web_write";
 export const WEB_FOUND_TOOL = "web_found";
+export const WEB_SIGN_IN_TOOL = "web_sign_in";
+export const WEB_ENTER_CODE_TOOL = "web_enter_code";
 
 export const WEB_SHOP_TOOLS: readonly string[] = [
   WEB_OPEN_TOOL,
@@ -44,6 +46,8 @@ export const WEB_SHOP_TOOLS: readonly string[] = [
   WEB_PRESS_TOOL,
   WEB_WRITE_TOOL,
   WEB_FOUND_TOOL,
+  WEB_SIGN_IN_TOOL,
+  WEB_ENTER_CODE_TOOL,
 ];
 
 /** The money surface of §4.1, as tool names. */

@@ -16,6 +16,8 @@ export class WebProgress {
   private filledSlots: readonly string[] = [];
   private handed: HandoffReason | null = null;
   private cartClicked = false;
+  private signedIn = false;
+  private challenged: "code" | "password" | null = null;
 
   /** Slots this host actually typed into, this errand. */
   get filled(): readonly string[] {
@@ -61,10 +63,24 @@ export class WebProgress {
     this.cartClicked = true;
   }
 
+  /** The host signed in from the vault, and what still challenged after. */
+  recordSignedIn(challenge: "code" | "password" | null): void {
+    this.signedIn = true;
+    this.challenged = challenge;
+  }
+
+  /** A code page stands and the window is still the agent's: the shape that
+   *  owes the shopper the code question. */
+  get awaitsCode(): boolean {
+    return this.challenged === "code" && this.handed === null;
+  }
+
   reset(): void {
     this.filledSlots = [];
     this.handed = null;
     this.cartClicked = false;
+    this.signedIn = false;
+    this.challenged = null;
   }
 
   /** A resumed checkout keeps the basket it parked with. The click that
@@ -73,5 +89,6 @@ export class WebProgress {
   resumeReset(): void {
     this.filledSlots = [];
     this.handed = null;
+    this.challenged = null;
   }
 }

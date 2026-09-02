@@ -5,7 +5,8 @@ import { useEffect, useRef, useState, type JSX, type ReactNode } from "react";
 import { WORK_NARRATION } from "./assistantScript.ts";
 import { useAssistant, type ChatEntry } from "./useAssistant.ts";
 import { useAssistantTransport } from "./useAssistantTransport.ts";
-import { SandboxPane } from "./SandboxPane.tsx";
+import { WindowStrip } from "./WindowStrip.tsx";
+import type { AttentionKind } from "../api/lanes.ts";
 import { ActivityStream, type ThinkingMode } from "./ActivityStream.tsx";
 import { Greeting } from "./Greeting.tsx";
 import { Openers } from "./Openers.tsx";
@@ -27,6 +28,8 @@ export type ChatSessionProps = {
   conversationId: string | null;
   onTitle: (title: string) => void;
   onStatus: (status: SessionStatus) => void;
+  /** What this lane is waiting on a person for, off the lanes poll. */
+  attention?: AttentionKind | null;
   /** Hidden sessions stay mounted; only the visible one may speak. */
   visible: boolean;
 };
@@ -59,6 +62,7 @@ export function ChatSession({
   onTitle,
   onStatus,
   visible,
+  attention,
 }: ChatSessionProps): JSX.Element {
   const transport = useAssistantTransport(conversationId);
   const chat = useAssistant(transport);
@@ -336,11 +340,10 @@ export function ChatSession({
               />
             </p>
           )}
-          <SandboxPane
-            active={entries.length > 0 && !signed && visible}
-            conversationId={conversationId}
-            record={chat.sandbox}
+          <WindowStrip
+            present={chat.sandbox !== null}
             busy={chat.running}
+            attention={attention ?? null}
           />
           {stage === "sign" && !billOpen && !signed && (
             <p className={styles.bubble}>

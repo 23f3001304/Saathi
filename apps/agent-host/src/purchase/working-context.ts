@@ -40,7 +40,7 @@ export interface ContextPick {
 /** Where a checkout stood when the run ended, from `WebPickPark`/`WebProgress`:
  *  parked on this host's own address question, parked at a door only the
  *  shopper can open, or ended at the payment step that is theirs to take. */
-export type ContextStop = "address" | "handback" | "payment";
+export type ContextStop = "address" | "handback" | "code" | "payment";
 
 export interface ContextProgress {
   /** This host clicked an add-to-basket control and the page settled. */
