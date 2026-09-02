@@ -62,7 +62,10 @@ export function readElements(query: ElementQuery): FieldSnapshot[] {
     const label =
       el.id === ""
         ? el.closest("label")
-        : (document.querySelector(`label[for="${el.id}"]`) ??
+        : // CSS.escape: an id like "user:email" is legal HTML and an
+          // invalid bare selector; unescaped it threw and took the whole
+          // field read down with it.
+          (document.querySelector(`label[for="${CSS.escape(el.id)}"]`) ??
           el.closest("label"));
     return clean(label?.textContent);
   };

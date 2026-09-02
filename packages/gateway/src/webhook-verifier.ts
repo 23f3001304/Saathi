@@ -11,12 +11,16 @@ import { createHmac, timingSafeEqual } from "node:crypto";
 export class RazorpayWebhookVerifier {
   constructor(private readonly webhookSecret: string) {}
 
-  verify(rawBody: string, signatureHeader: string | null): boolean {
+  verify(rawBody: string | Uint8Array, signatureHeader: string | null): boolean {
     if (signatureHeader === null) {
       return false;
     }
     const expected = createHmac("sha256", this.webhookSecret)
-      .update(rawBody, "utf8")
+      .update(
+        // Bytes verify as bytes: a decode-and-re-encode is lossless only
+        // for valid UTF-8, and the signature is over what was SENT.
+        typeof rawBody === "string" ? Buffer.from(rawBody, "utf8") : rawBody,
+      )
       .digest("hex");
     return constantTimeEquals(expected, signatureHeader);
   }

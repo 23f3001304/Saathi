@@ -40,8 +40,11 @@ export function readDeclaredListings(): readonly PageListing[] {
     return url.startsWith("https://") ? url : null;
   };
   const priced = (amount: string, currency: string): string => {
+    // Codes sit at even indices, marks at odd. A page that declares the
+    // MARK as its currency ("₹") must come back as itself: indexing one
+    // past it landed on the next CODE and printed rupees as "USD".
     const at = MARKS.indexOf(currency.toUpperCase());
-    const mark = at === -1 ? currency : (MARKS[at + 1] ?? currency);
+    const mark = at % 2 === 0 ? (MARKS[at + 1] ?? currency) : currency;
     return amount === "" ? "" : `${mark} ${amount}`.trim();
   };
   const found: PageListing[] = [];

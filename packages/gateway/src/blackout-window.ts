@@ -101,9 +101,22 @@ function localTimeOf(now: Date, timeZone: string): LocalTime {
   };
 }
 
+function zoneOr(timeZone: string, fallback = "UTC"): string {
+  try {
+    new Intl.DateTimeFormat("en-US", { timeZone });
+    return timeZone;
+  } catch {
+    return fallback;
+  }
+}
+
 function partsOf(now: Date, timeZone: string): WallClock {
+  // A malformed zone in a mandate is a validation problem, not a crash: the
+  // formatter throws RangeError on one, which 500'd a payment request. UTC
+  // is the honest fallback; the mandate's own zone string is still what was
+  // signed and still what the verdict reports.
   const formatter = new Intl.DateTimeFormat("en-US", {
-    timeZone,
+    timeZone: zoneOr(timeZone),
     hourCycle: "h23",
     year: "numeric",
     month: "2-digit",

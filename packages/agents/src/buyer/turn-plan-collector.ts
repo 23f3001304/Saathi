@@ -7,6 +7,7 @@ import {
 } from "./amendment-schema.js";
 import type { TraitClaim } from "./trait-claim.js";
 import { parseTrait } from "./trait-claim.js";
+import { groupsAt, repliesAt, textAt } from "./turn-plan-args.js";
 import { answeredOutcome, browsedOutcome } from "./turn-plan-guidance.js";
 import type { CatalogProbe, TurnAction, TurnPlan } from "./turn-plan.js";
 import {
@@ -32,44 +33,6 @@ const ACTIONS: Readonly<Record<string, TurnAction>> = {
 export const AMENDMENT_UNREADABLE_REPLY =
   "I could not make sense of that as a change to your rules. Tell me which " +
   "rule and what it should become, and I will put it up for you to sign.";
-
-function textAt(args: ToolArgs, key: string): string {
-  const value = args[key];
-  return typeof value === "string" ? value.trim() : "";
-}
-
-/** Chips the composer may offer. Anything that is not a short string is not a
- *  tappable answer, and is dropped rather than rendered as one. */
-function groupsAt(args: ToolArgs): readonly { label: string; options: readonly string[] }[] {
-  const raw = args["choice_groups"];
-  if (!Array.isArray(raw)) return [];
-  return raw
-    .map(groupOf)
-    .filter((group) => group.label !== "" && group.options.length >= 2);
-}
-
-function groupOf(item: unknown): { label: string; options: readonly string[] } {
-  if (typeof item !== "object" || item === null)
-    return { label: "", options: [] };
-  const held = item as Record<string, unknown>;
-  return {
-    label: typeof held["label"] === "string" ? held["label"] : "",
-    options: Array.isArray(held["options"])
-      ? held["options"].filter((o): o is string => typeof o === "string")
-      : [],
-  };
-}
-
-function repliesAt(args: ToolArgs, key: string): readonly string[] {
-  const value = args[key];
-  if (!Array.isArray(value)) return [];
-  return value
-    .filter((entry): entry is string => typeof entry === "string")
-    .map((entry) => entry.trim())
-    .filter((entry) => entry.length > 0 && entry.length <= 60)
-    .slice(0, 6);
-}
-
 function ok(recorded: string): ToolOutcome {
   return { content: `{"ok":true,"recorded":"${recorded}"}`, isError: false };
 }
@@ -106,13 +69,25 @@ export class TurnPlanCollector implements ToolDispatcher {
       return refused("not_a_turn_tool");
     }
     const plan = this.planFor(action, call.args);
-    this.chosen = plan;
+    this.choose(plan);
     if (action === "browse") {
       return this.browsed(plan);
     }
     return action === "answer"
       ? answeredOutcome(textAt(call.args, "blocked_by"))
       : ok(action);
+  }
+
+  /** Parallel tool calls arrive occasionally, and last-write-wins let a
+   *  trailing generic answer_shopper clobber the browse or web look that
+   *  carried the actual move and its query. An acting plan is only ever
+   *  replaced by another acting plan. */
+  private choose(plan: TurnPlan): void {
+    const generic = plan.action === "answer";
+    const heldGeneric = this.chosen === null || this.chosen.action === "answer";
+    if (heldGeneric || !generic) {
+      this.chosen = plan;
+    }
   }
 
   /**

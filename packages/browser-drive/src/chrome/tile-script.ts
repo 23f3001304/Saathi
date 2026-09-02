@@ -122,6 +122,17 @@ export function readTileListings(): readonly PageListing[] {
     const box = el.getBoundingClientRect();
     return box.width > 0 && box.height > 0;
   };
+  /** The tile's text with struck-through content removed: <del>, <s> and
+   *  <strike> are the page's own way of saying "no longer the price". */
+  const liveText = (el: Element): string => {
+    const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+    const parts: string[] = [];
+    for (let node = walker.nextNode(); node !== null; node = walker.nextNode()) {
+      if (node.parentElement?.closest("del,s,strike") !== null) continue;
+      parts.push(node.textContent ?? "");
+    }
+    return parts.join(" ").replace(/\s+/g, " ").trim().slice(0, MAX_TILE_TEXT);
+  };
   const labels = (el: Element): boolean => {
     const text = flat(el);
     return text.length <= MAX_LABEL && PRICE.test(text) && shown(el);
@@ -155,11 +166,11 @@ export function readTileListings(): readonly PageListing[] {
     const title = titleIn(tile);
     if (seen.has(href)) return;
     seen.add(href);
-    // The row's *first* price, not the label that found it. Shops print what
-    // you pay before what it was worth, so the first number in the row is the
-    // selling price and the struck-through one after it is a claim about the
-    // past — quoting that on the card would overstate what the page asked for.
-    const price = PRICE.exec(flat(tile));
+    // The row's first LIVE price. "First wins" assumed shops print what you
+    // pay before what it was worth, but <del>₹4,999</del> ₹2,999 prints the
+    // past first: anything struck through is excluded before the first
+    // match, so the card quotes what the page asks, whichever order.
+    const price = PRICE.exec(liveText(tile));
     found.push({
       title,
       priceText: price === null ? "" : price[0],

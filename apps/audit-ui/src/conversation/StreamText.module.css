@@ -62,3 +62,7 @@
   text-underline-offset: 2px;
   overflow-wrap: anywhere;
 }
+
+.settledWord {
+  opacity: 1;
+}

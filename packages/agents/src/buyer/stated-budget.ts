@@ -38,6 +38,10 @@ const CEILING_PHRASES: readonly RegExp[] = [
     "i",
   ),
   new RegExp(String.raw`(?:₹|rs\.?|inr)\s*${AMOUNT}\s*(?:or\s*less|max)`, "i"),
+  // Hinglish bounds-from-above: "4000 tak", "5000 ke andar", "3000 se kam".
+  // Written in English letters because that is how they arrive; a budget the
+  // shopper stated in their own words must bind exactly like "under 4000".
+  new RegExp(String.raw`(?:₹|rs\.?|inr)?\s*${AMOUNT}\s*(?:tak|ke\s*andar|se\s*kam|se\s*neeche)`, "i"),
 ];
 
 function rupeesOf(digits: string, scale: string | undefined): number | null {

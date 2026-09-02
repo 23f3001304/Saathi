@@ -12,7 +12,8 @@ import type { PageDom } from "../read/page-dom.js";
  * splitting it across `evaluate` round-trips would let the DOM move between the
  * read and the decision made about it.
  */
-// eslint-disable-next-line max-lines-per-function
+// One serialized page function by CDP necessity, exempted like its size.
+// eslint-disable-next-line max-lines-per-function, complexity
 export function readPageDom(): PageDom {
   const MAX_BLOCKS = 60;
   const MAX_LINKS = 40;
@@ -40,7 +41,12 @@ export function readPageDom(): PageDom {
       steps.unshift(`${at.tagName.toLowerCase()}:nth-of-type(${indexOf(at)})`);
       at = at.parentElement;
     }
-    return `body > ${steps.join(" > ")}`;
+    // Anchored to body ONLY when the walk actually reached it: on a deep
+    // element the 8-step cap stops mid-tree, and "body >" then named a
+    // child body never had, so the selector found nothing and every click
+    // and keystroke at it failed element-not-found.
+    const reached = at !== null && at.tagName === "BODY";
+    return reached ? `body > ${steps.join(" > ")}` : steps.join(" > ");
   };
   const selectorOf = (el: Element): string => {
     const id = el.getAttribute("id") ?? "";
@@ -126,13 +132,35 @@ export function readPageDom(): PageDom {
       "[role='search'] input[type='text'],[role='search'] input:not([type])," +
       "input[placeholder*='earch'],input[aria-label*='earch']",
   ).find(shown);
+  // The search box must be IN the control list to be aimable: on a header
+  // with more fields than the cap it fell off the end, `search_ref` came
+  // back null, and a page with a perfectly good search box refused to be
+  // searched. It takes the last slot rather than being dropped.
+  const searchEntry =
+    searchBox !== undefined &&
+    !fields.some((field) => field.selector === selectorOf(searchBox))
+      ? [
+          {
+            selector: selectorOf(searchBox),
+            kind: "field" as const,
+            text:
+              clean(searchBox.getAttribute("aria-label")) ||
+              clean(searchBox.getAttribute("placeholder")) ||
+              clean(searchBox.getAttribute("name")),
+            type: searchBox.getAttribute("type"),
+            at: centreOf(searchBox),
+          },
+        ]
+      : [];
+  const heldFields =
+    searchEntry.length > 0 ? fields.slice(0, MAX_CONTROLS - 1) : fields;
   return {
     url: location.href,
     title: clean(document.title),
     heading: clean(document.querySelector("h1")?.textContent) || null,
     blocks,
     links,
-    controls: [...buttons, ...fields],
+    controls: [...buttons, ...heldFields, ...searchEntry],
     // Filled by the caller from `listing-script.ts`, which reads what the web
     // standardises about a product. Kept out of this pass because nothing is
     // ever aimed at a listing — see that file's second DECISION.

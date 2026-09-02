@@ -24,19 +24,29 @@ let sessionKey: string | null = null;
  * makes the host able to refuse rather than quietly re-aim the keystrokes at
  * whatever window happens to be open now.
  */
-let openSession: string | null = null;
+// Per conversation, not one module global: two lanes' wires overwrote each
+// other's id, and every call from the other lane then carried the wrong
+// window and was refused NOT_YOUR_WINDOW. The empty key holds the default
+// (conversation-less) lane's window.
+const openSessions = new Map<string, string>();
 
-export function rememberSession(id: string): void {
-  openSession = id === "" ? null : id;
+export function rememberSession(id: string, conversation: string | null = null): void {
+  const key = conversation ?? "";
+  if (id === "") openSessions.delete(key);
+  else openSessions.set(key, id);
 }
 
 /** The host answered and said no. Distinct from "the host is not there". */
 export class Refused extends Error {}
 
-function keyed(extra: Record<string, string> = {}): Record<string, string> {
+function keyed(
+  extra: Record<string, string> = {},
+  conversation: string | null = null,
+): Record<string, string> {
   const headers = { ...extra };
   if (sessionKey !== null) headers[KEY_HEADER] = sessionKey;
-  if (openSession !== null) headers[SESSION_HEADER] = openSession;
+  const open = openSessions.get(conversation ?? "");
+  if (open !== undefined) headers[SESSION_HEADER] = open;
   return headers;
 }
 
@@ -93,9 +103,13 @@ async function withFreshKey(base: string, send: () => Promise<Response>) {
   return await send();
 }
 
-export async function get(base: string, path: string): Promise<Response> {
+export async function get(
+  base: string,
+  path: string,
+  conversation: string | null = null,
+): Promise<Response> {
   const res = await withFreshKey(base, () =>
-    fetch(`${base}${path}`, { headers: keyed() }),
+    fetch(`${base}${path}`, { headers: keyed({}, conversation) }),
   );
   if (res.status === 401) throw new Refused(path);
   return res;
@@ -105,11 +119,12 @@ export async function post(
   base: string,
   path: string,
   body?: unknown,
+  conversation: string | null = null,
 ): Promise<unknown> {
   const res = await withFreshKey(base, () =>
     fetch(`${base}${path}`, {
       method: "POST",
-      headers: keyed({ "content-type": "application/json" }),
+      headers: keyed({ "content-type": "application/json" }, conversation),
       body: JSON.stringify(body ?? {}),
     }),
   );

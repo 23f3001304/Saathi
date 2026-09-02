@@ -74,6 +74,12 @@ export function ChatSession({
   const [webLaunched, setWebLaunched] = useState(false);
   const [signed, setSigned] = useState(false);
   const [billOpen, setBillOpen] = useState(false);
+  // A reload of a settled purchase must not re-arm the signing flow: the
+  // durable log replays the transaction it ended in, and that is the fact
+  // "signed" exists to mirror.
+  useEffect(() => {
+    if (chat.txnId !== null) setSigned(true);
+  }, [chat.txnId]);
   // Collapsed by default: the steps are a processing trace, not the answer.
   // One line shows what is happening; a tap opens the working.
   const [thinkMode, setThinkMode] = useState<ThinkingMode>("summary");

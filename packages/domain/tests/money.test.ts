@@ -22,7 +22,7 @@ const formatTable: readonly (readonly [number, string])[] = [
   [0, "INR 0.00"],
   [5, "INR 0.05"],
   [199900, "INR 1999.00"],
-  [-2550, "INR -25.50"],
+  [-2550, "-INR 25.50"],
 ];
 
 // W3C PaymentCurrencyAmount strings (§6.3) — the only text→money path.

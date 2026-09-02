@@ -28,12 +28,16 @@ const MAX_FAILURES = 4;
 
 async function readState(wire: Wire): Promise<void> {
   try {
-    const res = await get(wire.base, scoped("/browser/state", wire.conversation));
+    const res = await get(
+      wire.base,
+      scoped("/browser/state", wire.conversation),
+      wire.conversation,
+    );
     if (!res.ok) throw new Error(`browser/state → ${res.status}`);
     wire.failures = 0;
     const view = parseSession(await res.json());
     wire.hasView = view !== null;
-    rememberSession(view?.id ?? "");
+    rememberSession(view?.id ?? "", wire.conversation);
     wire.emit({ kind: "session", view });
   } catch (cause) {
     if (cause instanceof Refused) return giveUp(wire, "unauthorized");
@@ -67,7 +71,11 @@ function watch(wire: Wire, emit: BrowserEmit): void {
 async function attachSession(wire: Wire): Promise<boolean> {
   try {
     await handshake(wire.base);
-    const res = await get(wire.base, scoped("/browser/state", wire.conversation));
+    const res = await get(
+      wire.base,
+      scoped("/browser/state", wire.conversation),
+      wire.conversation,
+    );
     if (!res.ok) throw new Error(`browser/state → ${res.status}`);
     return true;
   } catch (cause) {
@@ -108,7 +116,7 @@ export function liveBrowser(
     relay: async (input: RelayInput): Promise<RelayOutcome> => {
       try {
         const outcome = parseRelay(
-          await post(base, lane("/browser/input"), input),
+          await post(base, lane("/browser/input"), input, conversation),
         );
         // The echo: repaint now, not at the next cast tick.
         if (hold.wire !== null) void frameBurst(hold.wire);
@@ -118,18 +126,19 @@ export function liveBrowser(
       }
     },
     resume: async () => {
-      await post(base, lane("/browser/resume")).catch(() => null);
+      await post(base, lane("/browser/resume"), {}, conversation).catch(() => null);
       if (hold.wire !== null) await readState(hold.wire);
     },
     // The state read is not decoration: the chip and the drivable surface both
     // hang off `state`, so the card must not sit on `agent-drive` for up to a
     // poll interval after the wheel has actually moved.
     takeover: async () => {
-      await post(base, lane("/browser/takeover")).catch(() => null);
+      await post(base, lane("/browser/takeover"), {}, conversation).catch(() => null);
       if (hold.wire !== null) await readState(hold.wire);
     },
     front: async () => {
-      const body = await post(base, lane("/browser/front")).catch(() => null);
+      const body = await post(base, lane("/browser/front"), {}, conversation)
+        .catch(() => null);
       return (body as { ok?: unknown } | null)?.ok === true;
     },
   };

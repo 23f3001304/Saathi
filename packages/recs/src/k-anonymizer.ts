@@ -49,5 +49,8 @@ export class KAnonymizer {
 
 function laplaceSample(uniform: number, scale: number): number {
   const centred = uniform - 0.5;
-  return -scale * Math.sign(centred) * Math.log(1 - 2 * Math.abs(centred));
+  // uniform can be exactly 0 or 1, where the log runs to -Infinity and one
+  // sample corrupts every count it touches. Clamped inside the open interval.
+  const clamped = Math.min(Math.max(Math.abs(centred), 0), 0.5 - Number.EPSILON);
+  return -scale * Math.sign(centred) * Math.log(1 - 2 * clamped);
 }

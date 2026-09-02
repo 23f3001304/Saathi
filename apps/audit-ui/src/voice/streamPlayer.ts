@@ -99,6 +99,10 @@ export class MediaSourcePlayer implements ChunkPlayer {
   private settle(run: () => void): void {
     if (this.settled) return;
     this.settled = true;
+    // The blob URL is released on the natural end too, not only on stop():
+    // every spoken reply used to leave one alive for the life of the tab.
+    if (this.objectUrl !== "") URL.revokeObjectURL(this.objectUrl);
+    this.objectUrl = "";
     run();
   }
 

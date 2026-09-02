@@ -69,6 +69,9 @@ export type StreamSession = {
   heartbeat: ReturnType<typeof setTimeout> | null;
   /** Consecutive heartbeats that caught the stream not delivering. */
   misses: number;
+  /** Where `seen` stood at the last heartbeat, so a racy poll that merely
+   *  beat the stream to a fresh beat is not counted as a stream miss. */
+  seenLastTick: number;
   /** Consecutive failures on the rung being attempted. */
   attempt: number;
   /**
@@ -110,6 +113,7 @@ export function newSession(
     retry: null,
     heartbeat: null,
     misses: 0,
+    seenLastTick: 0,
     attempt: 0,
     proven: { socket: false, sse: false },
     climb: 0,

@@ -17,9 +17,11 @@ import type { AppEnv } from "../app-env.js";
  */
 export function registerWebhook(app: Hono<AppEnv>, root: CompositionRoot): void {
   app.post("/v1/webhooks/razorpay", async (context) => {
-    const rawBody = await context.req.text();
+    const rawBytes = new Uint8Array(await context.req.arrayBuffer());
+    const rawBody = new TextDecoder().decode(rawBytes);
     const body = root.services.webhooks.receive({
       rawBody,
+      rawBytes,
       signature: context.req.header("X-Razorpay-Signature") ?? null,
       tenantId: context.get("tenantId"),
     });

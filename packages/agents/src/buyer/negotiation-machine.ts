@@ -55,6 +55,14 @@ function onQuote(
   state: NegotiationState,
   offer: QuoteOffer,
 ): NegotiationState {
+  // One negotiation, one product: a cheaper quote for a DIFFERENT sku is
+  // not a better offer, it is a substitution, and adopting it would have
+  // the machine agree to socks in a shoe negotiation. (The intent's sku
+  // list would still refuse the cart downstream; refusing here keeps the
+  // machine honest rather than merely caught.)
+  if (state.best !== null && offer.sku !== state.best.sku) {
+    return { ...state, phase: "quoting" };
+  }
   const better = state.best === null || offer.totalPaise < state.best.totalPaise;
   return {
     ...state,

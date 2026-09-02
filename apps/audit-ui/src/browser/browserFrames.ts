@@ -51,7 +51,11 @@ export async function readFrame(wire: Wire): Promise<void> {
   // 404, and three background chats doing it filled real consoles.
   if (!wire.hasView) return;
   try {
-    const res = await get(wire.base, scoped("/browser/frame", wire.conversation));
+    const res = await get(
+      wire.base,
+      scoped("/browser/frame", wire.conversation),
+      wire.conversation,
+    );
     if (!res.ok) return;
     emitCapture(wire, parseFrame(await res.json()));
   } catch {

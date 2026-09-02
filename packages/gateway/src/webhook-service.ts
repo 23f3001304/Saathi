@@ -15,12 +15,15 @@ const OUTCOME_OF: Record<string, PaymentState> = {
 
 export interface WebhookDelivery {
   readonly rawBody: string;
+  /** The exact request bytes, when the transport can supply them; the
+   *  signature is checked over these in preference to the decoded string. */
+  readonly rawBytes?: Uint8Array;
   readonly signature: string | null;
   readonly tenantId: string;
 }
 
 export interface WebhookVerifier {
-  verify(rawBody: string, signature: string | null): boolean;
+  verify(rawBody: string | Uint8Array, signature: string | null): boolean;
 }
 
 /**
@@ -40,7 +43,12 @@ export class WebhookService {
   ) {}
 
   receive(delivery: WebhookDelivery): WebhookResponse {
-    if (!this.verifier.verify(delivery.rawBody, delivery.signature)) {
+    if (
+      !this.verifier.verify(
+        delivery.rawBytes ?? delivery.rawBody,
+        delivery.signature,
+      )
+    ) {
       this.reject(delivery);
       return { ok: true, applied: false, reason: "WEBHOOK_SIGNATURE_INVALID" };
     }

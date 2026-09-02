@@ -45,9 +45,25 @@ async function reconcileOnce(session: StreamSession): Promise<Verdict> {
   const moved = epoch > 0 && epoch !== session.epoch;
   if (moved) rebaseTo(session, epoch);
   if (session.owns === "unknown") claim(session, state.conversation);
+  // Drained either way: a rebase still needs the new run's beats applied.
+  const verdict = drainVerdict(session, state.beats);
+  return moved ? "missed" : verdict;
+}
+
+/** Whether the STREAM delivered anything since the previous heartbeat.
+ *  During an active run the poll often fetches a beat milliseconds before
+ *  the socket delivers it; calling that a miss reconnected a healthy
+ *  stream every six seconds and replayed the whole page's animations. */
+function drainVerdict(
+  session: StreamSession,
+  beats: Parameters<typeof drain>[1],
+): Verdict {
   const before = session.seen;
-  drain(session, state.beats);
-  return moved || session.seen > before ? "missed" : "clean";
+  const streamMoved = before > session.seenLastTick;
+  drain(session, beats);
+  session.seenLastTick = session.seen;
+  const polledAhead = session.seen > before;
+  return polledAhead && !streamMoved ? "missed" : "clean";
 }
 
 /**

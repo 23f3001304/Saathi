@@ -105,6 +105,15 @@ export function LiveViewport({
         event.preventDefault();
         onRelay(input);
       }}
+      onPaste={(event) => {
+        if (!interactive) return;
+        // A coupon code or an address arrives by paste as often as by
+        // keys; without this the viewport silently ate Ctrl+V.
+        const text = event.clipboardData.getData("text");
+        if (text === "") return;
+        event.preventDefault();
+        onRelay({ kind: "type", text });
+      }}
       onWheel={(event: WheelEvent<HTMLDivElement>) => {
         if (interactive)
           onRelay({ kind: "scroll", dy: Math.round(event.deltaY) });

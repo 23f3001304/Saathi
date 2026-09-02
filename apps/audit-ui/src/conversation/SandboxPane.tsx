@@ -27,9 +27,13 @@ export function SandboxPane({
   // The watch is lane-scoped now, so the host only ever serves this chat's
   // own window; the claim check stays as the belt under those braces; the
   // stamp arrives on the view either way.
+  // Loose "unclaimed counts as mine" let a second lane render the primary
+  // lane's window. An unclaimed view is only this pane's when this pane is
+  // itself the conversation-less default lane.
   const owns =
-    browser.view?.conversation == null ||
-    browser.view.conversation === conversationId;
+    browser.view?.conversation == null
+      ? conversationId === null
+      : browser.view.conversation === conversationId;
   const live = owns ? browser.view : null;
   const card = live ?? restoredCard(record);
   if (card === null) return null;

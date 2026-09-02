@@ -89,6 +89,12 @@ export function weightFor(entry: DecayableEntry, now: Date): number {
   if (params === null) {
     return 1;
   }
-  const elapsed = (now.getTime() - Date.parse(entry.tCreated)) / 1000;
+  const born = Date.parse(entry.tCreated);
+  // An unparseable timestamp made the whole ranking NaN: NaN weight times
+  // anything is NaN, and a NaN in a sort comparator scrambles every row.
+  // A row whose age is unknown decays as brand new rather than poisoning
+  // the list.
+  if (!Number.isFinite(born)) return 1;
+  const elapsed = (now.getTime() - born) / 1000;
   return decayWeight(params, elapsed);
 }

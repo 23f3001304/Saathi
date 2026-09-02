@@ -45,10 +45,12 @@ function Words({
     <>
       {words.map((word, i) => {
         const index = count.at + i;
+        // A settled word is done arriving: no animation class at all, so a
+        // remount anywhere above cannot flash text already read.
         return (
           <span
             key={i}
-            className={styles.word}
+            className={index < count.settled ? styles.settledWord : styles.word}
             style={
               {
                 "--w": Math.max(0, index - count.settled),

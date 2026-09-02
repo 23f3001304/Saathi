@@ -79,7 +79,9 @@ export class Money {
       .padStart(MINOR_UNITS_PER_MAJOR + 1, "0");
     const major = digits.slice(0, -MINOR_UNITS_PER_MAJOR);
     const minor = digits.slice(-MINOR_UNITS_PER_MAJOR);
-    return `${this.currency} ${sign}${major}.${minor}`;
+    // Sign before the code: "INR -5.00" reads as a code and a stray
+    // token to strict parsers; "-INR 5.00" is one signed amount.
+    return `${sign}${this.currency} ${major}.${minor}`;
   }
 
   private assertSameCurrency(other: Money): void {
