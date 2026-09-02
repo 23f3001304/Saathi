@@ -35,6 +35,10 @@ export const AMEND_TOOL = "amend_covenant";
 export const DECLINE_TOOL = "decline_purchase";
 export const REMEMBER_TOOL = "remember_trait";
 
+/** They chose one of the cards on their screen, in words. The host takes
+ *  the same path a tap on that card takes; the model only names the ref. */
+export const PICK_TOOL = "pick_option";
+
 /** The reads. Neither is a move: the model looks, then still calls exactly
  *  one of the moves above. Declared beside them so every provider hands the
  *  hook the same `(tool, server)` pair for a look as for a move. */
@@ -48,6 +52,7 @@ export const TURN_ACTIONS = [
   "draft_intent",
   "decline",
   "propose_amendment",
+  "pick",
 ] as const;
 
 export type TurnAction = (typeof TURN_ACTIONS)[number];
@@ -55,6 +60,19 @@ export type TurnAction = (typeof TURN_ACTIONS)[number];
 export interface ChoiceGroup {
   readonly label: string;
   readonly options: readonly string[];
+}
+
+/**
+ * What `propose_purchase` carried: the model's own draft, in the shape the
+ * signing sheet shows. The host completes it with the facts only it holds
+ * (who sells it, which currency, the envelope policy) and never rewrites a
+ * number in it: a number the human did not see is a number nobody signed.
+ */
+export interface DraftFields {
+  readonly sku: string;
+  readonly maxAmountPaise: number;
+  readonly requiresRefundability: boolean;
+  readonly description: string;
 }
 
 export interface TurnPlan {
@@ -76,6 +94,14 @@ export interface TurnPlan {
   readonly choiceGroups?: readonly ChoiceGroup[];
   /** What to look for, when the move is `browse` or `look_on_web`. */
   readonly query?: string | null;
+  /** `browse`: the skus the model chose to show, read off `see_shelf`. The
+   *  cards are built from the shelf rows for exactly these, in this order. */
+  readonly skus?: readonly string[];
+  /** `draft_intent`: the draft the sheet will show. Absent on a scripted
+   *  plan, whose judge reads the conversation instead. */
+  readonly draft?: DraftFields | null;
+  /** `pick`: the on-screen ref the model chose. */
+  readonly ref?: string | null;
   /** The change to the covenant the model proposed. A proposal and nothing
    *  more: only a signature applies one. */
   readonly amendment?: ProposedAmendment | null;
