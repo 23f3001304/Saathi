@@ -14,6 +14,7 @@ import type { ConversationMemory } from "../purchase/conversation-memory.js";
 import type { PurchaseRunner } from "../purchase/purchase-runner.js";
 import type { ToolLog } from "../purchase/tool-log.js";
 import type { TraitMemory } from "../purchase/trait-memory.js";
+import type { TurnLanguage } from "../purchase/turn-language.js";
 import type { WebBuyStep } from "../purchase/web-buy-step.js";
 import type { WebOffered } from "../purchase/web-offered.js";
 import type { WebPin } from "../purchase/web-pin.js";
@@ -23,6 +24,7 @@ import type { GatewayParts } from "./gateway-wiring.js";
 import type { KeyParts } from "./key-wiring.js";
 import type { BuyerIdentityParts, MerchantParts } from "./merchant-wiring.js";
 import type { ObsParts } from "./obs-wiring.js";
+import type { LaneGates } from "./reads-wiring.js";
 
 export interface BuyerParts {
   readonly runner: PurchaseRunner;
@@ -71,6 +73,11 @@ export interface BuyerDeps {
   /** The conversation's durable working context — claimed, read and written
    *  by the run; read-only from the errand that starts at a known page. */
   readonly context: ContextRecorder;
+  /** The lane's hold-to-sign gates, built with the lane so the planner's
+   *  reads report what is pending on the same pair the runner waits on. */
+  readonly gates: LaneGates;
+  /** The reply language the app sent with the turn, for the reads. */
+  readonly language: TurnLanguage;
   /** Where a streamed answer went; absent on a host that does not stream. */
   readonly drafts?: { withdrawLast(reason: string): void } | null;
   /** The sandbox tools' own shopper, so a pick opens the page the tools read. */

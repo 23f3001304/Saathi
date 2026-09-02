@@ -1,4 +1,8 @@
-import type { AgentSession, TurnPlanner } from "@covenant/agents";
+import type {
+  AgentSession,
+  PlannerReads,
+  TurnPlanner,
+} from "@covenant/agents";
 import {
   BUYER_SYSTEM_PROMPT,
   COVENANT_TOOL_DECLARATIONS,
@@ -145,11 +149,14 @@ export interface PlannerParts {
  * turn-plan tools, on a conversation of its own; in scripted mode the script is
  * the model and its script is a purchase, so the planner says so.
  */
-export function wireTurnPlanner(deps: SessionDeps): PlannerParts {
+export function wireTurnPlanner(
+  deps: SessionDeps,
+  reads: PlannerReads | null = null,
+): PlannerParts {
   if (deps.config.mode !== "live") {
     return { planner: new ScriptedTurnPlanner() };
   }
-  const collector = new TurnPlanCollector(DEFAULT_AMENDMENT_CONTEXT);
+  const collector = new TurnPlanCollector(DEFAULT_AMENDMENT_CONTEXT, reads);
   const session = routedSession(deps, {
     tools: TURN_PLAN_TOOLS,
     systemPrompt: BUYER_SYSTEM_PROMPT,

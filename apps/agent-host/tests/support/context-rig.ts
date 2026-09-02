@@ -9,6 +9,7 @@ import { ConfirmationGate } from "../../src/purchase/confirmation-gate.js";
 import type { ContextLog } from "../../src/purchase/context-log.js";
 import { ContextRecorder } from "../../src/purchase/context-record.js";
 import { ToolLog } from "../../src/purchase/tool-log.js";
+import { TurnLanguage } from "../../src/purchase/turn-language.js";
 import { WebOffered } from "../../src/purchase/web-offered.js";
 import { WebPickPark } from "../../src/purchase/web-pick-park.js";
 import { RecordingLogger, SeqIds, SilentLogger, StepClock } from "./fakes.js";
@@ -72,5 +73,6 @@ export function stillParts() {
     quotes: { newRun: () => undefined },
     logger: new SilentLogger(),
     ids: new SeqIds(),
+    language: new TurnLanguage(),
   };
 }

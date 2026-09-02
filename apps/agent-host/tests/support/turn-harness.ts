@@ -11,6 +11,7 @@ import { inertContext } from "../../src/purchase/context-record.js";
 import type { RunnerParts } from "../../src/purchase/purchase-runner.js";
 import { PurchaseRunner } from "../../src/purchase/purchase-runner.js";
 import { ToolLog } from "../../src/purchase/tool-log.js";
+import { TurnLanguage } from "../../src/purchase/turn-language.js";
 import { RecordingLogger, SeqIds, StepClock } from "./fakes.js";
 
 /**
@@ -78,6 +79,7 @@ function webParts() {
     offered: { live: () => [], claim: () => undefined },
     // These turns are about the fork; the record layer has its own tests.
     context: inertContext(),
+    language: new TurnLanguage(),
   };
 }
 

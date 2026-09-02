@@ -18,6 +18,7 @@ import type { LastProposal } from "./last-proposal.js";
 import type { MerchantToolFallback } from "./tool-fallback.js";
 import type { ToolLog } from "./tool-log.js";
 import type { TraitMemory } from "./trait-memory.js";
+import type { TurnLanguage } from "./turn-language.js";
 import type { WebLook } from "./web-look-step.js";
 import type { WebPickResume } from "./turn-step.js";
 import type { WebOffered } from "./web-offered.js";
@@ -70,6 +71,9 @@ export interface RunnerParts {
   /** Where a streamed answer went, so one the run then contradicts can be
    *  taken back off the screen. `null` on a host with no streaming. */
   readonly drafts: { withdrawLast(reason: string): void } | null;
+  /** The reply language the app sent with this turn; set before anything
+   *  reads, so `see_state` reports it. */
+  readonly language: TurnLanguage;
   readonly sandbox: SandboxOwner;
   readonly fallback: MerchantToolFallback;
   /** The standing cart's makings, so a tapped card can rebuild it. */

@@ -1,34 +1,33 @@
-import { windowIdFor } from "../browser/sandbox-factory.js";
-import type { AgentSession } from "@covenant/agents";
+import type { AgentSession, PlannerReads } from "@covenant/agents";
+import type { HeadlessReader } from "@covenant/browser-drive";
 import type { Clock, IdGenerator } from "@covenant/domain";
 
 import type { BrowserRegistry } from "../browser/browser-registry.js";
 import type { BrowserService } from "../browser/browser-service.js";
-import { WebFindings } from "../browser/web-listing.js";
-import { WebProgress } from "../browser/web-progress.js";
 import type { AgentHostConfig } from "../config.js";
 import type { BeatHub } from "../http/beat-hub.js";
 import type { ConversationBeatStore } from "../http/beat-store.js";
 import type { ChatService } from "../http/chat-service.js";
+import { ConfirmationGate } from "../purchase/confirmation-gate.js";
 import type { ContextLog } from "../purchase/context-log.js";
 import { ContextRecorder } from "../purchase/context-record.js";
 import { BeatDraftSink } from "../purchase/draft-beats.js";
 import type { TraitMemory } from "../purchase/trait-memory.js";
-import { WebOffered } from "../purchase/web-offered.js";
-import { WebPickPark } from "../purchase/web-pick-park.js";
-import { WebPin } from "../purchase/web-pin.js";
-import { WebTrail } from "../browser/web-trail.js";
+import { TurnLanguage } from "../purchase/turn-language.js";
+import type { WebPickPark } from "../purchase/web-pick-park.js";
+import type { CredentialVault } from "../session/credential-vault.js";
 import { type BuyerParts, wireBuyer } from "./buyer-wiring.js";
 import type { BeatLogParts } from "./chat-wiring.js";
 import { wireChat, wireLaneBeats } from "./chat-wiring.js";
 import { type DispatchParts, wireToolDispatch } from "./dispatch-wiring.js";
-import type { CredentialVault } from "../session/credential-vault.js";
-import type { HeadlessReader } from "@covenant/browser-drive";
 import type { GatewayParts } from "./gateway-wiring.js";
 import type { KeyParts } from "./key-wiring.js";
+import type { LaneWindowParts } from "./lane-parts.js";
+import { closeLane, laneBrowser, laneWindowParts } from "./lane-parts.js";
 import type { BuyerIdentityParts, MerchantParts } from "./merchant-wiring.js";
 import { wireMerchant } from "./merchant-wiring.js";
 import type { ObsParts } from "./obs-wiring.js";
+import { type LaneGates, plannerReadsOf } from "./reads-wiring.js";
 import {
   wireJudgeSession,
   wirePickSession,
@@ -58,7 +57,7 @@ export interface LaneShared {
 }
 
 /**
- * One conversation's whole working set. Everything a run mutates lives here —
+ * One conversation's whole working set. Everything a run mutates lives here,
  * which is the entire point: a second lane can be mid-errand and there is no
  * object these two runs both write.
  */
@@ -75,47 +74,34 @@ export interface Lane {
   readonly close: () => Promise<void>;
 }
 
-/**
- * The per-lane clones of the window tables `windowParts` used to build once.
- * Same shapes, same sharing *within* the lane — one trail so the report is of
- * the act, one set of findings so a card cannot carry a price off a page this
- * lane never opened — but nothing here is reachable from another lane.
- */
-function laneWindowParts(shared: LaneShared) {
+/** What the planner's reads and the runner's gates share. Built before
+ *  either, because the reads report `pending_signature` off the very gates
+ *  the runner waits on. */
+interface LaneState {
+  readonly gates: LaneGates;
+  readonly language: TurnLanguage;
+  readonly context: ContextRecorder;
+}
+
+function laneState(shared: LaneShared, window: LaneWindowParts): LaneState {
   return {
-    trail: new WebTrail(),
-    findings: new WebFindings(),
-    progress: new WebProgress(),
-    park: new WebPickPark(),
-    offered: new WebOffered(),
-    pin: new WebPin(),
-    traits: shared.traits,
+    gates: {
+      intent: new ConfirmationGate(shared.config.autoSign),
+      cart: new ConfirmationGate(shared.config.autoSign),
+    },
+    language: new TurnLanguage(),
+    context: new ContextRecorder(shared.contextLog, window, shared.obs.logger),
   };
 }
 
-/**
- * DECISION: the default lane (`null`) keeps the registry's primary window and
- * a named conversation gets an agent window of its own. Why: the CLI and the
- * e2e drive the primary by long-standing contract, and a conversation that
- * shared it would hand its page trail to whichever lane ran next — the
- * inherited-window bug, third time around. The id is DERIVED so the same
- * chat reopens the same profile across restarts, but through a hash: the
- * conversation string is client-chosen and reaches container names, and a
- * client must not get to pick those characters.
- */
-function laneBrowser(shared: LaneShared, conversation: string | null) {
-  return conversation === null
-    ? shared.registry.primary()
-    : shared.registry.agentWindow(windowIdFor(conversation));
-}
-
-/** The four model conversations and the planner — lane-owned, every one.
+/** The four model conversations and the planner, lane-owned, every one.
  *  Two lanes sharing an `AgentSession` would interleave their transcripts. */
 function laneSessions(
   shared: LaneShared,
   merchant: MerchantParts,
   dispatch: DispatchParts,
   sink: BeatDraftSink,
+  reads: PlannerReads,
 ) {
   const deps = { ...shared, hook: shared.gateway.hook, merchant, dispatch, sink };
   return {
@@ -123,19 +109,20 @@ function laneSessions(
     judgeSession: wireJudgeSession(deps),
     webSession: wireWebSession(deps),
     pickSession: wirePickSession(deps),
-    planner: wireTurnPlanner(deps).planner,
+    planner: wireTurnPlanner(deps, reads).planner,
   };
 }
 
 /** The lane's tool side: its merchant view, dispatcher and model sessions.
  *  The merchant is per lane because `TurnShelf` holds one per-turn snapshot
- *  and `MerchantAgent` one per-run quota — either shared across lanes would
+ *  and `MerchantAgent` one per-run quota; either shared across lanes would
  *  be one run clearing the other's turn mid-purchase. */
 function laneCore(
   shared: LaneShared,
   browser: BrowserService,
-  window: ReturnType<typeof laneWindowParts>,
+  window: LaneWindowParts,
   hub: BeatHub,
+  state: LaneState,
 ) {
   const merchant = wireMerchant(
     shared.config,
@@ -146,31 +133,44 @@ function laneCore(
   );
   const dispatch = wireToolDispatch({ ...shared, merchant, browser, ...window, hub });
   const sink = new BeatDraftSink(hub);
+  const reads = plannerReadsOf({
+    config: shared.config,
+    merchant,
+    browser,
+    offered: window.offered,
+    park: window.park,
+    progress: window.progress,
+    findings: window.findings,
+    gates: state.gates,
+    vault: shared.vault,
+    context: state.context,
+    language: state.language,
+  });
   return {
     merchant,
     dispatch,
     sink,
-    sessions: laneSessions(shared, merchant, dispatch, sink),
+    sessions: laneSessions(shared, merchant, dispatch, sink, reads),
   };
 }
 
 export function wireLane(shared: LaneShared, conversation: string | null): Lane {
-  const browser = laneBrowser(shared, conversation);
-  const window = laneWindowParts(shared);
-  const context = new ContextRecorder(shared.contextLog, window, shared.obs.logger);
+  const browser = laneBrowser(shared.registry, conversation);
+  const window = laneWindowParts(shared.traits);
+  const state = laneState(shared, window);
   const beats = wireLaneBeats(shared.beats, shared.clock, shared.obs);
-  const core = laneCore(shared, browser, window, beats.hub);
+  const core = laneCore(shared, browser, window, beats.hub, state);
   const buyer = wireBuyer({
     ...shared,
     ...core.sessions,
     ...window,
+    ...state,
     merchant: core.merchant,
     browser,
     dispatch: core.dispatch,
     shopper: core.dispatch.shopper,
     hub: beats.hub,
     drafts: core.sink,
-    context,
   });
   return {
     conversation,
@@ -184,15 +184,4 @@ export function wireLane(shared: LaneShared, conversation: string | null): Lane 
     park: window.park,
     close: () => closeLane(beats.hub, browser, core.sessions.session),
   };
-}
-
-/** Everything a retired lane holds a resource through, released quietly. */
-async function closeLane(
-  hub: BeatHub,
-  browser: BrowserService,
-  session: AgentSession,
-): Promise<void> {
-  hub.closeAll();
-  await browser.close().catch(() => undefined);
-  await session.close().catch(() => undefined);
 }

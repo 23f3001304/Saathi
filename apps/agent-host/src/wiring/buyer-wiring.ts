@@ -1,4 +1,3 @@
-import { ConfirmationGate } from "../purchase/confirmation-gate.js";
 import type { BuyerDeps, BuyerParts } from "./buyer-parts.js";
 import { wireConversationMemory } from "./memory-wiring.js";
 import { intentFlowOf, memoryDepsOf, wireRunner } from "./runner-wiring.js";
@@ -13,13 +12,13 @@ export type { BuyerDeps, BuyerParts } from "./buyer-parts.js";
  */
 export function wireBuyer(deps: BuyerDeps): BuyerParts {
   const { log, dispatcher } = deps.dispatch;
-  const intentGate = new ConfirmationGate(deps.config.autoSign);
+  const intentGate = deps.gates.intent;
   const intents = intentFlowOf(deps, intentGate);
   const webPick = webBuyOf(deps, dispatcher, intents);
   const shared = {
     intentGate,
     intents,
-    cartGate: new ConfirmationGate(deps.config.autoSign),
+    cartGate: deps.gates.cart,
     conversation: wireConversationMemory(memoryDepsOf(deps)),
     webPick,
   };

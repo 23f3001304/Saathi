@@ -120,6 +120,16 @@ function webParts(
   };
 }
 
+/** The shopper's side of the turn: the conversation's working record, what is
+ *  durably known about them, and the language the answer is owed in. */
+function shopperParts(deps: BuyerDeps) {
+  return {
+    context: deps.context,
+    traits: deps.traits,
+    language: deps.language,
+  };
+}
+
 function narratorOf(deps: BuyerDeps, log: ToolLog): RunNarrator {
   return new RunNarrator(deps.hub, log, deps.obs.journal);
 }
@@ -165,8 +175,7 @@ export function wireRunner(
       narrator: narratorOf(deps, log),
       planner: deps.planner,
       conversation: shared.conversation,
-      context: deps.context,
-      traits: deps.traits,
+      ...shopperParts(deps),
       ...webParts(deps, dispatcher, shared),
       sandbox: sandboxOf(deps),
       logger: deps.obs.logger,

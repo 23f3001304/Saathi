@@ -89,6 +89,7 @@ export class PurchaseRunner {
     chat: string | null,
     replyLanguage: string | null,
   ): Promise<PurchaseResult> {
+    this.parts.language.set(replyLanguage);
     this.parts.logger.debug("chat.reply_language", {
       at: "runner",
       run_id: base.runId,
