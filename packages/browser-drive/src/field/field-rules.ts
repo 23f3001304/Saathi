@@ -29,7 +29,10 @@ export interface RuleContext {
 export interface FieldRule {
   readonly id: string;
   readonly category: SensitiveCategory;
-  readonly handoff: HandoffReason;
+  /** `null` refuses without moving the wheel: a lone commit button on an
+   *  ordinary page is not the step it commits. The page-level detectors in
+   *  web-handover own the real handoffs. */
+  readonly handoff: HandoffReason | null;
   /** When the surrounding scope is a sign-up flow, `handoff` becomes account-creation. */
   readonly authScoped: boolean;
   readonly human: string;

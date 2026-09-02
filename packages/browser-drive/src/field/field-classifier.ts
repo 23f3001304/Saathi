@@ -80,7 +80,10 @@ export class FieldClassifier {
   }
 
   /** A password inside a sign-up flow is account creation, not a sign-in. */
-  private resolveHandoff(rule: FieldRule, context: RuleContext): HandoffReason {
+  private resolveHandoff(
+    rule: FieldRule,
+    context: RuleContext,
+  ): HandoffReason | null {
     if (rule.authScoped && REGISTER_URL.test(context.scope)) {
       return "account-creation";
     }

@@ -4,29 +4,29 @@ import { AUTH_BUTTON_CASES, SUBMIT_CASES } from "./cases-submits.js";
 
 /** Button text that commits money, in English. */
 export const PAYMENT_BUTTON_EN_CASES: readonly Case[] = [
-  b("Pay", "Pay", {}, "payment_button", "payment"),
-  b("Pay now", "Pay now", {}, "payment_button", "payment"),
-  b("Pay securely", "Pay securely", {}, "payment_button", "payment"),
-  b("Make payment", "Make payment", {}, "payment_button", "payment"),
-  b("Submit payment", "Submit payment", {}, "payment_button", "payment"),
-  b("Proceed to pay", "Proceed to pay", {}, "payment_button", "payment"),
-  b("Place order", "Place order", {}, "payment_button", "payment"),
-  b("Place your order", "Place your order", {}, "payment_button", "payment"),
-  b("Buy now", "Buy now", {}, "payment_button", "payment"),
-  b("Buy it now", "Buy it now", {}, "payment_button", "payment"),
-  b("Order now", "Order now", {}, "payment_button", "payment"),
-  b("Complete purchase", "Complete purchase", {}, "payment_button", "payment"),
-  b("Confirm and pay", "Confirm and pay", {}, "payment_button", "payment"),
-  b("Confirm order", "Confirm order", {}, "payment_button", "payment"),
-  b("Authorise payment", "Authorise payment", {}, "payment_button", "payment"),
-  b("Authorize payment", "Authorize payment", {}, "payment_button", "payment"),
-  b("PAY NOW shouting", "PAY NOW", {}, "payment_button", "payment"),
+  b("Pay", "Pay", {}, "payment_button", null),
+  b("Pay now", "Pay now", {}, "payment_button", null),
+  b("Pay securely", "Pay securely", {}, "payment_button", null),
+  b("Make payment", "Make payment", {}, "payment_button", null),
+  b("Submit payment", "Submit payment", {}, "payment_button", null),
+  b("Proceed to pay", "Proceed to pay", {}, "payment_button", null),
+  b("Place order", "Place order", {}, "payment_button", null),
+  b("Place your order", "Place your order", {}, "payment_button", null),
+  b("Buy now", "Buy now", {}, "payment_button", null),
+  b("Buy it now", "Buy it now", {}, "payment_button", null),
+  b("Order now", "Order now", {}, "payment_button", null),
+  b("Complete purchase", "Complete purchase", {}, "payment_button", null),
+  b("Confirm and pay", "Confirm and pay", {}, "payment_button", null),
+  b("Confirm order", "Confirm order", {}, "payment_button", null),
+  b("Authorise payment", "Authorise payment", {}, "payment_button", null),
+  b("Authorize payment", "Authorize payment", {}, "payment_button", null),
+  b("PAY NOW shouting", "PAY NOW", {}, "payment_button", null),
   b(
     "input type=submit with pay value",
     "Pay now",
     { tag: "input", inputType: "submit" },
     "payment_button",
-    "payment",
+    null,
   ),
 ];
 
@@ -35,15 +35,15 @@ export const PAYMENT_BUTTON_EN_CASES: readonly Case[] = [
  * that fails in the market this is built for.
  */
 export const PAYMENT_BUTTON_HI_CASES: readonly Case[] = [
-  b("भुगतान करें", "भुगतान करें", {}, "payment_button", "payment"),
-  b("भुगतान", "भुगतान", {}, "payment_button", "payment"),
-  b("अभी भुगतान करें", "अभी भुगतान करें", {}, "payment_button", "payment"),
-  b("पेमेंट", "पेमेंट", {}, "payment_button", "payment"),
-  b("अभी खरीदें", "अभी खरीदें", {}, "payment_button", "payment"),
-  b("खरीदें", "खरीदें", {}, "payment_button", "payment"),
-  b("ऑर्डर करें", "ऑर्डर करें", {}, "payment_button", "payment"),
-  b("आर्डर दें", "आर्डर दें", {}, "payment_button", "payment"),
-  b("आदेश दें", "आदेश दें", {}, "payment_button", "payment"),
+  b("भुगतान करें", "भुगतान करें", {}, "payment_button", null),
+  b("भुगतान", "भुगतान", {}, "payment_button", null),
+  b("अभी भुगतान करें", "अभी भुगतान करें", {}, "payment_button", null),
+  b("पेमेंट", "पेमेंट", {}, "payment_button", null),
+  b("अभी खरीदें", "अभी खरीदें", {}, "payment_button", null),
+  b("खरीदें", "खरीदें", {}, "payment_button", null),
+  b("ऑर्डर करें", "ऑर्डर करें", {}, "payment_button", null),
+  b("आर्डर दें", "आर्डर दें", {}, "payment_button", null),
+  b("आदेश दें", "आदेश दें", {}, "payment_button", null),
   // Deliberate over-block: "payment method" is a heading, not a commit, but a
   // bare भुगतान on a *button* is refused anyway. Fail closed.
   b(
@@ -51,7 +51,7 @@ export const PAYMENT_BUTTON_HI_CASES: readonly Case[] = [
     "भुगतान विधि",
     {},
     "payment_button",
-    "payment",
+    null,
   ),
 ];
 

@@ -17,7 +17,12 @@ const ACTION_RULES: readonly FieldRule[] = [
   {
     id: "payment_button_text",
     category: "payment_button",
-    handoff: "payment",
+    // DECISION: refuse, do not hand over. A Buy Now on a product page made
+    // the whole window the shopper's and the card announced "the payment
+    // step" over an ordinary listing; the errand had been told to carry on
+    // to add-to-cart and the wheel was already gone. The real payment page
+    // still hands over, via `paymentPageIn` reading the page itself.
+    handoff: null,
     authScoped: false,
     human:
       "That button commits the payment. Pressing it is the user's act, never the agent's.",
@@ -29,7 +34,9 @@ const ACTION_RULES: readonly FieldRule[] = [
   {
     id: "auth_button_text",
     category: "login_context",
-    handoff: "login",
+    // Same shape as the payment button: the sign-in PAGE hands over (or the
+    // vault signs in); a stray sign-in button aimed at mid-errand refuses.
+    handoff: null,
     authScoped: true,
     human:
       "That button signs in or signs up. The agent does not enter an account in your name — the window is yours.",

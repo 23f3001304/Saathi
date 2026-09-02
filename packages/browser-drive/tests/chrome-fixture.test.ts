@@ -91,11 +91,13 @@ chrome("credential blocks", () => {
 });
 
 chrome("payment blocks", () => {
-  it("blocks the real Place order button", async () => {
+  it("blocks the real Place order button and keeps the wheel", async () => {
     await page.navigate(fixtureUrl("checkout.html"));
     const result = await page.click("#place-order");
     expect(result.ok).toBe(false);
-    session.handoff().resume();
+    // Refused, not handed over: a lone commit button is not the step it
+    // commits. The wheel stays with the agent, which continues the errand.
+    expect(session.currentState()).toBe("agent-drive");
   });
 
   it("blocks the Hindi payment button", async () => {
@@ -104,7 +106,7 @@ chrome("payment blocks", () => {
     if (!result.ok) {
       expect(result.category).toBe("payment_button");
     }
-    session.handoff().resume();
+    expect(session.currentState()).toBe("agent-drive");
   });
 
   it("blocks the real card and CVV fields", async () => {
