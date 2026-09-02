@@ -5,6 +5,8 @@ import {
   DECLINE_TOOL,
   PROPOSE_TOOL,
   REMEMBER_TOOL,
+  SEE_SHELF_TOOL,
+  SEE_STATE_TOOL,
   WEB_LOOK_TOOL,
 } from "./turn-plan.js";
 
@@ -15,8 +17,10 @@ import {
  *  v4: the writing rules ban em dashes in the reply (house copy rule), and
  *  the prompt's own prose models the same punctuation.
  *  v5: a sentence naming two different products is two purchases, taken one
- *  at a time, said so out loud. */
-export const TURN_PLAN_PROMPT_ID = "buyer.turn-plan@v8";
+ *  at a time, said so out loud.
+ *  v9: two reads, see_shelf and see_state, may precede the move; the
+ *  browse count and the spec rule are gone, the model looks instead. */
+export const TURN_PLAN_PROMPT_ID = "buyer.turn-plan@v9";
 
 /**
  * What stands over the harness's working-context digest when a turn has one.
@@ -63,6 +67,13 @@ export const TURN_PLAN_PROMPT =
   "cannot. Never start a purchase from a greeting or from a message that " +
   "names no product. If you are not sure what they want, ask or look; both " +
   "are always available to you, and refusing is not.\n" +
+  "Before you move you may look. " +
+  `${SEE_SHELF_TOOL} is what this shop stocks, read by this host. ` +
+  `${SEE_STATE_TOOL} is what is on their screen, where a checkout stands, ` +
+  "what they have signed and whether a signature is pending, and which " +
+  "shops they have a stored sign-in for. Look when the answer depends on " +
+  "it; do not look when it does not. A look is not a move: after looking, " +
+  "still call exactly one of the moves above, and say only what you saw.\n" +
   "Never promise what the move you picked does not do. " +
   `${BROWSE_TOOL} reads this shop's catalog and reaches nothing else; ` +
   `${WEB_LOOK_TOOL} is the only move that opens the open web. If you mean ` +

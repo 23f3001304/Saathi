@@ -13,6 +13,7 @@ import {
   DECLINE_TOOL,
   PROPOSE_TOOL,
   REMEMBER_TOOL,
+  SEE_SHELF_TOOL,
   WEB_LOOK_TOOL,
 } from "./turn-plan.js";
 
@@ -103,8 +104,9 @@ const MOVES: readonly ToolDeclaration[] = [
       "what is available, or to see options. It reaches this shop's catalog " +
       "and nothing else, so do not say you will look anywhere else from here. " +
       "The host puts the matching items, if any, on their screen as cards " +
-      "after this turn: say what you did and what you think, once, and " +
-      "never list rows. If you are unsure what this shop holds, ask, or " +
+      "after this turn: say what you make of what you saw on " +
+      `${SEE_SHELF_TOOL}, once, and never list rows. If you are unsure ` +
+      "what this shop holds, ask, or " +
       `call ${WEB_LOOK_TOOL} when they want it found elsewhere. Looking is ` +
       "not buying: it signs nothing, spends nothing and commits to " +
       "nothing, so prefer it over refusing.",

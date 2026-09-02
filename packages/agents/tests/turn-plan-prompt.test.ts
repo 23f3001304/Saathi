@@ -3,8 +3,10 @@ import { describe, expect, it } from "vitest";
 import {
   TURN_PLAN_CONTEXT_MARK,
   TURN_PLAN_PROMPT,
+  TURN_PLAN_PROMPT_ID,
   turnPlanClosing,
 } from "../src/buyer/turn-plan-prompt.js";
+import { SEE_SHELF_TOOL, SEE_STATE_TOOL } from "../src/buyer/turn-plan.js";
 import {
   SessionTurnPlanner,
   TurnPlanCollector,
@@ -103,5 +105,15 @@ describe("what the closing rules say", () => {
   it("caps a runaway quoted line rather than growing the prompt with it", () => {
     const long = turnPlanClosing("x".repeat(2000));
     expect(long.length).toBeLessThan(2600);
+  });
+});
+
+describe("what the prompt says about looking", () => {
+  it("is sealed as v9 and names both reads as looks, not moves", () => {
+    expect(TURN_PLAN_PROMPT_ID).toBe("buyer.turn-plan@v9");
+    expect(TURN_PLAN_PROMPT).toContain(SEE_SHELF_TOOL);
+    expect(TURN_PLAN_PROMPT).toContain(SEE_STATE_TOOL);
+    expect(TURN_PLAN_PROMPT).toContain("A look is not a move");
+    expect(TURN_PLAN_PROMPT).not.toContain("matches");
   });
 });
