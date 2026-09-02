@@ -29,8 +29,8 @@ export interface OpenAiSessionConfig {
   /** Reasoning effort. Absent, the API default applies, which for a
    *  reasoning model is far below what it can do. */
   readonly reasoningEffort?: "low" | "medium" | "high";
-  /** Provider-hosted tools, sent verbatim beside the function tools; the one
-   *  in use is `{type: "web_search"}` for research off the sandbox. */
+  /** Hosted tools sent verbatim beside the function tools; in use:
+   *  `{type: "web_search"}` for research. */
   readonly hostedTools?: readonly JsonRecord[];
 }
 
@@ -95,7 +95,6 @@ export class OpenAiExchange implements ProviderExchange {
   private url(): string {
     return `${this.config.baseUrl}/responses`;
   }
-
   private headers(): ProviderHeaders {
     return { authorization: `Bearer ${this.config.apiKey}` };
   }
@@ -121,9 +120,8 @@ export class OpenAiExchange implements ProviderExchange {
     };
   }
 
-  /** Echoes the model's own turn back into `items` before the results land:
-   *  a stateless request must carry the `function_call` that a
-   *  `function_call_output` answers, or the next call is unanchored. */
+  /** Echoes the turn into `items`: a stateless request must carry the
+   *  `function_call` its `function_call_output` answers. */
   private readReply(body: unknown): ProviderReply {
     const texts: string[] = [];
     const toolRequests: AgentToolRequest[] = [];
@@ -164,7 +162,6 @@ export class OpenAiExchange implements ProviderExchange {
   }
 }
 
-/** The documented Responses tool shape: flat, not nested under `function`. */
 function declarationPayload(declaration: ToolDeclaration): JsonRecord {
   return {
     type: "function",

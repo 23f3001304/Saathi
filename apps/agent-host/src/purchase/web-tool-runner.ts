@@ -22,11 +22,12 @@ import {
 import type { WebFindings } from "../browser/web-listing.js";
 import type { WebShopper } from "../browser/web-shopper.js";
 import type { SignInVerbs } from "../browser/web-sign-in.js";
+import type { VerifyVerbs } from "../browser/web-verify.js";
 import { CALL_CEILING_MS, withinCall } from "./call-ceiling.js";
 import type { WebPin } from "./web-pin.js";
 import type { StepSink } from "./web-steps.js";
 import { stepLabel } from "./web-steps.js";
-import { actCall, foundCall, vaultCall } from "./web-act-calls.js";
+import { actCall, foundCall, vaultCall, verifyCall } from "./web-act-calls.js";
 import { webOpenArgs, webRefArgs } from "./web-tools.js";
 
 export function isWebTool(tool: string): boolean {
@@ -59,6 +60,8 @@ export class WebToolRunner {
     private readonly findings: WebFindings | null = null,
     /** The vault's tool face; `null` on a host with no vault wired. */
     private readonly vaultVerbs: SignInVerbs | null = null,
+    /** The batched research reader; `null` where none is wired. */
+    private readonly verifyVerbs: VerifyVerbs | null = null,
   ) {}
 
   async run(call: ToolCall): Promise<ToolOutcome> {
@@ -88,6 +91,7 @@ export class WebToolRunner {
     const stateful = await this.statefulCall(call);
     return (
       stateful ??
+      verifyCall(call, this.verifyVerbs) ??
       foundCall(call, this.findings) ??
       (await actCall(call, this.shopper)) ??
       (await vaultCall(call, this.vaultVerbs)) ??

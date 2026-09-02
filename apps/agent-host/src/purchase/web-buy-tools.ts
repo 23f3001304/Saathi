@@ -4,7 +4,7 @@ import {
   WEB_CART_TOOL,
   WEB_ENTER_CODE_TOOL,
   WEB_FILL_ADDRESS_TOOL,
-  WEB_FOUND_TOOL,
+  WEB_VERIFY_TOOL,
   WEB_OPEN_TOOL,
   WEB_PRESS_TOOL,
   WEB_READ_TOOL,
@@ -28,37 +28,27 @@ const point = { x: z.number().int().min(0), y: z.number().int().min(0) };
 
 /**
  * The research errand's whole surface: the provider's own hosted web search
- * (declared in the factory, not here) plus this one reporting tool. Research
- * does not run in the sandbox window at all; the window opens when the
- * shopper taps a card, for the two things only it can do under guard,
- * signing in and buying.
+ * (declared in the factory, not here) for discovery, and one batched
+ * verification tool whose reads are what the cards are built from. Research
+ * does not drive the sandbox window; the window opens when the shopper taps
+ * a card, for signing in and buying under guard.
  */
 export const RESEARCH_TOOL_DECLARATIONS: readonly ToolDeclaration[] = [
   {
-    tool: WEB_FOUND_TOOL,
+    tool: WEB_VERIFY_TOOL,
     server: WEB_TOOL_SERVER,
     description:
-      "Report the product candidates your web search found, once, when you " +
-      "have compared enough to recommend. Each row exactly as the source " +
-      "printed it: the listing's own title, its price text verbatim, and " +
-      "the direct product page URL on the shop itself, never a redirect, " +
-      "an aggregator, or a link you have not seen in a result. The host " +
-      "turns these into the cards the shopper taps.",
-    parameters: schemaOf({
-      found: z
-        .array(
-          z.object({
-            title: z.string().min(1).max(500),
-            price_text: z.string().max(300),
-            url: z.url(),
-            image_url: z.url().nullable().default(null),
-          }),
-        )
-        .min(1)
-        .max(8),
-    }),
+      "Verify up to six product page URLs at once. This host opens every " +
+      "one in parallel, headless and read-only, and reads the title, the " +
+      "printed price and whether the page says out of stock, off the pages " +
+      "themselves. Only rows it returns with a ref become cards, so " +
+      "recommend only those. Pass direct product page URLs you found in " +
+      "your web search results, on the shop itself, never a redirect. " +
+      `${UNTRUSTED}`,
+    parameters: schemaOf({ urls: z.array(z.url()).min(1).max(6) }),
   },
 ];
+
 
 export const WEB_TOOL_DECLARATIONS: readonly ToolDeclaration[] = [
   {

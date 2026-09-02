@@ -17,6 +17,10 @@ export const webWriteArgs = z.object({
 
 /** What a research errand reports: candidates as the source printed them.
  *  Every row is untrusted text and the host re-parses the price itself. */
+export const webVerifyArgs = z.object({
+  urls: z.array(z.url()).min(1).max(6),
+});
+
 export const webEnterCodeArgs = z.object({
   code: z.string().regex(/^[0-9]{4,10}$/),
 });

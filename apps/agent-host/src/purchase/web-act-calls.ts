@@ -2,6 +2,7 @@ import type { ToolCall, ToolOutcome } from "@covenant/agents";
 import {
   WEB_ENTER_CODE_TOOL,
   WEB_FOUND_TOOL,
+  WEB_VERIFY_TOOL,
   WEB_PRESS_TOOL,
   WEB_SEARCH_TOOL,
   WEB_SIGN_IN_TOOL,
@@ -11,12 +12,14 @@ import type { z } from "zod";
 
 import type { WebShopper } from "../browser/web-shopper.js";
 import type { SignInVerbs } from "../browser/web-sign-in.js";
+import type { VerifyVerbs } from "../browser/web-verify.js";
 import type { WebFindings } from "../browser/web-listing.js";
 import type { WebResult } from "../browser/web-result.js";
 import { badArgs, outcomeOf, unknown } from "./web-tool-guards.js";
 import {
   webEnterCodeArgs,
   webFoundArgs,
+  webVerifyArgs,
   webPressArgs,
   webSearchArgs,
   webWriteArgs,
@@ -111,4 +114,14 @@ export function foundCall(
     }),
     isError: false,
   };
+}
+
+/** The batched research read. `null` for any other tool. */
+export function verifyCall(
+  call: ToolCall,
+  verbs: VerifyVerbs | null,
+): Promise<ToolOutcome> | null {
+  if (call.tool !== WEB_VERIFY_TOOL) return null;
+  if (verbs === null) return Promise.resolve(unknown(call.tool));
+  return parsedCall(webVerifyArgs, call, (args) => verbs.verify(args.urls));
 }

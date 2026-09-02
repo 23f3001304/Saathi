@@ -22,6 +22,7 @@ import type { BeatLogParts } from "./chat-wiring.js";
 import { wireChat, wireLaneBeats } from "./chat-wiring.js";
 import { type DispatchParts, wireToolDispatch } from "./dispatch-wiring.js";
 import type { CredentialVault } from "../session/credential-vault.js";
+import type { HeadlessReader } from "@covenant/browser-drive";
 import type { GatewayParts } from "./gateway-wiring.js";
 import type { KeyParts } from "./key-wiring.js";
 import type { BuyerIdentityParts, MerchantParts } from "./merchant-wiring.js";
@@ -49,6 +50,8 @@ export interface LaneShared {
   readonly traits: TraitMemory;
   /** The stored sign-ins; read only by the host's sign-in routine. */
   readonly vault: CredentialVault;
+  /** The host's one headless read-only browser, shared across lanes. */
+  readonly reader: HeadlessReader;
   readonly contextLog: ContextLog;
   readonly beats: BeatLogParts;
 }

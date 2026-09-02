@@ -160,14 +160,19 @@ describe("money still leaves only through the covenant gateway", () => {
     expect(web.page.clicked).toEqual([]);
   });
 
-  it("hands the wheel to the user and raises the real window", async () => {
+  it("keeps the wheel after a refused commit button", async () => {
     await web.call("web_open", { url: REVIEW });
     const read = await web.body("web_read");
-    await web.call("web_add_to_cart", { ref: refFor(read, "Place order") });
-    expect(web.service.current()?.currentState()).toBe("user-drive");
-    expect(web.service.current()?.handoff().current()?.reason).toBe("payment");
-    await web.service.handToUser();
-    expect(web.page.fronted).toBe(1);
+    const result = await web.call("web_add_to_cart", {
+      ref: refFor(read, "Place order"),
+    });
+    // Refused, not handed over: a lone commit button is not the step it
+    // commits, so the errand keeps the wheel and is told the way to the
+    // basket control instead. The payment PAGE still hands over, via the
+    // page-level detector.
+    expect(result.isError).toBe(true);
+    expect(web.service.current()?.currentState()).toBe("agent-drive");
+    expect(web.service.current()?.handoff().current() ?? null).toBeNull();
   });
 
   it("blocks a payment tool that arrives dressed as a browser tool", async () => {

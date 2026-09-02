@@ -3,8 +3,10 @@ import type { Clock, IdGenerator } from "@covenant/domain";
 
 import type { BrowserService } from "../browser/browser-service.js";
 import type { BeatHub } from "../http/beat-hub.js";
+import type { HeadlessReader } from "@covenant/browser-drive";
 import type { WebFindings } from "../browser/web-listing.js";
 import { SignInVerbs } from "../browser/web-sign-in.js";
+import { VerifyVerbs } from "../browser/web-verify.js";
 import type { CredentialVault } from "../session/credential-vault.js";
 import type { WebProgress } from "../browser/web-progress.js";
 import { WebShopper } from "../browser/web-shopper.js";
@@ -48,6 +50,8 @@ export interface DispatchDeps {
   /** The stored sign-ins, matched by page host; values cross only into the
    *  drive's own hands. */
   readonly vault: CredentialVault;
+  /** The host's one headless read-only browser, shared across lanes. */
+  readonly reader: HeadlessReader;
   readonly keys: KeyParts;
   readonly obs: ObsParts;
   readonly gateway: GatewayParts;
@@ -99,6 +103,7 @@ function webRunner(deps: DispatchDeps, shopper: WebShopper): WebToolRunner {
       deps.trail,
       deps.progress,
     ),
+    new VerifyVerbs(deps.reader, deps.findings, deps.trail),
   );
 }
 

@@ -22,14 +22,15 @@ const ERRAND =
   "words), and try a second shop's name in the query when the first is " +
   "thin. Only after that may you conclude nothing was found, and then you " +
   "say what you tried.\n" +
-  "When you have three to six real candidates, call web_found once with " +
-  "them: each row the listing's own title, its price text exactly as the " +
-  "source printed it, and the direct product page URL on the shop itself. " +
-  "Never a redirect, an ad link, or a URL you have not seen in a result. " +
-  "If you could not see a price, write the price text you did see or leave " +
-  "it short; never make one up. The host builds the cards from what you " +
-  "report, and the sandbox window only opens later, when they tap one, for " +
-  "signing in and buying, which stay theirs.\n" +
+  "When your search has surfaced three to six real candidates, call " +
+  "web_verify once with their direct product page URLs, on the shop " +
+  "itself, never a redirect or an ad link. This host then opens every " +
+  "one at once and reads the title, the printed price and the stock " +
+  "line off the pages themselves; only rows that come back with a ref " +
+  "are on cards, so recommend from those rows and no others, using the " +
+  "prices the host read, not the prices your search remembered. A row " +
+  "that came back sold out or unreadable is dead: if too few survive, " +
+  "search once more and verify again before concluding.\n" +
   "Prices in results are the pages' own claims, never quotes. Nobody " +
   "signed them, and the payment step stays the shopper's.\n\n" +
   "Shop where they actually live. Their ceiling is denominated in the " +

@@ -17,6 +17,7 @@ export * from "./drive/relay-gate.js";
 export * from "./drive/user-input.js";
 export * from "./drive/point-actions.js";
 export * from "./drive/sign-in.js";
+export * from "./chrome/headless-reader.js";
 export * from "./drive/final-review.js";
 
 export * from "./frame/png.js";

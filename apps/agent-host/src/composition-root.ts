@@ -15,6 +15,7 @@ import { ChatLanes } from "./http/chat-lanes.js";
 import type { ChatService } from "./http/chat-service.js";
 import type { AmendFlow } from "./covenant/amend-flow.js";
 import { CredentialVault } from "./session/credential-vault.js";
+import { HeadlessReader, NavigationPolicy } from "@covenant/browser-drive";
 import type { BuyerParts } from "./wiring/buyer-wiring.js";
 import type { DispatchParts } from "./wiring/dispatch-wiring.js";
 import { type GatewayParts, wireGateway } from "./wiring/gateway-wiring.js";
@@ -109,7 +110,7 @@ function sandboxOf(config: AgentHostConfig, parts: ReturnType<typeof baseOf>) {
 function sharedOf(
   parts: ReturnType<typeof baseOf>,
   sandbox: ReturnType<typeof sandboxOf>,
-): Omit<LaneShared, "vault"> {
+): Omit<LaneShared, "vault" | "reader"> {
   return {
     ...parts,
     registry: sandbox.browserRegistry,
@@ -132,7 +133,12 @@ export function buildRoot(config: AgentHostConfig): CompositionRoot {
   const parts = baseOf(config);
   const sandbox = sandboxOf(config, parts);
   const vault = new CredentialVault(config.vaultFile);
-  const shared = { ...sharedOf(parts, sandbox), vault };
+  // One headless read-only browser for the whole host: research batches from
+  // every lane share it, and it holds no state a lane could leak through.
+  const reader = new HeadlessReader(
+    new NavigationPolicy({ fileRoots: [], allowHosts: [], denyHosts: [] }),
+  );
+  const shared = { ...sharedOf(parts, sandbox), vault, reader };
   // Built eagerly and pinned into the factory: the CLI and the shutdown path
   // hold this lane's parts directly, so it must be the same object the
   // manager serves for `null`.
