@@ -37,6 +37,7 @@ async function send(
   path: string,
   body: unknown,
 ): Promise<MerchantItemView> {
+  const canonicalPath = decodeURIComponent(path);
   const rawBody = JSON.stringify(body);
   const timestamp = new Date().toISOString();
   const idempotencyKey = crypto.randomUUID();
@@ -49,8 +50,11 @@ async function send(
       "Idempotency-Key": idempotencyKey,
       Timestamp: timestamp,
       Signature: await signatureHeader({
+        // Signed over the DECODED path: the gateway verifies against Hono's
+        // c.req.path, which arrives decoded, so signing the wire-encoded
+        // form ("urn%3Aitem%3A...") failed every id with a colon in it.
         method,
-        path,
+        path: canonicalPath,
         timestamp,
         idempotencyKey,
         rawBody,

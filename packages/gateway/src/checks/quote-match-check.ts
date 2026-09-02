@@ -83,10 +83,13 @@ function isLive(context: VerdictContext): boolean {
   const reservationExpiry =
     context.stockReservation?.expires_at ??
     context.cart.quote.reservation_expires_at;
-  return (
-    isBefore(now, context.cart.quote.quote_expiry) &&
-    isBefore(now, reservationExpiry)
-  );
+  // A quote with no reservation at all has no reservation to outlive:
+  // comparing against the missing field was NaN, NaN compared false, and
+  // every reservation-less quote was refused QUOTE_EXPIRED while fresh.
+  const reservationLive =
+    (reservationExpiry as string | undefined) === undefined ||
+    isBefore(now, reservationExpiry);
+  return isBefore(now, context.cart.quote.quote_expiry) && reservationLive;
 }
 
 /**
