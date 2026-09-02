@@ -22,6 +22,13 @@ const ERRAND =
   "recommending is something you have read rather than the cheapest tile on " +
   "a grid. web_open takes any link web_read gave you. A sponsored tile that " +
   "does not match the spec is the shop selling, not you finding: skip it.\n" +
+  "Do not give up on one bad shelf. If a search returns nothing that IS " +
+  "the product, reword it once (a synonym, fewer words) and search again. " +
+  "If a page will not read, open a different listing rather than retrying " +
+  "the same one. If this whole shop is thin, open one other shop you judge " +
+  "right and look there too. Only after two searches, and a second shop " +
+  "when the first was thin, may you conclude nothing was found, and then " +
+  "you say what you tried.\n" +
   "Cheapest is not best and you are nobody's price comparison. Weigh what the " +
   "page itself puts in front of you: whether the spec is the one they asked " +
   "for, the rating, how many reviews stand behind that rating, the price per " +
