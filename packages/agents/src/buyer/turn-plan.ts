@@ -70,32 +70,12 @@ export interface TurnPlan {
   readonly choiceGroups?: readonly ChoiceGroup[];
   /** What to look for, when the move is `browse` or `look_on_web`. */
   readonly query?: string | null;
-  /** The model's own judgement that the thing is named precisely enough to
-   *  act on. The harness routes on it; absent means true. */
-  readonly thingSettled?: boolean;
-  /** The model's own judgement that the newest line asks to look again or
-   *  differently. The harness routes on it; absent means false. */
-  readonly freshSearch?: boolean;
   /** The change to the covenant the model proposed. A proposal and nothing
    *  more: only a signature applies one. */
   readonly amendment?: ProposedAmendment | null;
   /** Durable facts about the shopper heard this turn, at P1 like anything
    *  else they typed. Being durable does not make one more trusted. */
   readonly traits?: readonly TraitClaim[];
-}
-
-/**
- * How many things in this shop match a query.
- *
- * DECISION: a count, never a sentence. The listing must stay harness-authored
- * — an agent that writes its own stock list can describe things the shop does
- * not have — but that is a rule about *facts*, not about the prose around
- * them. Handing the model the number and letting it say what the number means
- * is what stops "This shop has nothing like that" being welded, in English,
- * onto the end of a sentence the agent just wrote in Hindi.
- */
-export interface CatalogProbe {
-  matches(query: string): number;
 }
 
 /** The move the harness takes when the model called no tool at all. Answering

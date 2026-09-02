@@ -22,7 +22,7 @@ import { RecordingLogger } from "./fakes.js";
  */
 describe("the sentence that knows what the shop holds", () => {
   it("prefers what the model said after the count, and says it once", async () => {
-    const collector = new TurnPlanCollector(undefined, { matches: () => 0 });
+    const collector = new TurnPlanCollector();
     await collector.dispatch({
       tool: BROWSE_TOOL,
       server: BUYER_TOOL_SERVER,

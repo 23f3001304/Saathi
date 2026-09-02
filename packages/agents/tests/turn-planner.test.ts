@@ -38,9 +38,6 @@ describe("recording the choice", () => {
       replies: [],
       choiceGroups: [],
       query: null,
-      // The two routed judgements default safe when the model omits them.
-      thingSettled: true,
-      freshSearch: false,
       amendment: null,
       traits: [],
     });
@@ -69,22 +66,23 @@ describe("the open-web move", () => {
   });
 
   /**
-   * The shop answers with a count, and the model may change its mind on it —
-   * which is how a miss becomes a look on the open web without a keyword or a
-   * threshold anywhere in the harness.
+   * A browse is recorded, and the model may still change its move in the same
+   * turn: the shop's own stock reaches it through `see_shelf` (Stage 2), never
+   * as a count the harness computed with a word list.
    */
-  it("hands back how many the shop holds, and lets the miss be reconsidered", async () => {
-    const collector = new TurnPlanCollector(undefined, { matches: () => 0 });
+  it("records the browse and still lets the model change its mind", async () => {
+    const collector = new TurnPlanCollector();
     const outcome = await collector.dispatch({
       tool: BROWSE_TOOL,
       server: BUYER_TOOL_SERVER,
       args: { reply: "Let me look.", query: "1TB SSD" },
     });
-    expect(JSON.parse(outcome.content)).toMatchObject({ matches: 0 });
+    expect(JSON.parse(outcome.content)).toMatchObject({ recorded: "browse" });
+    expect(JSON.parse(outcome.content)).not.toHaveProperty("matches");
     await collector.dispatch({
       tool: WEB_LOOK_TOOL,
       server: BUYER_TOOL_SERVER,
-      args: { reply: "Nothing here — going to Amazon.", query: "1TB SSD" },
+      args: { reply: "Nothing here, going to Amazon.", query: "1TB SSD" },
     });
     expect(collector.take()?.action).toBe("look_on_web");
   });

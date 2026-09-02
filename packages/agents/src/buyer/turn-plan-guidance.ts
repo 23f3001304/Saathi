@@ -1,13 +1,5 @@
 import type { ToolOutcome } from "../shared/agent-session.js";
 
-/** What the model is told to do with the count, since the `reply` it already
- *  wrote was written before it knew. Guidance in a tool result, not a rule in
- *  the harness: what to say about a miss is the model's to decide. */
-const NOTHING_MATCHED =
-  "Nothing in this shop fits. Say so now, in their own language, in one " +
-  "sentence: your `reply` was written before you knew this. Offer to look " +
-  "on the open web, or call look_on_web if they have already asked you to.";
-
 const SOMETHING_MATCHED =
   "They are already being shown these as cards, with the prices. Do not list " +
   "them again; say what you make of them, in one sentence, or say nothing.";
@@ -47,13 +39,14 @@ export function answeredOutcome(blocking: string): ToolOutcome {
   };
 }
 
-export function browsedOutcome(matches: number | null): ToolOutcome {
+/** The move is recorded; what the shop holds is the model's to read through
+ *  its own tools, never a number the harness counted for it. */
+export function browsedOutcome(): ToolOutcome {
   return {
     content: JSON.stringify({
       ok: true,
       recorded: "browse",
-      matches,
-      next: matches === 0 ? NOTHING_MATCHED : SOMETHING_MATCHED,
+      note: SOMETHING_MATCHED,
     }),
     isError: false,
   };

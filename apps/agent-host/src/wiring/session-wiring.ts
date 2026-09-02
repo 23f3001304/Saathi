@@ -1,4 +1,4 @@
-import type { AgentSession, CatalogProbe, TurnPlanner } from "@covenant/agents";
+import type { AgentSession, TurnPlanner } from "@covenant/agents";
 import {
   BUYER_SYSTEM_PROMPT,
   COVENANT_TOOL_DECLARATIONS,
@@ -9,7 +9,6 @@ import {
   TurnPlanCollector,
 } from "@covenant/agents";
 
-import { matchCatalog } from "../judge/catalog-match.js";
 import {
   RESEARCH_TOOL_DECLARATIONS,
   WEB_TOOL_DECLARATIONS,
@@ -146,26 +145,11 @@ export interface PlannerParts {
  * turn-plan tools, on a conversation of its own; in scripted mode the script is
  * the model and its script is a purchase, so the planner says so.
  */
-/**
- * What the shop holds, as a number the model is handed back when it browses.
- * The listing itself stays harness-authored; the *sentence* about a miss is
- * the model's, in the shopper's own language.
- */
-function probeOf(deps: SessionDeps): CatalogProbe {
-  return {
-    matches: (query) =>
-      matchCatalog(deps.merchant.shelf.current(), query).length,
-  };
-}
-
 export function wireTurnPlanner(deps: SessionDeps): PlannerParts {
   if (deps.config.mode !== "live") {
     return { planner: new ScriptedTurnPlanner() };
   }
-  const collector = new TurnPlanCollector(
-    DEFAULT_AMENDMENT_CONTEXT,
-    probeOf(deps),
-  );
+  const collector = new TurnPlanCollector(DEFAULT_AMENDMENT_CONTEXT);
   const session = routedSession(deps, {
     tools: TURN_PLAN_TOOLS,
     systemPrompt: BUYER_SYSTEM_PROMPT,

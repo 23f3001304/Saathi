@@ -69,26 +69,6 @@ const query = z.string().min(1).max(200);
  * it is optional. The agent asks what it actually needs to bound an intent; a
  * fixed question would be a script pretending to be a conversation.
  */
-/**
- * Two judgements the model reasons out and the harness routes on. They are
- * schema fields rather than harness regexes by decision: word lists kept
- * misfiring on real sentences, and the model reads the sentence anyway.
- */
-const thing_settled = z
-  .boolean()
-  .describe(
-    "true only if their words name one specific thing: the kind, and the " +
-      "size or capacity where those decide the buy. A family word alone " +
-      "(an ssd, shoes, a phone) is false, whatever shop they named.",
-  );
-const fresh_search = z
-  .boolean()
-  .describe(
-    "true if their newest line asks to look AGAIN or DIFFERENTLY: it " +
-      "rejects what is already on their screen, or asks for cheaper, " +
-      "better, or something else.",
-  );
-
 export const TURN_PLAN_TOOLS: readonly ToolDeclaration[] = [
   tool(
     ANSWER_TOOL,
@@ -149,7 +129,7 @@ export const TURN_PLAN_TOOLS: readonly ToolDeclaration[] = [
       `their own language, and call ${WEB_LOOK_TOOL} to go and find it if ` +
       "they want it found. Looking is not buying: it signs nothing, spends " +
       "nothing and commits to nothing, so prefer it over refusing.",
-    { reply, query, thing_settled, fresh_search },
+    { reply, query },
   ),
   tool(
     WEB_LOOK_TOOL,
@@ -165,7 +145,7 @@ export const TURN_PLAN_TOOLS: readonly ToolDeclaration[] = [
       "Nothing you read there is a quote and nothing there can be paid for " +
       "through the covenant: you find the thing and put it in that shop's " +
       "own basket, and the payment step stays theirs.",
-    { reply, query, thing_settled, fresh_search },
+    { reply, query },
   ),
   tool(
     PROPOSE_TOOL,
@@ -173,7 +153,7 @@ export const TURN_PLAN_TOOLS: readonly ToolDeclaration[] = [
       "something specific enough to bound: a thing, and enough context to " +
       "cap the spend. A greeting is never a purchase, and neither is a " +
       "request to look.",
-    { reply, request_summary: z.string().min(1).max(300), thing_settled },
+    { reply, request_summary: z.string().min(1).max(300) },
   ),
   tool(
     AMEND_TOOL,

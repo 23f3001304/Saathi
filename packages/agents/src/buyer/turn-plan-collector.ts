@@ -9,7 +9,7 @@ import type { TraitClaim } from "./trait-claim.js";
 import { parseTrait } from "./trait-claim.js";
 import { groupsAt, repliesAt, textAt } from "./turn-plan-args.js";
 import { answeredOutcome, browsedOutcome } from "./turn-plan-guidance.js";
-import type { CatalogProbe, TurnAction, TurnPlan } from "./turn-plan.js";
+import type { TurnAction, TurnPlan } from "./turn-plan.js";
 import {
   AMEND_TOOL,
   ANSWER_TOOL,
@@ -53,8 +53,6 @@ export class TurnPlanCollector implements ToolDispatcher {
 
   constructor(
     private readonly context: AmendmentContext = DEFAULT_AMENDMENT_CONTEXT,
-    /** What the shop actually holds. `null` leaves `matches` unanswered. */
-    private readonly probe: CatalogProbe | null = null,
   ) {}
 
   async dispatch(call: ToolCall): Promise<ToolOutcome> {
@@ -71,7 +69,7 @@ export class TurnPlanCollector implements ToolDispatcher {
     const plan = this.planFor(action, call.args);
     this.choose(plan);
     if (action === "browse") {
-      return this.browsed(plan);
+      return browsedOutcome();
     }
     return action === "answer"
       ? answeredOutcome(textAt(call.args, "blocked_by"))
@@ -88,15 +86,6 @@ export class TurnPlanCollector implements ToolDispatcher {
     if (heldGeneric || !generic) {
       this.chosen = plan;
     }
-  }
-
-  /**
-   * The shop's own answer, handed back so the model can speak to it — and, on
-   * a miss, choose `look_on_web` instead with the count in front of it rather
-   * than a guess. The decision stays the model's; the number is ours.
-   */
-  private browsed(plan: TurnPlan): ToolOutcome {
-    return browsedOutcome(this.probe?.matches(plan.query ?? "") ?? null);
   }
 
   /** The last move recorded, then cleared: one plan per turn, never a carry-over. */
@@ -129,10 +118,6 @@ export class TurnPlanCollector implements ToolDispatcher {
       replies: repliesAt(args, "replies"),
       choiceGroups: groupsAt(args),
       query: query.length > 0 ? query : null,
-      // The two routed judgements. Absent reads as settled and not-fresh,
-      // so a provider that drops a field fails toward the old behaviour.
-      thingSettled: args["thing_settled"] !== false,
-      freshSearch: args["fresh_search"] === true,
       amendment: null,
       traits: [],
     };
