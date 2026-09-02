@@ -1,9 +1,11 @@
 // The draft the sheet shows is the one the planner's propose_purchase call
 // carried, completed by facts the host holds: who sells it, what currency the
 // covenant is in, and the monthly envelope policy. No second model, no regex.
+import type { DraftBounds } from "@covenant/agents";
 import {
   DEMO_CATALOG,
   DEMO_MERCHANT_ISS,
+  draftOf,
   INTENT_DRAFT_PROMPT_ID,
   IntentDrafter,
 } from "@covenant/agents";
@@ -102,5 +104,31 @@ describe("the operator's cap still binds, as a schema literal", () => {
     expect(drafted.bounds.skus).toEqual(["ST-KURTA-NAVY-M"]);
     expect(drafted.bounds.merchants).toEqual([DEMO_MERCHANT_ISS]);
     expect(drafted.bounds.requires_refundability).toBe(true);
+  });
+});
+
+describe("the collector's cap and the drafter's schema max agree", () => {
+  it("lets a proposal exactly at the operator cap through both seams", async () => {
+    const bounds: DraftBounds = {
+      capPaise: CONFIG.capPaise,
+      currency: CONFIG.currency,
+      shelf: SHELF,
+    };
+    const atCap = draftOf(
+      {
+        reply: "Drafting that now.",
+        sku: DRAFT.sku,
+        max_amount_paise: CONFIG.capPaise,
+        requires_refundability: true,
+        description: DRAFT.description,
+      },
+      bounds,
+    );
+    expect(atCap.ok).toBe(true);
+
+    const drafted = await drafterWith(
+      heldJudge({ ...DRAFT, maxAmountPaise: CONFIG.capPaise }),
+    ).draft(REQUEST);
+    expect(drafted.bounds.allowance.max_amount).toBe(CONFIG.capPaise);
   });
 });

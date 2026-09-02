@@ -1,18 +1,10 @@
 /**
- * The number the shopper actually said.
- *
- * A shopper asked for navy running shoes "under 4000 rupees" and the mandate
- * that got signed read "at most 5000.00 INR": the drafter used the host's
- * configured cap and nobody read the sentence. A cap is an outer bound the
- * operator sets. What the shopper said is a bound *they* set, and the signed
- * ceiling has to be the tighter of the two — a mandate looser than the
- * instruction that produced it is the exact failure this system exists to make
- * impossible, and it is worse coming from us than from a merchant.
- *
- * Parsing is deliberately narrow and deliberately deterministic. A model may
- * propose a ceiling and often will; this decides the most it is allowed to be,
- * and it must hold whichever model answered and however persuasive the page
- * was. Anything it cannot read confidently returns null and the cap stands.
+ * The scripted fake model's reading of a sentence: the ceiling it states and
+ * whether it asks for returns. Live mode never runs this. The model proposes
+ * `max_amount_paise` and `requires_refundability` in `propose_purchase`, the
+ * collector checks them against the operator's cap, and the human sees them
+ * on the sheet. Scripted mode has no model, so the script reads the number
+ * itself, and its rule stands: a mandate is never looser than the sentence.
  */
 
 const PAISE_PER_RUPEE = 100;
@@ -76,4 +68,32 @@ export function ceilingFor(request: string, capPaise: number): number {
   const stated = statedCeilingPaise(request);
   if (stated === null) return capPaise;
   return Math.max(1, Math.min(stated, capPaise));
+}
+
+/**
+ * Whether the shopper asked to be able to send it back.
+ *
+ * `requires_refundability` used to be a literal `true` on every deterministic
+ * draft. That is a hardcoded answer to a question the shopper answers for
+ * themselves, and it is not the safe default it looks like: it signed a bound
+ * over requests that never mentioned returns, and then refused every cart from
+ * a merchant who attests no returns policy — a refusal about a term the shopper
+ * never asked for.
+ *
+ * Narrow and deterministic, for the same reason `statedCeilingPaise` is: a
+ * model may propose the flag and usually will, and this decides what the
+ * sentence itself supports when no model answered.
+ */
+const REFUND_PHRASES: readonly RegExp[] = [
+  /\brefundab(?:le|ility)\b/i,
+  /\brefunds?\b/i,
+  /\breturnable\b/i,
+  /\bcan\s+(?:be\s+)?return(?:ed)?\b/i,
+  /\bfree\s+returns?\b/i,
+  /\bwith\s+returns?\b/i,
+  /\bmoney\s*-?\s*back\b/i,
+];
+
+export function demandsRefund(request: string): boolean {
+  return REFUND_PHRASES.some((phrase) => phrase.test(request));
 }

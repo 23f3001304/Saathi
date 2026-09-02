@@ -1,13 +1,18 @@
 // `requires_refundability` was a literal `true` on every deterministic draft,
 // and `refundable` on a live Razorpay item is always false because the entity
 // carries no returns policy. Every live cart therefore died on
-// REFUNDABILITY_REQUIRED, over a term most shoppers never asked for.
+// REFUNDABILITY_REQUIRED, over a term most shoppers never asked for. Live
+// mode no longer reads the sentence at all: the model proposes
+// `requires_refundability` and the human sees it on the sheet. This is the
+// scripted fake model's reading, kept because the scripted demo is the
+// key-less judge's first run.
 import type { CatalogSku, IssuedQuote } from "@covenant/agents";
-import { demandsRefund, UNCATEGORISED } from "@covenant/agents";
+import { UNCATEGORISED } from "@covenant/agents";
 import { REFUND_POLICY_KEY } from "@covenant/domain";
 import { describe, expect, it } from "vitest";
 
-import { draftFieldsFor } from "../src/judge/draft-plan.js";
+import { draftFieldsFor } from "../src/session/scripted-draft.js";
+import { demandsRefund } from "../src/session/scripted-reading.js";
 import { paymentRequestFor } from "../src/purchase/payment-request.js";
 
 const CONFIG = {

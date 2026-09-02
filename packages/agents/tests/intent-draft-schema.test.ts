@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { draftSchemaFor } from "../src/buyer/intent-drafter.js";
+import { draftSchemaFor } from "../src/buyer/intent-draft-fields.js";
 
 describe("intent draft validation", () => {
   const schema = draftSchemaFor("INR", 250_000);

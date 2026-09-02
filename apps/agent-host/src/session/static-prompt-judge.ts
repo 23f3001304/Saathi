@@ -8,7 +8,7 @@ import type {
 
 import { matchedSku, NothingStocked } from "./catalog-match.js";
 import type { DraftPlanConfig } from "../judge/draft-plan.js";
-import { draftFieldsFor } from "../judge/draft-plan.js";
+import { draftFieldsFor } from "./scripted-draft.js";
 
 function conversationOf(input: PromptInput): string {
   const value = input["conversation"];

@@ -1,11 +1,11 @@
-// A shopper asked for navy running shoes "under 4000 rupees" and the mandate
-// that got signed read "at most 5000.00 INR". The drafter used the host's
-// configured cap and nobody read the sentence — a mandate looser than the
-// instruction that produced it, which is the failure this system exists to
-// make impossible, and worse coming from us than from a merchant.
+// The scripted fake model's reading of a budget off the sentence. Live mode
+// never runs this: the model proposes the ceiling in propose_purchase and
+// the human sees it on the sheet. Scripted mode has no model, so the script
+// reads the number itself, and a mandate looser than the sentence is still
+// the one thing it must never draft.
 import { describe, expect, it } from "vitest";
 
-import { ceilingFor, statedCeilingPaise } from "../src/buyer/stated-budget.js";
+import { ceilingFor, statedCeilingPaise } from "../src/session/scripted-reading.js";
 
 const CAP = 500_000;
 
