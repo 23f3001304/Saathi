@@ -100,7 +100,7 @@
   font-size: var(--t-label);
   letter-spacing: 0.04em;
   color: var(--ink-40);
-  max-width: 860px;
+  max-width: 460px;
 }
 
 .ruleHindi {
@@ -109,7 +109,7 @@
 }
 
 .ruleRight {
-  text-align: right;
+  display: none;
 }
 
 /* The claim and the seal share the shoulder: the sentence on the left,
@@ -121,7 +121,7 @@
   align-items: flex-end;
   justify-content: space-between;
   gap: var(--sp-9);
-  margin-top: var(--sp-10, 48px);
+  margin-top: var(--sp-7);
   flex-wrap: wrap;
 }
 

@@ -102,3 +102,27 @@ The signature block: the wordmark returns at hero scale and re-inks pigment by
 pigment under the cursor, साथी glossed "companion" beside it, clause navigation
 set as an index, the Bakhshali zero as the colophon: India gave the ledger its
 zero; this ledger gives your agent one. Zero unsigned spends.
+
+## v3 whiteboard (after the Behance/Dribbble/godly reference pass, 2026-09-02)
+
+What the strong references share that v2 lacked: a hero OBJECT (a card, a
+phone, a dashboard: something with mass), bold PANEL BLOCKING (rounded
+full-width panels, committed dark sections, not uniform paper), and the
+product shown concretely inside frames. Identity was right; mass was missing.
+
+Blocking rhythm, top to bottom:
+1. HERO on paper: toran bloom + staggered name + kolam line (keep), and NEW:
+   a layered product stack on the right at real scale: the bill card with a
+   live hold-to-sign seal inside it, the browser card behind it with step
+   pills, a refusal chip floating over the corner. Three cards, one glance,
+   the whole product. The seal in the bill IS the discoverable interaction.
+2. THE WORRY: the rogue-agent terminal committed to a full dark ink panel,
+   rounded 20px, inset from the edges: the first dark block.
+3. YOUR WORD: paper, editorial (keep).
+4. THE SHOPPING: the live demo sunk into a paper-sunk band, edge to edge.
+5. THE HISAAB: the second dark panel: ink ground, cream text, mono ledger
+   light-on-dark, crimson REFUSED. The two dark panels frame the story.
+6. FINALE + FOOTER bookend (keep).
+
+Motion: unchanged system (blur-reveal, kolam draw, stagger); the hero stack
+enters as three staggered blur-reveals, back card first.

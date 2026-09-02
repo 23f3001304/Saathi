@@ -1,6 +1,6 @@
 import { useRef, type JSX } from "react";
 import { Wordmark } from "../chrome/Wordmark.tsx";
-import { Seal } from "../kolam/Seal.tsx";
+import { HeroStack } from "./HeroStack.tsx";
 import { useInkPressure } from "../motion/useInkPressure.ts";
 import { BUILD_URL, DEMO_URL } from "../content/links.ts";
 import styles from "./Hero.module.css";
@@ -89,17 +89,7 @@ export function Hero(): JSX.Element {
             </a>
           </p>
         </div>
-        <figure className={styles.sealSpot} data-reveal>
-          <Seal
-            size={96}
-            label="every bill ends here"
-            doneLabel="that is the whole trick"
-          />
-          <figcaption className={styles.sealNote}>
-            press and hold · six hundred milliseconds · nothing is bought
-            without it
-          </figcaption>
-        </figure>
+        <HeroStack />
       </div>
       <a className={styles.cue} href="#worry">
         come inside
