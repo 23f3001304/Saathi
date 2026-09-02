@@ -97,10 +97,8 @@ export class GuardedPage {
     return this.read(selector, () => this.page.readValue(selector));
   }
 
-  /** The whole page as text, links and controls. A read: gated, never blocked
-   *  — what may be *done* with what it finds is decided one call later. */
+  /** Watching-side, not acting-side: cancelling a stuck load drives nothing. */
   stopLoading(): Promise<void> {
-    // Watching-side, not acting-side: cancelling a stuck load drives nothing.
     return this.page.stopLoading();
   }
 

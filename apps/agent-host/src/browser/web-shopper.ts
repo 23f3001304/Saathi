@@ -2,7 +2,7 @@ import type { BrowserSession, PageDom, Waiter } from "@covenant/browser-drive";
 import { UserDriveViolation } from "@covenant/browser-drive";
 
 import type { BrowserService } from "./browser-service.js";
-import { SETTLE_MS, settledRead } from "./settled-read.js";
+import { settledRead } from "./settled-read.js";
 import type { KnownAddress } from "./web-address-fill.js";
 import { fillKnownAddress } from "./web-address-fill.js";
 import { checkCartAgainst } from "./web-cart-check.js";
@@ -13,6 +13,8 @@ import type { WebPageView } from "./web-page-view.js";
 import { PageRefs, WEB_PROVENANCE } from "./web-page-view.js";
 import type { WebResult } from "./web-result.js";
 import type { WebTrail } from "./web-trail.js";
+import type { ActDeps } from "./web-acts.js";
+import { pressAt, settleAfterAct, writeAt } from "./web-acts.js";
 import {
   NO_WINDOW,
   pageMoved,
@@ -102,24 +104,13 @@ export class WebShopper {
       if (!typed.ok) {
         return webRefusal(typed);
       }
-      const dom = await settledRead(session, this.waiter, SETTLE_MS);
-      // A search navigates too, and the page it lands on is where the window
-      // went — the report of the errand names it because this recorded it.
-      this.trail.record(dom.url);
-      return (
-        handOver(session, dom, (why) => this.progress.recordHandover(why)) ??
-        webOk({
-          searched: query,
-          page: this.viewOf(dom),
-          provenance: WEB_PROVENANCE,
-        })
-      );
+      // A search navigates too; the act tail records where the window went.
+      return settleAfterAct(session, this.acts(), { searched: query });
     });
   }
 
-  /** The only click the agent has, and it is still judged: aimed at a page's
-   *  own "Place order", `FieldClassifier` refuses it — the button commits a
-   *  payment, so pressing it is the user's act. */
+  /** The ref click, still judged: aimed at a page's own "Place order",
+   *  `FieldClassifier` refuses it — that press is the user's act. */
   addToCart(ref: string): Promise<WebResult> {
     return this.onSession(async (session) => {
       const selector = this.refs.selectorOf(ref);
@@ -133,17 +124,28 @@ export class WebShopper {
       if (!clicked.ok) {
         return webRefusal(clicked);
       }
-      const dom = await settledRead(session, this.waiter, SETTLE_MS);
-      this.trail.record(dom.url);
-      const handed = handOver(session, dom, (why) =>
-        this.progress.recordHandover(why),
-      );
-      if (handed !== null) return handed;
-      // Click landed, page settled, window still ours: the basket fact.
-      this.progress.recordCarted();
-      const page = this.viewOf(dom);
-      return webOk({ clicked: ref, page, provenance: WEB_PROVENANCE });
+      return settleAfterAct(session, this.acts(), { clicked: ref }, true);
     });
+  }
+
+  /** Aim-by-point, judged at hit-test by the same classifier. */
+  press(x: number, y: number): Promise<WebResult> {
+    return this.onSession((session) => pressAt(session, this.acts(), x, y));
+  }
+
+  write(x: number, y: number, text: string): Promise<WebResult> {
+    return this.onSession((session) =>
+      writeAt(session, this.acts(), x, y, text),
+    );
+  }
+
+  private acts(): ActDeps {
+    return {
+      waiter: this.waiter,
+      trail: this.trail,
+      progress: this.progress,
+      view: (dom) => this.viewOf(dom),
+    };
   }
 
   cart(): Promise<WebResult> {

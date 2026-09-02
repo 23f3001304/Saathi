@@ -23,6 +23,10 @@ export interface PageControlDom {
   readonly kind: PageControlKind;
   readonly text: string;
   readonly type: string | null;
+  /** Centre of the control's box in viewport pixels — the same space the
+   *  hit-test and the pointer use, so an aim taken from a read lands on the
+   *  thing that was read. Absent when the reader did not measure. */
+  readonly at?: { readonly x: number; readonly y: number };
 }
 
 /**

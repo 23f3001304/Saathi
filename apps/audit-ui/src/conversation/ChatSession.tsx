@@ -286,14 +286,24 @@ export function ChatSession({
           </p>
         );
       }
-      // The strip itself lives in the dock while the pick is the live ask:
-      // the transcript keeps the claim, the composer holds the choice.
+      // DECISION (reversing "the strip lives in the dock"): the transcript
+      // is the strip's one guaranteed home. The dock version depended on a
+      // live-ask condition, and when that condition was false the cards
+      // rendered NOWHERE: a shopper read "4 fit, in the order I would buy
+      // them" over an empty page. The dock still carries the ask and the
+      // refinements; the evidence sits where evidence has always sat.
       return (
         <div key={i} className={styles.offer}>
           <p className={styles.offerLine}>
             {options.length} fit, in the order I would buy them. Nobody paid
             to be here.
           </p>
+          <OptionSet
+            options={options}
+            capPaise={chat.covenant?.capPaise}
+            selectedId={pickedId ?? undefined}
+            onAsk={choose}
+          />
         </div>
       );
     }
@@ -389,16 +399,7 @@ export function ChatSession({
         choiceGroups={question?.groups ?? undefined}
         stage={dockStage}
         prompt={askPrompt}
-        picker={
-          optionsLive ? (
-            <OptionSet
-              options={options}
-              capPaise={chat.covenant?.capPaise}
-              selectedId={pickedId ?? undefined}
-              onAsk={choose}
-            />
-          ) : undefined
-        }
+
         placeholder={question === null ? undefined : "Answer here…"}
         openLabel={question === null ? undefined : "Type your answer"}
         primary={

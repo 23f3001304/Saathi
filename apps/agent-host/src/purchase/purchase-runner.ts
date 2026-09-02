@@ -1,19 +1,17 @@
 
 import { NothingStocked } from "../judge/catalog-match.js";
 import { noStockTurn } from "../judge/no-stock-step.js";
-import { buyThrough, reproposeSku } from "./buy-step.js";
+import { reproposeSku } from "./buy-step.js";
+import { planned } from "./planned-turn.js";
 import { plannerDigest } from "./context-digest.js";
 import { routeTypedPick } from "./typed-pick.js";
 import { unfolded } from "./dialogue-compaction.js";
 import { LANGUAGE_SLIPPED } from "./language-gate.js";
-import { plannedTurn } from "./plan-gate.js";
-import { anchorLine } from "./web-errand.js";
 import type { Turn } from "./dialogue.js";
 import { shopperLines, transcriptOf } from "./dialogue.js";
 import type { PurchaseResult } from "./purchase-result.js";
 import { emptyResult } from "./purchase-result.js";
 import type { RunnerConfig, RunnerParts } from "./runner-parts.js";
-import { nonPurchaseTurn } from "./turn-step.js";
 
 export type { RunnerConfig, RunnerParts } from "./runner-parts.js";
 
@@ -34,22 +32,7 @@ export class PurchaseRunner {
     chat?: string,
     replyLanguage: string | null = null,
   ): Promise<PurchaseResult> {
-    const runId = `urn:covenant:run:${this.parts.ids.uuid()}`;
-    this.parts.hub.restart();
-    this.parts.cartGate.reset();
-    this.parts.log.reset();
-    this.parts.lastProposal.clear();
-    this.parts.offered.claim(chat ?? null);
-    // After the table is claimed, because rehydrating puts cards back on it:
-    // a restarted host reads this conversation's record and re-seats what an
-    // earlier process had offered, so "go with the Crucial" still resolves.
-    this.parts.context.claim(chat ?? null);
-    this.parts.quotes.newRun();
-    // Left open it went on presenting itself as current: a shopper asking in
-    // Hindi about a gaming laptop was shown the footwear search from the
-    // question before, with that run's actions still listed under it.
-    await this.parts.sandbox.retire();
-    const base = emptyResult(runId, request);
+    const base = emptyResult(await this.freshTable(chat ?? null), request);
     try {
       // The turn's one shelf read: the probe, the listing, the drafter, the
       // catalog tool and the quote tool all read this snapshot, so no two of
@@ -69,6 +52,24 @@ export class PurchaseRunner {
           )
         : this.abort(base, cause);
     }
+  }
+
+  /** Everything a turn must not inherit from the one before it: gates, the
+   *  offered table (claimed before context, because rehydrating re-seats an
+   *  earlier process's cards so "go with the Crucial" still resolves), and
+   *  the sandbox window, which left open went on presenting a previous run's
+   *  search as current. Returns the fresh run's id. */
+  private async freshTable(chat: string | null): Promise<string> {
+    const runId = `urn:covenant:run:${this.parts.ids.uuid()}`;
+    this.parts.hub.restart();
+    this.parts.cartGate.reset();
+    this.parts.log.reset();
+    this.parts.lastProposal.clear();
+    this.parts.offered.claim(chat);
+    this.parts.context.claim(chat);
+    this.parts.quotes.newRun();
+    await this.parts.sandbox.retire();
+    return runId;
   }
 
   private abort(base: PurchaseResult, cause: unknown): PurchaseResult {
@@ -118,51 +119,13 @@ export class PurchaseRunner {
     const tail = unfolded(dialogue, this.parts.context.current()?.folded ?? null);
     const result =
       chose ??
-      (await this.planned(base, [...traits, ...transcriptOf(tail)], {
+      (await planned(this.parts, this.config, base, [...traits, ...transcriptOf(tail)], {
         stated,
         replyLanguage,
         digest: plannerDigest(this.parts.context.current()),
       }));
     await this.said(result, chat);
     return this.filed(result, dialogue);
-  }
-
-  /** The model's move, and what the harness let follow from it. */
-  private async planned(
-    base: PurchaseResult,
-    lines: readonly string[],
-    turn: {
-      stated: readonly string[];
-      replyLanguage: string | null;
-      digest: string;
-    },
-  ): Promise<PurchaseResult> {
-    const { plan, slipped } = await plannedTurn(
-      this.parts.planner,
-      lines,
-      turn.replyLanguage,
-      anchorLine(turn.stated),
-      this.parts.logger,
-      turn.digest,
-    );
-    const answered = await nonPurchaseTurn(
-      this.parts,
-      base,
-      plan,
-      turn.stated,
-      turn.replyLanguage,
-    );
-    const result =
-      answered ??
-      (await buyThrough(
-        this.parts,
-        this.config,
-        base,
-        turn.stated,
-        turn.replyLanguage,
-      ));
-    if (slipped) this.noteSlip();
-    return result;
   }
 
   /** The cart, rebuilt for a tapped platform card; `null` when the tap is

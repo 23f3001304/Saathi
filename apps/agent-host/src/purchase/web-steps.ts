@@ -3,8 +3,10 @@ import {
   WEB_CART_TOOL,
   WEB_FILL_ADDRESS_TOOL,
   WEB_OPEN_TOOL,
+  WEB_PRESS_TOOL,
   WEB_READ_TOOL,
   WEB_SEARCH_TOOL,
+  WEB_WRITE_TOOL,
 } from "@covenant/agents";
 
 import { pageName } from "../browser/browser-view.js";
@@ -56,6 +58,8 @@ const LABELS: Readonly<
     return query === "" ? "Searched the shop" : `Searched for “${query}”`;
   },
   [WEB_ADD_TO_CART_TOOL]: () => "Put it in the shop's basket",
+  [WEB_PRESS_TOOL]: () => "Pressed a control on the page",
+  [WEB_WRITE_TOOL]: () => "Typed into a box on the page",
   [WEB_CART_TOOL]: () => "Read the basket total",
   [WEB_FILL_ADDRESS_TOOL]: () => "Filled the delivery form",
 };

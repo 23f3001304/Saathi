@@ -49,6 +49,7 @@ export class PuppeteerLauncher implements BrowserLauncher {
     const browser = await this.start(request, args);
     const page = await firstPage(browser);
     await denyDownloads(page);
+    await page.evaluate(() => document.readyState).catch(() => undefined);
     return new PuppeteerBrowser(browser, new PuppeteerPage(page));
   }
 
@@ -98,14 +99,17 @@ class PuppeteerBrowser implements LaunchedBrowser {
 
 /** Nothing in a purchase flow needs to write a file to the user's machine. */
 async function denyDownloads(page: Page): Promise<void> {
-  const client = await page.createCDPSession();
-  await client.send("Browser.setDownloadBehavior", { behavior: "deny" });
-  await client.detach();
+  try {
+    const client = await page.createCDPSession();
+    await client.send("Browser.setDownloadBehavior", { behavior: "deny" });
+  } catch {
+    // Non-fatal if CDP session behavior is already controlled by profile preferences
+  }
 }
 
 async function firstPage(browser: Browser): Promise<Page> {
   const pages = await browser.pages();
   const page = pages[0] ?? (await browser.newPage());
-  await page.bringToFront();
+  await page.bringToFront().catch(() => undefined);
   return page;
 }

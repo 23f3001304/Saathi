@@ -43,17 +43,21 @@ function textAt(args: ToolArgs, key: string): string {
 function groupsAt(args: ToolArgs): readonly { label: string; options: readonly string[] }[] {
   const raw = args["choice_groups"];
   if (!Array.isArray(raw)) return [];
-  const groups: { label: string; options: readonly string[] }[] = [];
-  for (const item of raw) {
-    if (typeof item !== "object" || item === null) continue;
-    const held = item as Record<string, unknown>;
-    const label = typeof held["label"] === "string" ? held["label"] : "";
-    const options = Array.isArray(held["options"])
+  return raw
+    .map(groupOf)
+    .filter((group) => group.label !== "" && group.options.length >= 2);
+}
+
+function groupOf(item: unknown): { label: string; options: readonly string[] } {
+  if (typeof item !== "object" || item === null)
+    return { label: "", options: [] };
+  const held = item as Record<string, unknown>;
+  return {
+    label: typeof held["label"] === "string" ? held["label"] : "",
+    options: Array.isArray(held["options"])
       ? held["options"].filter((o): o is string => typeof o === "string")
-      : [];
-    if (label !== "" && options.length >= 2) groups.push({ label, options });
-  }
-  return groups;
+      : [],
+  };
 }
 
 function repliesAt(args: ToolArgs, key: string): readonly string[] {

@@ -1,0 +1,68 @@
+import type { BrowserSession, PageDom, Waiter } from "@covenant/browser-drive";
+
+import { SETTLE_MS, settledRead } from "./settled-read.js";
+import { handOver } from "./web-handover.js";
+import type { WebProgress } from "./web-progress.js";
+import type { WebPageView } from "./web-page-view.js";
+import { WEB_PROVENANCE } from "./web-page-view.js";
+import type { WebResult } from "./web-result.js";
+import type { WebTrail } from "./web-trail.js";
+import { webOk, webRefusal } from "./web-result.js";
+
+/**
+ * The acting verbs' shared shape, split from `WebShopper` so each file keeps
+ * one idea: the shopper owns the session and the refs, this owns what an act
+ * is. Every act ends the same way — the page settles, the trail records where
+ * the window went, and a bot check or a payment step hands the window over
+ * rather than being reported as a page.
+ */
+export interface ActDeps {
+  readonly waiter: Waiter;
+  readonly trail: WebTrail;
+  readonly progress: WebProgress;
+  readonly view: (dom: PageDom) => WebPageView;
+}
+
+export async function settleAfterAct(
+  session: BrowserSession,
+  deps: ActDeps,
+  fact: Readonly<Record<string, unknown>>,
+  carted = false,
+): Promise<WebResult> {
+  const dom = await settledRead(session, deps.waiter, SETTLE_MS);
+  deps.trail.record(dom.url);
+  const handed = handOver(session, dom, (why) =>
+    deps.progress.recordHandover(why),
+  );
+  if (handed !== null) return handed;
+  // Act landed, page settled, window still ours: only now is it a fact.
+  if (carted) deps.progress.recordCarted();
+  return webOk({ ...fact, page: deps.view(dom), provenance: WEB_PROVENANCE });
+}
+
+/** A click aimed at a point from the last read's own boxes. The judge is the
+ *  hit-test plus the classifier — see `PointActions` in browser-drive. */
+export async function pressAt(
+  session: BrowserSession,
+  deps: ActDeps,
+  x: number,
+  y: number,
+): Promise<WebResult> {
+  const clicked = await session.points().click(x, y);
+  if (!clicked.ok) return webRefusal(clicked);
+  return settleAfterAct(session, deps, { pressed: { x, y } });
+}
+
+/** Keystrokes into a text box at a point: a quantity, a pincode. Refused
+ *  before the focusing click unless the box is an ordinary text entry. */
+export async function writeAt(
+  session: BrowserSession,
+  deps: ActDeps,
+  x: number,
+  y: number,
+  text: string,
+): Promise<WebResult> {
+  const typed = await session.points().type(x, y, text);
+  if (!typed.ok) return webRefusal(typed);
+  return settleAfterAct(session, deps, { wrote: { x, y, chars: text.length } });
+}

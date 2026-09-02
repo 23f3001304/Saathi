@@ -66,6 +66,13 @@ export function readPageDom(): PageDom {
     text: clean(el.textContent),
     href: (el as HTMLAnchorElement).href,
   })).filter((link) => /^https?:|^file:/.test(link.href));
+  const centreOf = (el: Element): { x: number; y: number } => {
+    const box = el.getBoundingClientRect();
+    return {
+      x: Math.round(box.left + box.width / 2),
+      y: Math.round(box.top + box.height / 2),
+    };
+  };
   const buttons = take(
     query("button,input[type='submit'],input[type='button'],[role='button']"),
     MAX_CONTROLS,
@@ -74,6 +81,7 @@ export function readPageDom(): PageDom {
       kind: "button" as const,
       text: clean(el.textContent) || clean(el.getAttribute("value")),
       type: el.getAttribute("type"),
+      at: centreOf(el),
     }),
   );
   const fields = take(
@@ -87,6 +95,7 @@ export function readPageDom(): PageDom {
         clean(el.getAttribute("placeholder")) ||
         clean(el.getAttribute("name")),
       type: el.getAttribute("type"),
+      at: centreOf(el),
     }),
   );
   // Opaque embeds, by source. Not filtered by `shown`: a challenge widget is

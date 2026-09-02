@@ -25,6 +25,9 @@ export interface WebControlView {
   readonly kind: "button" | "field";
   readonly text: string;
   readonly type: string | null;
+  /** Centre of the control's box in viewport pixels: what `web_press` and
+   *  `web_write` aim at. The judge is the hit-test, never this number. */
+  readonly at?: { readonly x: number; readonly y: number };
 }
 
 export interface WebPageView {
@@ -51,6 +54,7 @@ function controlView(control: PageControlDom, index: number): WebControlView {
     kind: control.kind,
     text: control.text,
     type: control.type,
+    ...(control.at === undefined ? {} : { at: control.at }),
   };
 }
 

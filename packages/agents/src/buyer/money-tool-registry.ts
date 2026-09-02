@@ -30,6 +30,8 @@ export const WEB_CART_TOOL = "web_cart";
  * there is no argument here through which a model could put words on a form.
  */
 export const WEB_FILL_ADDRESS_TOOL = "web_fill_address";
+export const WEB_PRESS_TOOL = "web_press";
+export const WEB_WRITE_TOOL = "web_write";
 
 export const WEB_SHOP_TOOLS: readonly string[] = [
   WEB_OPEN_TOOL,
@@ -38,6 +40,8 @@ export const WEB_SHOP_TOOLS: readonly string[] = [
   WEB_ADD_TO_CART_TOOL,
   WEB_CART_TOOL,
   WEB_FILL_ADDRESS_TOOL,
+  WEB_PRESS_TOOL,
+  WEB_WRITE_TOOL,
 ];
 
 /** The money surface of §4.1, as tool names. */

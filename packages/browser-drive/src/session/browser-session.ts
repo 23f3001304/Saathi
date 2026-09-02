@@ -1,4 +1,5 @@
 import type { GuardedPage } from "../drive/guarded-page.js";
+import type { PointActions } from "../drive/point-actions.js";
 import type { UserInput } from "../drive/user-input.js";
 import type { FinalReview } from "../drive/final-review.js";
 import type { Capture } from "../frame/frame-capture.js";
@@ -59,6 +60,11 @@ export class BrowserSession {
   /** The relay's surface. Refuses everything the agent's surface refuses. */
   input(): UserInput {
     return this.required().input;
+  }
+
+  /** The agent's aim-by-point surface; every point is judged at hit-test. */
+  points(): PointActions {
+    return this.required().points;
   }
 
   url(): string {

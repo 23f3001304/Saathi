@@ -14,15 +14,15 @@ import type {
 } from "./chat-state.js";
 import type { SortKeySignal } from "./sort-key-write.js";
 
+import { cancelChat } from "./chat-cancel.js";
+import { writeSortKey } from "./sort-key-write.js";
+
 export type {
   ChatServiceConfig,
   ChatState,
   ConversationRecorder,
   WebPickRunner,
 } from "./chat-state.js";
-import { cancelChat } from "./chat-cancel.js";
-import { writeSortKey } from "./sort-key-write.js";
-
 export type { SortKeySignal } from "./sort-key-write.js";
 
 /** One conversation's engine: one runner, one hub, one pair of gates. A
@@ -52,7 +52,7 @@ export class ChatService {
   /** One run at a time; a second sentence queues rather than being refused. */
   private conversation: string | null = null;
 
-  /** The picker as last stated. A tapped card carries no language of its own —
+  /** The picker as last stated; a tapped card carries no language, so the
    *  the client sends a ref and nothing else — but the setting is a standing
    *  instruction, so the errand behind the tap answers in it. */
   private language: string | null = null;
@@ -68,7 +68,6 @@ export class ChatService {
     );
   }
 
-  /** The next run waits rather than being refused. */
   private queue(
     pending: PurchaseResult,
     work: (busy: Promise<PurchaseResult> | null) => Promise<PurchaseResult>,
@@ -97,8 +96,7 @@ export class ChatService {
     if (inFlight !== null) {
       await inFlight.catch(() => undefined);
     }
-    // A picker that never left the browser and one the runner dropped look
-    // alike from a screenshot, so each leg says what it was handed.
+    // Each leg says what it was handed: dropped and never-sent look alike.
     this.logger.debug("chat.reply_language", {
       at: "service",
       reply_language: replyLanguage,
@@ -121,7 +119,6 @@ export class ChatService {
   /** The shopper tapped an open-web card. It queues for the same reason a
    *  second sentence does — one window, one timeline. */
   pick(ref: string): PurchaseResult {
-    // Read before `queue` overwrites it: a tapped card carries no sentence.
     const stated = this.current?.request ?? "";
     const language = this.language;
     return this.queue(emptyResult(`urn:covenant:pick:${ref}`, ref), (busy) =>
@@ -139,8 +136,7 @@ export class ChatService {
       await inFlight.catch(() => undefined);
     }
     try {
-      // A platform card rebuilds the standing cart; a web ref goes to the
-      // window. The runner answers null for anything not its to serve.
+      // Platform card rebuilds the cart; a web ref goes to the window.
       const reproposed = await this.runner.repropose(ref);
       if (reproposed !== null) return reproposed;
       return await this.webPick.buy(ref, [stated], replyLanguage);

@@ -43,18 +43,12 @@ export class PuppeteerPage implements DrivenPage {
 
   /**
    * Chrome can retire the page object under a long session — a cross-process
-   * navigation, a target swap, a tab the site replaced under us. Every
-   * `evaluate` and every shutter then throws `Attempted to use detached Frame`
-   * for the rest of the session, while `url()` keeps answering out of its own
-   * cache: measured live, `/browser/state` reported `agent-drive` on a real
-   * amazon.com search URL while `/browser/frame` and `/browser/fields` had been
-   * 500ing for 59,000 consecutive requests. The card looked live and showed
-   * nothing, and no reload could help because the fault was in this process.
-   *
-   * So a stale handle is re-resolved against the browser rather than kept. It
-   * changes which Chrome page object is spoken to and nothing else: the same
-   * classifier, the same guards and the same state machine still decide what
-   * may be done to it.
+   * navigation, a target swap, a tab replaced under us. Every `evaluate` then
+   * throws `Attempted to use detached Frame` for the rest of the session while
+   * `url()` answers from cache: measured live as 59,000 consecutive 500s
+   * behind a card that looked fine. A stale handle is therefore re-resolved
+   * against the browser rather than kept; the same classifier, guards and
+   * state machine still decide what may be done to whatever it resolves to.
    */
   private async live<T>(run: (page: Page) => Promise<T>): Promise<T> {
     try {
@@ -76,12 +70,13 @@ export class PuppeteerPage implements DrivenPage {
   }
 
   async goto(url: string): Promise<void> {
-    await this.live((page) =>
-      page.goto(url, {
+    await this.live(async (page) => {
+      await page.bringToFront().catch(() => undefined);
+      await page.goto(url, {
         waitUntil: "domcontentloaded",
         timeout: NAV_TIMEOUT_MS,
-      }),
-    );
+      });
+    });
   }
 
   describe(selector: string): Promise<ElementDescriptor | null> {
@@ -188,10 +183,8 @@ export class PuppeteerPage implements DrivenPage {
     );
   }
 
-  /**
-   * The cast is safe by construction, not by hope: `UserInput` only forwards
-   * names from `RELAY_KEYS`, every one of which is a puppeteer `KeyInput`.
-   */
+  /** Safe by construction: `UserInput` only forwards names from
+   *  `RELAY_KEYS`, every one of which is a puppeteer `KeyInput`. */
   async pressKey(name: string): Promise<void> {
     type Key = Parameters<Page["keyboard"]["press"]>[0];
     await this.live((page) => page.keyboard.press(name as Key));

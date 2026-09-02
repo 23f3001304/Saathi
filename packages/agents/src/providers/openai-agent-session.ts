@@ -39,10 +39,8 @@ type OpenAiInputItem = JsonRecord;
  * OpenAI on the **Responses API** (`POST /v1/responses`).
  *
  * DECISION: Responses, not Chat Completions. The current function-calling
- * guide documents tool declarations in the flat `{type, name, description,
- * parameters}` form and results as `function_call_output` items; Chat
- * Completions is the older surface with the nested `{type, function: {...}}`
- * shape. Sarvam's compatibility is with *Chat Completions*, so that shape is
+ * guide documents the flat `{type, name, description, parameters}` form and
+ * `function_call_output` items; the older nested Chat Completions shape is
  * not wasted — it lives in `chat-completions-session.ts` and Sarvam uses it.
  *
  * DECISION: `store: false` and the full history resent each turn. Server-side

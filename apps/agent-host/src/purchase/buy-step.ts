@@ -23,6 +23,23 @@ import type { RunnerConfig, RunnerParts } from "./runner-parts.js";
  * sentence: "UK 8, refundable" is only a purchase together with the line that
  * said running shoes, and both are memories the digest will bind.
  */
+/** One conversation with the buyer, in the shopper's own language. The gate
+ *  is the same one the errands stand behind: when the reply disobeys the
+ *  anchor line, the model is handed its own answer back with the corrective
+ *  and one chance to say it again properly. Live buyers answered an English
+ *  kurta request in Hinglish on their first day; scripted ones never could. */
+async function conversed(
+  parts: RunnerParts,
+  stated: readonly string[],
+  replyLanguage: string | null,
+): Promise<Awaited<ReturnType<RunnerParts["buyer"]["converse"]>>> {
+  const prompt = `${stated.join("\n")}\n\n${speakFor(stated, replyLanguage)}`;
+  const first = await parts.buyer.converse(prompt);
+  const said = first.transcript.join("\n");
+  if (obeys(said, replyLanguage, anchorLine(stated))) return first;
+  return parts.buyer.converse(`${CORRECTIVE}${prompt}`);
+}
+
 export async function buyThrough(
   parts: RunnerParts,
   config: RunnerConfig,
@@ -32,16 +49,10 @@ export async function buyThrough(
 ): Promise<PurchaseResult> {
   const request = stated.join("\n");
   const intent = await parts.intents.sign(stated);
-  // The same language anchor the errands carry. Scripted mode never needed
-  // it (fixed strings speak no language of their own); the live buyer
-  // answered an English kurta request in Hindi on its first day.
-  const conversation = await parts.buyer.converse(
-    `${request}\n\n${speakFor(stated, replyLanguage)}`,
-  );
-  // A purchase turn that ends by asking is waited on like any other. This one
-  // used to be replayed as a bubble and walked past: "what size and fit are
-  // you after?", then a sort, two options and a refusal — every step of it
-  // reasoning from the value it had just said it did not have.
+  const conversation = await conversed(parts, stated, replyLanguage);
+  // A purchase turn that ends by asking is waited on like any other; replayed
+  // as a bubble and walked past, every later step reasoned from the value it
+  // had just said it did not have.
   const asked = lastSentence(conversation.transcript);
   if (asks(asked)) {
     parts.narrator.replay(conversation, asked);

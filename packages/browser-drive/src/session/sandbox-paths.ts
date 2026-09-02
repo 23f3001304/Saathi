@@ -45,7 +45,12 @@ export function realProfileRoots(home: string = homedir()): readonly string[] {
 export function isUnder(path: string, root: string): boolean {
   const target = resolve(path);
   const base = resolve(root);
-  return target === base || target.startsWith(base + sep);
+  if (process.platform === "win32") {
+    const t = target.toLowerCase();
+    const b = base.toLowerCase();
+    return t === b || t.startsWith(b.endsWith(sep) ? b : b + sep);
+  }
+  return target === base || target.startsWith(base.endsWith(sep) ? base : base + sep);
 }
 
 export function assertSandboxPath(path: string): void {

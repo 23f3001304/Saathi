@@ -4,9 +4,11 @@ import {
   WEB_CART_TOOL,
   WEB_FILL_ADDRESS_TOOL,
   WEB_OPEN_TOOL,
+  WEB_PRESS_TOOL,
   WEB_READ_TOOL,
   WEB_SEARCH_TOOL,
   WEB_TOOL_SERVER,
+  WEB_WRITE_TOOL,
 } from "@covenant/agents";
 import { z } from "zod";
 
@@ -17,9 +19,19 @@ export const webSearchArgs = z.object({ query: z.string().min(1).max(200) });
 /** A ref from the last `web_read`, never a selector. See `PageRefs`. */
 export const webRefArgs = z.object({ ref: z.string().regex(/^c[0-9]{1,3}$/) });
 
+/** Viewport pixels, from a control's own `at` in the last read. */
+const point = { x: z.number().int().min(0), y: z.number().int().min(0) };
+export const webPressArgs = z.object(point);
+export const webWriteArgs = z.object({
+  ...point,
+  text: z.string().min(1).max(300),
+});
+
 export type WebOpenArgs = z.infer<typeof webOpenArgs>;
 export type WebSearchArgs = z.infer<typeof webSearchArgs>;
 export type WebRefArgs = z.infer<typeof webRefArgs>;
+export type WebPressArgs = z.infer<typeof webPressArgs>;
+export type WebWriteArgs = z.infer<typeof webWriteArgs>;
 
 function schemaOf(shape: z.ZodRawShape): JsonSchemaObject {
   const schema = z.toJSONSchema(z.object(shape)) as Record<string, unknown>;
@@ -33,12 +45,13 @@ const UNTRUSTED =
 /**
  * The sandbox as a tool surface.
  *
- * DECISION: there is no general "click this selector" tool. The agent's whole
- * reach into a foreign page is: go somewhere, look, search, put one thing in a
- * basket, read the total. A control it has not read cannot be aimed at, and the
- * one control it can aim at is judged by `FieldClassifier` before the click —
- * so "the agent never presses Place order" does not depend on the tool list
- * being complete, only on the classifier, which is where that decision lives.
+ * DECISION (supersedes "no general click tool"): every press is expressible,
+ * and every press is judged. The aim is a point from the last read's own
+ * boxes; the hit-test resolves what is under it and `FieldClassifier` judges
+ * that, exactly as it judges the ref path and the human relay. A point on
+ * nothing readable, or inside an embedded document, is refused outright — so
+ * "the agent never presses Place order" still lives in the classifier, which
+ * now also covers controls the reader could not name.
  *
  * These are declared to the model exactly like the merchant and gateway tools,
  * on their own server name, so `PreToolUseHook` judges them on the same
@@ -80,6 +93,26 @@ export const WEB_TOOL_DECLARATIONS: readonly ToolDeclaration[] = [
       "refused if the button commits a payment, and a page that asks for a " +
       "card or a password hands the window to the shopper instead.",
     parameters: schemaOf({ ref: z.string() }),
+  },
+  {
+    tool: WEB_PRESS_TOOL,
+    server: WEB_TOOL_SERVER,
+    description:
+      "Press the open page at a point, using the `at` coordinates of a " +
+      "control from your last web_read: a size picker, a popup close, an " +
+      "add-to-basket button web_add_to_cart could not name. Judged like " +
+      "every click: a button that commits payment or sign-in is refused and " +
+      "the window goes to the shopper.",
+    parameters: schemaOf(point),
+  },
+  {
+    tool: WEB_WRITE_TOOL,
+    server: WEB_TOOL_SERVER,
+    description:
+      "Click a text box at a point from your last web_read and type into " +
+      "it: a quantity, a pincode. Refused on any box the classifier calls " +
+      "sensitive, and on anything that is not a text entry.",
+    parameters: schemaOf({ ...point, text: z.string().min(1).max(300) }),
   },
   {
     tool: WEB_CART_TOOL,

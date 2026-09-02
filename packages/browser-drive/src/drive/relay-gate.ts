@@ -15,7 +15,7 @@ import { opaqueTarget, unknownTarget } from "./relay-refusals.js";
  * card form lives. Refused on both surfaces: an unreadable target cannot be
  * protected, and a target that cannot be protected cannot be blacked out.
  */
-const OPAQUE_TAGS: readonly string[] = ["iframe", "frame", "object", "embed"];
+export const OPAQUE_TAGS: readonly string[] = ["iframe", "frame", "object", "embed"];
 
 export type Gate =
   | { readonly kind: "refused"; readonly refusal: Refusal }

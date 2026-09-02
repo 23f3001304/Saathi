@@ -79,7 +79,16 @@ export class TmpSandboxFactory implements SandboxFactory {
       downloadDir: downloads,
       dispose: () => {
         SANDBOX_REGISTRY.release(sandbox);
-        rmSync(path, { recursive: true, force: true, maxRetries: 5 });
+        try {
+          rmSync(path, {
+            recursive: true,
+            force: true,
+            maxRetries: 5,
+            retryDelay: 100,
+          });
+        } catch {
+          // On Windows, Chrome background processes may take extra milliseconds to exit; non-fatal for temporary sandbox cleanup.
+        }
       },
     };
     SANDBOX_REGISTRY.track(sandbox);

@@ -5,6 +5,7 @@ import type { CartInspector } from "../cart/cart-inspector.js";
 import { FinalReview } from "../drive/final-review.js";
 import { GuardedPage } from "../drive/guarded-page.js";
 import type { NavigationPolicy } from "../drive/navigation-policy.js";
+import { PointActions } from "../drive/point-actions.js";
 import { UserInput } from "../drive/user-input.js";
 import type { FieldClassifier } from "../field/field-classifier.js";
 import { FrameCapture } from "../frame/frame-capture.js";
@@ -57,6 +58,8 @@ export interface Live {
   readonly review: FinalReview;
   /** The relay's only reach into the window. */
   readonly input: UserInput;
+  /** The agent's coordinate verbs, judged by the same classifier. */
+  readonly points: PointActions;
   readonly frames: FrameCapture;
   /** `null` on a surface whose page cannot push frames; the shutter still can. */
   readonly cast: LiveCast | null;
@@ -108,6 +111,15 @@ function castOf(
   };
 }
 
+function pointsFor(
+  deps: SessionDeps,
+  state: SessionStateMachine,
+  driven: DrivenPage,
+  handoff: HandoffController,
+): PointActions {
+  return new PointActions(driven, deps.classifier, state, deps.journal, handoff);
+}
+
 function guardedFor(
   deps: SessionDeps,
   state: SessionStateMachine,
@@ -147,6 +159,7 @@ export function assembleLive(
     handoff,
     page: guardedFor(deps, state, driven, handoff),
     input: relayFor(deps, state, browser, driven),
+    points: pointsFor(deps, state, driven, handoff),
     frames: new FrameCapture(driven, deps.classifier, () => state.current()),
     cast: castOf(driven, deps, state),
     review: new FinalReview(

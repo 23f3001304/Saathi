@@ -1,6 +1,6 @@
 /** What the open-web errand is asked to do, as the one message that starts
  *  its conversation. Copy, not control flow: the moves it may make are the
- *  five sandbox tools, and those are declared elsewhere. */
+ *  sandbox tools, and those are declared elsewhere. */
 const ERRAND =
   "Go and look on the open web now, in the sandbox window the shopper is " +
   "watching. Open a shop you judge right for this with web_open, read it with " +
@@ -24,6 +24,8 @@ const ERRAND =
   "does not match the spec is the shop selling, not you finding: skip it.\n" +
   "Do not give up on one bad shelf. If a search returns nothing that IS " +
   "the product, reword it once (a synonym, fewer words) and search again. " +
+  "If a popup or a chooser sits between you and the page, aim web_press at " +
+  "its close control's `at` coordinates from your read and carry on. " +
   "If a page will not read, open a different listing rather than retrying " +
   "the same one. If this whole shop is thin, open one other shop you judge " +
   "right and look there too. Only after two searches, and a second shop " +
