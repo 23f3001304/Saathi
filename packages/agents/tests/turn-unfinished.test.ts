@@ -9,11 +9,10 @@ import { describe, expect, it } from "vitest";
 import { GuardedToolDispatcher } from "../src/providers/guarded-tool-dispatcher.js";
 import type { ProviderExchange } from "../src/providers/provider-turn-loop.js";
 import { runGuardedTurn } from "../src/providers/provider-turn-loop.js";
+import type { AgentSession } from "../src/shared/agent-session.js";
+import { BROWSE_TOOL, BUYER_TOOL_SERVER } from "../src/buyer/turn-plan.js";
 import { TurnPlanCollector } from "../src/buyer/turn-plan-collector.js";
-import {
-  SessionTurnPlanner,
-  TURN_UNFINISHED,
-} from "../src/buyer/turn-planner.js";
+import { SessionTurnPlanner, WRAP_UP_NOTE } from "../src/buyer/turn-planner.js";
 import { RecordingLogger, RecordingSink } from "./fakes.js";
 import { hookOf } from "./provider-cases.js";
 
@@ -108,11 +107,32 @@ describe("asking the same thing twice is not progress", () => {
 
 const INPUT = { userMessage: "buy the kurta", toolResults: [] };
 
-class Unfinished {
-  constructor(private readonly text: string) {}
+const WRAPPED = "I was still comparing two kurtas; give me one more go.";
 
-  turn() {
-    return Promise.resolve({ text: this.text, toolRequests: [], done: false });
+/** A session whose first turn spends its budget mid-sentence, and whose next
+ *  turn (the wrap-up) answers in one line. */
+class Unfinished {
+  readonly asked: string[] = [];
+
+  constructor(
+    private readonly draft: string,
+    private readonly wrapped: string | Error = "",
+    /** Set to have the wrap-up call a tool, as a real session's would. */
+    private readonly stray: TurnPlanCollector | null = null,
+  ) {}
+
+  async turn(input: { userMessage: string | null }) {
+    this.asked.push(input.userMessage ?? "");
+    if (this.asked.length === 1) {
+      return { text: this.draft, toolRequests: [], done: false };
+    }
+    if (this.wrapped instanceof Error) throw this.wrapped;
+    await this.stray?.dispatch({
+      tool: BROWSE_TOOL,
+      server: BUYER_TOOL_SERVER,
+      args: {},
+    });
+    return { text: this.wrapped, toolRequests: [], done: true };
   }
 
   close() {
@@ -120,22 +140,34 @@ class Unfinished {
   }
 }
 
-function plannerOver(session: Unfinished): SessionTurnPlanner {
-  return new SessionTurnPlanner(
-    session,
-    new TurnPlanCollector(),
-    new RecordingLogger(),
-  );
+function plannerOver(
+  session: AgentSession,
+  collector = new TurnPlanCollector(),
+) {
+  return new SessionTurnPlanner(session, collector, new RecordingLogger());
 }
 
 describe("an unfinished turn does not pass for an answer", () => {
-  it("says it ran out of steps rather than standing the last draft up", async () => {
-    const planner = plannerOver(new Unfinished("There's a navy kurta under…"));
+  it("asks the model to wrap up, and says what the model then says", async () => {
+    const session = new Unfinished("There's a navy kurta under…", WRAPPED);
+    const planner = plannerOver(session);
 
     const plan = await planner.plan(["a navy kurta under 2000"]);
 
     expect(plan.action).toBe("answer");
-    expect(plan.reply).toBe(TURN_UNFINISHED);
+    expect(plan.reply).toBe(WRAPPED);
+    expect(session.asked[1]).toBe(WRAP_UP_NOTE);
+  });
+
+  it("says nothing at all when even the wrap-up fails", async () => {
+    const planner = plannerOver(
+      new Unfinished("There's a navy…", new Error("provider unreachable")),
+    );
+
+    const plan = await planner.plan(["a navy kurta under 2000"]);
+
+    expect(plan.action).toBe("answer");
+    expect(plan.reply).toBe("");
   });
 
   it("keeps a finished model's own sentence untouched", async () => {
@@ -144,12 +176,23 @@ describe("an unfinished turn does not pass for an answer", () => {
         Promise.resolve({ text: "What size?", toolRequests: [], done: true }),
       close: () => Promise.resolve(),
     };
-    const planner = new SessionTurnPlanner(
-      finished,
-      new TurnPlanCollector(),
-      new RecordingLogger(),
+
+    expect((await plannerOver(finished).plan(["hi"])).reply).toBe("What size?");
+  });
+});
+
+describe("a tool called on the wrap-up is not this turn's move", () => {
+  it("answers in the wrap-up's words and leaves nothing behind", async () => {
+    const collector = new TurnPlanCollector();
+    const planner = plannerOver(
+      new Unfinished("There's a navy…", WRAPPED, collector),
+      collector,
     );
 
-    expect((await planner.plan(["hi"])).reply).toBe("What size?");
+    const plan = await planner.plan(["a navy kurta under 2000"]);
+
+    expect(plan.action).toBe("answer");
+    expect(plan.reply).toBe(WRAPPED);
+    expect(collector.take()).toBeNull();
   });
 });

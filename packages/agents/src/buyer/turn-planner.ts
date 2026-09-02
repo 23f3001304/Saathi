@@ -9,8 +9,10 @@ import {
   turnPlanClosing,
 } from "./turn-plan-prompt.js";
 import type { TurnPlanCollector } from "./turn-plan-collector.js";
+import { wrapUpReply } from "./turn-wrap-up.js";
 
 export { TurnPlanCollector } from "./turn-plan-collector.js";
+export { WRAP_UP_NOTE } from "./turn-wrap-up.js";
 
 /** What the buyer does with a shopper's message before anything is signed. */
 export interface TurnPlanner {
@@ -25,19 +27,6 @@ export interface TurnPlanner {
     context?: string,
   ): Promise<TurnPlan>;
 }
-
-/**
- * The harness's own sentence for a turn that never finished deciding.
- *
- * DECISION: it replaces the model's prose rather than joining it. A turn that
- * ran out of round trips has usually written several speculative openings, each
- * superseding the last, and the final one is not an answer — it is the sentence
- * the model happened to be in the middle of. Standing unchanged it is
- * indistinguishable, to the shopper, from an agent that had nothing to say.
- */
-export const TURN_UNFINISHED =
-  "I did not manage to work that out: I ran out of steps before I had " +
-  "anything to show you. Ask me again and I will start over.";
 
 interface Spoken {
   readonly text: string;
@@ -70,7 +59,7 @@ export class SessionTurnPlanner implements TurnPlanner {
     const spoken = await this.speak(stated, replyLanguage, context);
     const chosen = this.collector.take();
     if (chosen === null) {
-      return this.unchosen(spoken);
+      return await this.unchosen(spoken);
     }
     this.logger.info("buyer.turn.planned", {
       action: chosen.action,
@@ -82,13 +71,18 @@ export class SessionTurnPlanner implements TurnPlanner {
 
   /** No move recorded. Answering is still the only safe default; what differs
    *  is whether the prose beside it is an answer or an unfinished draft. */
-  private unchosen(spoken: Spoken): TurnPlan {
+  private async unchosen(spoken: Spoken): Promise<TurnPlan> {
     if (spoken.finished) {
       this.logger.info("buyer.turn.no_tool", { fallback: "answer" });
       return { ...NEUTRAL_PLAN, reply: spoken.text };
     }
     this.logger.warn("buyer.turn.unfinished", { drafted: spoken.text.length });
-    return { ...NEUTRAL_PLAN, reply: TURN_UNFINISHED };
+    const reply = await wrapUpReply(this.session, this.logger);
+    // The wrap-up was asked for prose, but a model that reaches for a tool
+    // anyway has recorded a move nobody asked for. Dropped here, or it would
+    // still be sitting in the collector when the next turn reads it.
+    this.collector.take();
+    return { ...NEUTRAL_PLAN, reply };
   }
 
   private async speak(
