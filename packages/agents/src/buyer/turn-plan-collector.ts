@@ -5,6 +5,7 @@ import {
   DEFAULT_AMENDMENT_CONTEXT,
   parseAmendment,
 } from "./amendment-schema.js";
+import type { PlannerReads } from "./planner-reads.js";
 import type { TraitClaim } from "./trait-claim.js";
 import { parseTrait } from "./trait-claim.js";
 import { groupsAt, repliesAt, textAt } from "./turn-plan-args.js";
@@ -18,6 +19,8 @@ import {
   NEUTRAL_PLAN,
   PROPOSE_TOOL,
   REMEMBER_TOOL,
+  SEE_SHELF_TOOL,
+  SEE_STATE_TOOL,
   WEB_LOOK_TOOL,
 } from "./turn-plan.js";
 
@@ -49,9 +52,16 @@ export class TurnPlanCollector implements ToolDispatcher {
 
   constructor(
     private readonly context: AmendmentContext = DEFAULT_AMENDMENT_CONTEXT,
+    /** What the model may look at before it moves. `null` on a host with
+     *  nothing to show: a read then comes back refused, never as an empty
+     *  world the model would reason from as though it were the real one. */
+    private readonly reads: PlannerReads | null = null,
   ) {}
 
   async dispatch(call: ToolCall): Promise<ToolOutcome> {
+    if (call.tool === SEE_SHELF_TOOL || call.tool === SEE_STATE_TOOL) {
+      return this.read(call.tool);
+    }
     if (call.tool === REMEMBER_TOOL) {
       return this.recordTrait(call.args);
     }
@@ -70,6 +80,26 @@ export class TurnPlanCollector implements ToolDispatcher {
     return action === "answer"
       ? answeredOutcome(textAt(call.args, "blocked_by"))
       : ok(action);
+  }
+
+  /** A read touches `chosen` not at all: a turn that only looked has not
+   *  moved, and the planner still falls to its answer default. A read that
+   *  fails is a tool error the model reads, never a silent blank. */
+  private async read(tool: string): Promise<ToolOutcome> {
+    if (this.reads === null) return refused("no_reads");
+    try {
+      const seen =
+        tool === SEE_SHELF_TOOL
+          ? await this.reads.shelf()
+          : await this.reads.state();
+      return { content: JSON.stringify(seen), isError: false };
+    } catch (cause) {
+      const detail = cause instanceof Error ? cause.message : "unknown";
+      return {
+        content: JSON.stringify({ ok: false, failure: "read_failed", detail }),
+        isError: true,
+      };
+    }
   }
 
   /** Parallel tool calls arrive occasionally, and last-write-wins let a
