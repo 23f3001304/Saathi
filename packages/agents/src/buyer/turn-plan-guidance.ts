@@ -1,13 +1,14 @@
 import type { ToolOutcome } from "../shared/agent-session.js";
 
-/** What the model is told once the cards it named are on the screen: the
- *  `reply` it wrote was written before the cards went out, and the cards are
- *  built from the shelf rows for exactly the skus it named. Guidance in a
- *  tool result, not a rule in the harness. */
+/** What the model is told when it names skus to show. The cards go out after
+ *  this turn, not during it, so the note says so: a note that put them on the
+ *  screen already would be the tool result telling the model something that
+ *  has not happened yet. Guidance in a tool result, not a rule in the
+ *  harness. */
 const SOMETHING_SHOWN =
-  "The cards for the skus you named are on their screen, with the shop's " +
-  "own prices. Do not list them again; say what you make of them, in one " +
-  "sentence, or say nothing.";
+  "After this turn the host puts cards for the skus you named on their " +
+  "screen, with the shop's own prices. Do not list them; say what you make " +
+  "of them once, or say nothing.";
 
 /**
  * What an answer turn did: nothing. No page was opened and no catalog was

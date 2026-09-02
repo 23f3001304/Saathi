@@ -7,6 +7,7 @@ import { join } from "node:path";
 import type { TurnPlanCollector } from "@covenant/agents";
 import {
   DEMO_CATALOG,
+  PROPOSE_TOOL,
   SEE_SHELF_TOOL,
   SEE_STATE_TOOL,
   TURN_PLAN_TOOLS,
@@ -90,7 +91,8 @@ function plannerDeps(): SessionDeps {
     obs: { logger: new RecordingLogger(), routing: { chose: () => undefined } },
     clock: new StepClock(),
     ids: new SeqIds(),
-    merchant: { agent: {} },
+    // The planner's bounds read this shelf, so it has to be a real one.
+    merchant: { agent: {}, shelf: { current: () => DEMO_CATALOG } },
     dispatch: { dispatcher: { dispatch: () => Promise.resolve(null) } },
     hook: { check: () => Promise.resolve(null) },
   } as unknown as SessionDeps;
@@ -148,5 +150,38 @@ describe("wiring the planner's eyes", () => {
     });
     expect(seen.isError).toBe(false);
     expect(JSON.parse(seen.content)).toMatchObject({ merchant: "kolam-run" });
+  });
+
+});
+
+// The bounds ride the same seam as the eyes, and only they make the cap and
+// the shelf mean anything on the live path: without them the ceiling a
+// proposal carries is whatever the model typed.
+describe("wiring the planner's bounds", () => {
+  it("checks a proposal against this host's cap, not against nothing", async () => {
+    const deps = plannerDeps();
+    const { planner } = wireTurnPlanner(deps, null);
+    const { collector } = planner as unknown as {
+      collector: TurnPlanCollector;
+    };
+
+    const outcome = await collector.dispatch({
+      tool: PROPOSE_TOOL,
+      server: "buyer",
+      args: {
+        reply: "Drafting that now.",
+        sku: "ST-KURTA-NAVY-M",
+        max_amount_paise: deps.config.capPaise + 1,
+        requires_refundability: false,
+        description: "a navy kurta",
+      },
+    });
+
+    expect(outcome.isError).toBe(true);
+    expect(JSON.parse(outcome.content)).toMatchObject({
+      failure: "cap_exceeded",
+      cap_paise: deps.config.capPaise,
+    });
+    expect(collector.take()).toBeNull();
   });
 });

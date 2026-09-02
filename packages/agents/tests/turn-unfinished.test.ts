@@ -128,9 +128,11 @@ class Unfinished {
     }
     if (this.wrapped instanceof Error) throw this.wrapped;
     await this.stray?.dispatch({
+      // Recordable on purpose: an empty browse is refused now, and a refusal
+      // would leave the collector empty without the discard proving anything.
       tool: BROWSE_TOOL,
       server: BUYER_TOOL_SERVER,
-      args: {},
+      args: { reply: "One of these, maybe.", skus: ["ST-KURTA-NAVY-M"] },
     });
     return { text: this.wrapped, toolRequests: [], done: true };
   }

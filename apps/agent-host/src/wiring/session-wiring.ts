@@ -18,6 +18,7 @@ import {
   WEB_TOOL_DECLARATIONS,
 } from "../purchase/web-tools.js";
 import { ScriptedSession } from "../session/scripted-session.js";
+import { COVENANT_CURRENCY } from "./judge-wiring.js";
 import type { SessionDeps } from "./routed-session.js";
 import { routedSession } from "./routed-session.js";
 
@@ -156,7 +157,15 @@ export function wireTurnPlanner(
   if (deps.config.mode !== "live") {
     return { planner: new ScriptedTurnPlanner() };
   }
-  const collector = new TurnPlanCollector(DEFAULT_AMENDMENT_CONTEXT, reads);
+  // The bounds a proposal and a browse are checked against, from the same
+  // config and the same per-turn shelf everything else in this lane reads.
+  // Without them the model's own sku and its own ceiling reach the sheet
+  // unchecked, which is the whole of what the tool boundary is for.
+  const collector = new TurnPlanCollector(DEFAULT_AMENDMENT_CONTEXT, reads, {
+    capPaise: deps.config.capPaise,
+    currency: COVENANT_CURRENCY,
+    shelf: deps.merchant.shelf,
+  });
   const session = routedSession(deps, {
     tools: TURN_PLAN_TOOLS,
     systemPrompt: BUYER_SYSTEM_PROMPT,
