@@ -19,3 +19,6 @@ keys/
 
 # Scratch from a debug run.
 dump.json
+
+# subagent-driven-development scratch (ledger, briefs, review packages)
+.superpowers/
