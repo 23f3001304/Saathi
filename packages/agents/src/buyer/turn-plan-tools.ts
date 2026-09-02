@@ -12,6 +12,7 @@ import {
   ANSWER_TOOL,
   BROWSE_TOOL,
   DECLINE_TOOL,
+  MAX_BROWSE_SKUS,
   PICK_TOOL,
   PROPOSE_TOOL,
   REMEMBER_TOOL,
@@ -112,7 +113,10 @@ const MOVES: readonly ToolDeclaration[] = [
       `say you will look anywhere else from here; call ${WEB_LOOK_TOOL} for ` +
       "that. Looking is not buying: it signs nothing, spends nothing and " +
       "commits to nothing, so prefer it over refusing.",
-    { reply, skus: z.array(z.string().min(1).max(120)).min(1).max(4) },
+    {
+      reply,
+      skus: z.array(z.string().min(1).max(120)).min(1).max(MAX_BROWSE_SKUS),
+    },
   ),
   declareTool(
     WEB_LOOK_TOOL,

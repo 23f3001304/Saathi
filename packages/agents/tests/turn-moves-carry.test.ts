@@ -73,6 +73,38 @@ describe("a browse names the rows the model read", () => {
   });
 });
 
+/** The schema declares `skus` at most four; a provider that ignores its own
+ *  tool schema is refused at the same seam, not carded in full. */
+describe("the collector enforces the bound the schema only advertises", () => {
+  it("refuses more than four skus, a provider ignoring the schema's bound", async () => {
+    const collector = new TurnPlanCollector();
+    const body = await dispatched(collector, BROWSE_TOOL, {
+      reply: "Have a look.",
+      skus: ["A", "B", "C", "D", "E"],
+    });
+    expect(body).toMatchObject({
+      failure: "bad_arguments",
+      max_skus: 4,
+      given: 5,
+      isError: true,
+    });
+    expect(collector.take()).toBeNull();
+  });
+
+  it("dedupes a repeated sku, keeping the first occurrence and its order", async () => {
+    const collector = new TurnPlanCollector();
+    const body = await dispatched(collector, BROWSE_TOOL, {
+      reply: "Have a look.",
+      skus: ["A", "A", "B"],
+    });
+    expect(body).toMatchObject({ recorded: "browse", shown: 2, isError: false });
+    expect(collector.take()).toMatchObject({
+      action: "browse",
+      skus: ["A", "B"],
+    });
+  });
+});
+
 const PROPOSAL = {
   reply: "Drafting that now.",
   sku: "ST-KURTA-NAVY-M",

@@ -9,6 +9,7 @@ import {
   ANSWER_TOOL,
   BROWSE_TOOL,
   DECLINE_TOOL,
+  MAX_BROWSE_SKUS,
   PICK_TOOL,
   PROPOSE_TOOL,
   WEB_LOOK_TOOL,
@@ -61,16 +62,42 @@ function skusOn(bounds: DraftBounds | null): readonly string[] | null {
   return bounds === null ? null : bounds.shelf.current().map((row) => row.sku);
 }
 
+/** The same sku named twice is one row, not two: first occurrence wins and
+ *  the model's own order survives. */
+function deduped(skus: readonly string[]): readonly string[] {
+  const seen = new Set<string>();
+  return skus.filter((sku) => {
+    if (seen.has(sku)) return false;
+    seen.add(sku);
+    return true;
+  });
+}
+
 /**
  * The model named the rows it read. A sku the shelf does not hold comes back
  * refused with the shelf attached, so the retry costs one call rather than a
  * read and a call; nothing is recorded, because a browse showing a row that
  * does not exist is the shell inventing stock.
+ *
+ * DECISION: the schema declares `skus` at most four, but a schema is a hint a
+ * provider can ignore, not a wall. The bound the model reads is the bound
+ * enforced here too, off the one constant, so a provider that hands back
+ * every sku on the shelf is refused rather than carded in full.
  */
 function browseRecorded(args: ToolArgs, bounds: DraftBounds | null): Recorded {
-  const skus = stringsAt(args, "skus");
-  if (skus.length === 0) {
+  const named = stringsAt(args, "skus");
+  if (named.length === 0) {
     return { ok: false, outcome: refused("bad_arguments") };
+  }
+  const skus = deduped(named);
+  if (skus.length > MAX_BROWSE_SKUS) {
+    return {
+      ok: false,
+      outcome: refused("bad_arguments", {
+        max_skus: MAX_BROWSE_SKUS,
+        given: skus.length,
+      }),
+    };
   }
   const shelf = skusOn(bounds);
   const unknown =

@@ -29,6 +29,9 @@ export const BUYER_TOOL_SERVER = "covenant_buyer";
 
 export const ANSWER_TOOL = "answer_shopper";
 export const BROWSE_TOOL = "browse_catalog";
+/** The schema advertises this bound and the collector enforces it; one
+ *  constant so the two cannot drift apart. */
+export const MAX_BROWSE_SKUS = 4;
 export const WEB_LOOK_TOOL = "look_on_web";
 export const PROPOSE_TOOL = "propose_purchase";
 export const AMEND_TOOL = "amend_covenant";

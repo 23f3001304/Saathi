@@ -9,12 +9,12 @@ import type { PurchaseResult } from "../purchase/purchase-result.js";
 
 /**
  * DECISION: nothing in this file writes a sentence, and nothing in it judges
- * one. The model read the shelf through `see_shelf` and named the skus it
- * would show; the rows are built from the shelf for exactly those, at the
- * shop's own prices. A token matcher used to decide what "matched" here, and
- * the sentence the model wrote about the shelf was checked against it: both
- * were the shell second-guessing a choice the model had made with the whole
- * shelf in front of it.
+ * one. The shell used to pick the rows itself, by token overlap over the
+ * shopper's own words, and showed those regardless of what the model chose
+ * to say. Now the model reads the shelf through `see_shelf` and names the
+ * skus it would show; the cards are those rows, in that order, and the
+ * collector already refuses a sku the shelf does not hold or a count over
+ * the schema's bound before this file ever sees the plan.
  */
 
 /**
