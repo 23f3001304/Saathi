@@ -17,8 +17,8 @@ import { RecordingLogger } from "./fakes.js";
 /**
  * A browse's `reply` is an argument to the tool that asks the shop, so it is
  * written before the answer. The sentence that knows what was found is the one
- * the model writes after reading `matches` — and it was being thrown away, so
- * a shopper got "I'm checking this shop for 1TB SSDs." and then nothing.
+ * the model writes after reading the tool result, and it was being thrown
+ * away, so a shopper got "I'm checking this shop for 1TB SSDs." and nothing.
  */
 describe("the sentence that knows what the shop holds", () => {
   it("prefers what the model said after the count, and says it once", async () => {
@@ -26,7 +26,7 @@ describe("the sentence that knows what the shop holds", () => {
     await collector.dispatch({
       tool: BROWSE_TOOL,
       server: BUYER_TOOL_SERVER,
-      args: { reply: "I am checking this shop.", query: "1TB SSD" },
+      args: { reply: "I am checking this shop.", skus: ["ST-KURTA-NAVY-M"] },
     });
     const planner = new SessionTurnPlanner(
       new ScriptedSession([

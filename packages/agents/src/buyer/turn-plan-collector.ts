@@ -8,43 +8,27 @@ import {
 import type { PlannerReads } from "./planner-reads.js";
 import type { TraitClaim } from "./trait-claim.js";
 import { parseTrait } from "./trait-claim.js";
-import { groupsAt, repliesAt, textAt } from "./turn-plan-args.js";
-import { answeredOutcome, browsedOutcome } from "./turn-plan-guidance.js";
-import type { TurnAction, TurnPlan } from "./turn-plan.js";
+import { textAt } from "./turn-plan-args.js";
+import type { DraftBounds } from "./turn-plan-draft.js";
+import { movePlan, ok, refused } from "./turn-plan-record.js";
+import type { TurnPlan } from "./turn-plan.js";
 import {
   AMEND_TOOL,
-  ANSWER_TOOL,
-  BROWSE_TOOL,
-  DECLINE_TOOL,
   NEUTRAL_PLAN,
-  PROPOSE_TOOL,
   REMEMBER_TOOL,
   SEE_SHELF_TOOL,
   SEE_STATE_TOOL,
-  WEB_LOOK_TOOL,
 } from "./turn-plan.js";
-
-const ACTIONS: Readonly<Record<string, TurnAction>> = {
-  [ANSWER_TOOL]: "answer",
-  [BROWSE_TOOL]: "browse",
-  [WEB_LOOK_TOOL]: "look_on_web",
-  [PROPOSE_TOOL]: "draft_intent",
-  [DECLINE_TOOL]: "decline",
-};
-
-function ok(recorded: string): ToolOutcome {
-  return { content: `{"ok":true,"recorded":"${recorded}"}`, isError: false };
-}
-
-function refused(failure: string): ToolOutcome {
-  return { content: `{"ok":false,"failure":"${failure}"}`, isError: true };
-}
 
 /**
  * Records which move the model chose. It is a `ToolDispatcher` because that is
  * where a provider adapter hands a tool call after `PreToolUseHook` has allowed
  * it — so the choice arrives through the same gate every other call does, and a
  * model that tried to reach a money tool from here is refused there, not here.
+ *
+ * DECISION: a refused move records nothing. The model reads the refusal (a sku
+ * off the shelf, a ceiling above the cap) and calls again in the same turn; the
+ * plan the turn takes is the last move that was accepted.
  */
 export class TurnPlanCollector implements ToolDispatcher {
   private chosen: TurnPlan | null = null;
@@ -56,6 +40,9 @@ export class TurnPlanCollector implements ToolDispatcher {
      *  nothing to show: a read then comes back refused, never as an empty
      *  world the model would reason from as though it were the real one. */
     private readonly reads: PlannerReads | null = null,
+    /** What a proposal and a browse are checked against. `null` parses the
+     *  shapes and checks no fact: also the unit-test shape. */
+    private readonly bounds: DraftBounds | null = null,
   ) {}
 
   async dispatch(call: ToolCall): Promise<ToolOutcome> {
@@ -68,18 +55,7 @@ export class TurnPlanCollector implements ToolDispatcher {
     if (call.tool === AMEND_TOOL) {
       return this.recordAmendment(call.args);
     }
-    const action = ACTIONS[call.tool];
-    if (action === undefined) {
-      return refused("not_a_turn_tool");
-    }
-    const plan = this.planFor(action, call.args);
-    this.choose(plan);
-    if (action === "browse") {
-      return browsedOutcome();
-    }
-    return action === "answer"
-      ? answeredOutcome(textAt(call.args, "blocked_by"))
-      : ok(action);
+    return this.recordMove(call);
   }
 
   /** A read touches `chosen` not at all: a turn that only looked has not
@@ -95,11 +71,19 @@ export class TurnPlanCollector implements ToolDispatcher {
       return { content: JSON.stringify(seen), isError: false };
     } catch (cause) {
       const detail = cause instanceof Error ? cause.message : "unknown";
-      return {
-        content: JSON.stringify({ ok: false, failure: "read_failed", detail }),
-        isError: true,
-      };
+      return refused("read_failed", { detail });
     }
+  }
+
+  private recordMove(call: ToolCall): ToolOutcome {
+    const recorded = movePlan(call.tool, call.args, this.bounds);
+    if (recorded === null) {
+      return refused("not_a_turn_tool");
+    }
+    if (recorded.ok) {
+      this.choose(recorded.plan);
+    }
+    return recorded.outcome;
   }
 
   /** Parallel tool calls arrive occasionally, and last-write-wins let a
@@ -123,30 +107,6 @@ export class TurnPlanCollector implements ToolDispatcher {
       return traits.length === 0 ? null : { ...NEUTRAL_PLAN, traits };
     }
     return { ...plan, traits };
-  }
-
-  /**
-   * One utterance per turn, enforced here rather than left to whoever renders
-   * it. The model writes its question into `reply` as well as into `question`,
-   * and both were being said: "could you tell me the size?" followed by "What
-   * size are you looking for?". A reply that already asks something is the
-   * whole utterance, and the separate field — which exists so the composer can
-   * offer replies — stays empty rather than becoming a second sentence.
-   */
-  private planFor(action: TurnAction, args: ToolArgs): TurnPlan {
-    const reply = textAt(args, "reply");
-    const question = textAt(args, "question");
-    const query = textAt(args, "query");
-    return {
-      action,
-      reply,
-      question: question.length > 0 && !reply.endsWith("?") ? question : null,
-      replies: repliesAt(args, "replies"),
-      choiceGroups: groupsAt(args),
-      query: query.length > 0 ? query : null,
-      amendment: null,
-      traits: [],
-    };
   }
 
   /**

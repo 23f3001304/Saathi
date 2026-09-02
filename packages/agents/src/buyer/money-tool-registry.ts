@@ -86,6 +86,9 @@ export const NON_MONEY_TOOLS: readonly string[] = [
   "look_on_web",
   "propose_purchase",
   "decline_purchase",
+  // Naming a card already on the screen. What follows is the same path a tap
+  // takes, and every step of it is judged on its own.
+  "pick_option",
   // Proposing an amendment and remembering a trait are the same kind of act:
   // the model states something, and a signature or the write gate decides
   // whether it lands. Neither can move money and neither can move a bound.

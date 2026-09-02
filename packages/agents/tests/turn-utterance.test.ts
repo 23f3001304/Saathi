@@ -45,13 +45,13 @@ describe("one utterance per turn", () => {
  * does not yet know enough — never the refusal.
  */
 describe("looking is a move", () => {
-  it("records what to look for", async () => {
+  it("records what to show", async () => {
     const plan = await planAfter(BROWSE_TOOL, {
       reply: "Here is what I have.",
-      query: "running shoes",
+      skus: ["ASC-GC9-UK8"],
     });
     expect(plan?.action).toBe("browse");
-    expect(plan?.query).toBe("running shoes");
+    expect(plan?.skus).toEqual(["ASC-GC9-UK8"]);
   });
 
   it("is a different move from refusing", async () => {

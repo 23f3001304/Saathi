@@ -16,6 +16,15 @@ import {
 import { callTool, ScriptedSession, say } from "./doubles.js";
 import { RecordingLogger } from "./fakes.js";
 
+/** The draft arguments `propose_purchase` now takes, for the cases here that
+ *  are about which move was recorded rather than about the draft itself. */
+const DRAFT = {
+  sku: "ST-KURTA-NAVY-M",
+  max_amount_paise: 200_000,
+  requires_refundability: false,
+  description: "a navy kurta",
+};
+
 function collectorAfter(tool: string, args: Record<string, unknown>) {
   const collector = new TurnPlanCollector();
   return {
@@ -44,7 +53,7 @@ describe("recording the choice", () => {
   });
 
   it("maps propose to draft_intent and decline to decline", async () => {
-    const first = collectorAfter(PROPOSE_TOOL, { reply: "On it." });
+    const first = collectorAfter(PROPOSE_TOOL, { ...DRAFT, reply: "On it." });
     await first.done;
     expect(first.collector.take()?.action).toBe("draft_intent");
     const second = collectorAfter(DECLINE_TOOL, { reply: "No purchase here." });
@@ -75,10 +84,9 @@ describe("the open-web move", () => {
     const outcome = await collector.dispatch({
       tool: BROWSE_TOOL,
       server: BUYER_TOOL_SERVER,
-      args: { reply: "Let me look.", query: "1TB SSD" },
+      args: { reply: "Let me look.", skus: ["ST-KURTA-NAVY-M"] },
     });
     expect(JSON.parse(outcome.content)).toMatchObject({ recorded: "browse" });
-    expect(JSON.parse(outcome.content)).not.toHaveProperty("matches");
     await collector.dispatch({
       tool: WEB_LOOK_TOOL,
       server: BUYER_TOOL_SERVER,
@@ -114,7 +122,7 @@ describe("the live planner", () => {
     await collector.dispatch({
       tool: PROPOSE_TOOL,
       server: BUYER_TOOL_SERVER,
-      args: { reply: "Looking now." },
+      args: { ...DRAFT, reply: "Looking now." },
     });
     const planner = new SessionTurnPlanner(
       new ScriptedSession([say("")]),

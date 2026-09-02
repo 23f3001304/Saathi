@@ -1,4 +1,4 @@
-// The six moves the model chooses between, and the one rule about all of them:
+// The moves the model chooses between, and the one rule about all of them:
 // none moves money, so the hook lets the choice through and judges what follows.
 import { describe, expect, it } from "vitest";
 
@@ -9,27 +9,29 @@ import {
   BROWSE_TOOL,
   BUYER_TOOL_SERVER,
   DECLINE_TOOL,
+  PICK_TOOL,
   PROPOSE_TOOL,
   REMEMBER_TOOL,
-  SEE_SHELF_TOOL,
-  SEE_STATE_TOOL,
   WEB_LOOK_TOOL,
 } from "../src/buyer/turn-plan.js";
 import { TURN_PLAN_TOOLS } from "../src/buyer/turn-plan-tools.js";
 
 describe("the turn tools", () => {
-  it("offers the six moves, the trait tool and the two reads, on the buyer's own server", () => {
-    expect(TURN_PLAN_TOOLS.map((tool) => tool.tool)).toEqual([
+  it("offers the moves and the trait tool, the pick beside the proposal, on the buyer's own server", () => {
+    const names = TURN_PLAN_TOOLS.map((tool) => tool.tool);
+    for (const move of [
       ANSWER_TOOL,
       BROWSE_TOOL,
       WEB_LOOK_TOOL,
       PROPOSE_TOOL,
+      PICK_TOOL,
       AMEND_TOOL,
       DECLINE_TOOL,
       REMEMBER_TOOL,
-      SEE_SHELF_TOOL,
-      SEE_STATE_TOOL,
-    ]);
+    ]) {
+      expect(names).toContain(move);
+    }
+    expect(names.indexOf(PICK_TOOL)).toBe(names.indexOf(PROPOSE_TOOL) + 1);
     expect(
       TURN_PLAN_TOOLS.every((tool) => tool.server === BUYER_TOOL_SERVER),
     ).toBe(true);

@@ -1,11 +1,13 @@
 import type { ToolOutcome } from "../shared/agent-session.js";
 
-const BROWSED_NOTE =
-  "The host puts this shop's matching items, if any, on their screen as " +
-  "cards after this turn. Do not list rows; say what you make of what you " +
-  "asked for, once, or say nothing. If nothing fits they see no cards, so " +
-  "when you are not sure what this shop holds, ask them or call " +
-  "look_on_web if they want it found elsewhere.";
+/** What the model is told once the cards it named are on the screen: the
+ *  `reply` it wrote was written before the cards went out, and the cards are
+ *  built from the shelf rows for exactly the skus it named. Guidance in a
+ *  tool result, not a rule in the harness. */
+const SOMETHING_SHOWN =
+  "The cards for the skus you named are on their screen, with the shop's " +
+  "own prices. Do not list them again; say what you make of them, in one " +
+  "sentence, or say nothing.";
 
 /**
  * What an answer turn did: nothing. No page was opened and no catalog was
@@ -21,7 +23,7 @@ const BROWSED_NOTE =
 const OPENED_NOTHING =
   "This move opened no page and searched nothing, so you have no results and " +
   "have not looked anywhere. Do not tell them otherwise. If you need to see " +
-  "something before you can answer, call browse_catalog for this shop or " +
+  "something before you can answer, call see_shelf for this shop or " +
   "look_on_web for anywhere else; that is what actually goes and looks.";
 
 /**
@@ -42,14 +44,16 @@ export function answeredOutcome(blocking: string): ToolOutcome {
   };
 }
 
-/** The move is recorded; what the shop holds is the model's to read through
- *  its own tools, never a number the harness counted for it. */
-export function browsedOutcome(): ToolOutcome {
+/** How many cards went out for the skus the model named. The note is true
+ *  unconditionally now: the host cards exactly those skus, so there is no
+ *  case where the model was shown nothing it asked for. */
+export function browsedOutcome(shown: number): ToolOutcome {
   return {
     content: JSON.stringify({
       ok: true,
       recorded: "browse",
-      note: BROWSED_NOTE,
+      shown,
+      note: SOMETHING_SHOWN,
     }),
     isError: false,
   };

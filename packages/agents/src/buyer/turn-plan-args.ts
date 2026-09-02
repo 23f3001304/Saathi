@@ -40,3 +40,13 @@ export function repliesAt(args: ToolArgs, key: string): readonly string[] {
     .slice(0, 6);
 }
 
+/** A list of names the model wrote: skus, refs. Anything that is not a
+ *  non-empty string is dropped rather than carried as a name. */
+export function stringsAt(args: ToolArgs, key: string): readonly string[] {
+  const value = args[key];
+  if (!Array.isArray(value)) return [];
+  return value
+    .filter((entry): entry is string => typeof entry === "string")
+    .map((entry) => entry.trim())
+    .filter((entry) => entry.length > 0);
+}

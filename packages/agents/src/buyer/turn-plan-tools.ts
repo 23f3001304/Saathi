@@ -6,14 +6,17 @@ import { amendableVocabulary } from "./covenant-amendment.js";
 import { PLANNER_READ_TOOLS } from "./planner-reads.js";
 import { TRAIT_ARGS_SHAPE } from "./trait-claim.js";
 import { declareTool } from "./turn-plan-declare.js";
+import { DRAFT_ARGS_SHAPE } from "./turn-plan-draft.js";
 import {
   AMEND_TOOL,
   ANSWER_TOOL,
   BROWSE_TOOL,
   DECLINE_TOOL,
+  PICK_TOOL,
   PROPOSE_TOOL,
   REMEMBER_TOOL,
   SEE_SHELF_TOOL,
+  SEE_STATE_TOOL,
   WEB_LOOK_TOOL,
 } from "./turn-plan.js";
 
@@ -100,17 +103,16 @@ const MOVES: readonly ToolDeclaration[] = [
   ),
   declareTool(
     BROWSE_TOOL,
-    "Look at what is in THIS shop. Use this whenever they ask what you have, " +
-      "what is available, or to see options. It reaches this shop's catalog " +
-      "and nothing else, so do not say you will look anywhere else from here. " +
-      "The host puts the matching items, if any, on their screen as cards " +
-      "after this turn: say what you make of what you saw on " +
-      `${SEE_SHELF_TOOL}, once, and never list rows. If you are unsure ` +
-      "what this shop holds, ask, or " +
-      `call ${WEB_LOOK_TOOL} when they want it found elsewhere. Looking is ` +
-      "not buying: it signs nothing, spends nothing and commits to " +
-      "nothing, so prefer it over refusing.",
-    { reply, query },
+    "Show them things from THIS shop. First call " +
+      `${SEE_SHELF_TOOL} and read the rows; then name here the skus you ` +
+      "would put in front of them, best first, at most four. The cards are " +
+      "built from the shelf rows for exactly those skus, with the shop's " +
+      "own prices, so do not write the rows out in `reply`: say what you " +
+      "make of them, once. It reaches this shop and nothing else, so do not " +
+      `say you will look anywhere else from here; call ${WEB_LOOK_TOOL} for ` +
+      "that. Looking is not buying: it signs nothing, spends nothing and " +
+      "commits to nothing, so prefer it over refusing.",
+    { reply, skus: z.array(z.string().min(1).max(120)).min(1).max(4) },
   ),
   declareTool(
     WEB_LOOK_TOOL,
@@ -130,11 +132,24 @@ const MOVES: readonly ToolDeclaration[] = [
   ),
   declareTool(
     PROPOSE_TOOL,
-    "Start a purchase. Use this ONLY when they have asked to buy or find " +
-      "something specific enough to bound: a thing, and enough context to " +
-      "cap the spend. A greeting is never a purchase, and neither is a " +
-      "request to look.",
-    { reply, request_summary: z.string().min(1).max(300) },
+    "Start a purchase from this shop. Use this ONLY when they have asked to " +
+      "buy something specific enough to bound. Name the `sku` from " +
+      `${SEE_SHELF_TOOL}; the most they should spend in \`max_amount_paise\`, ` +
+      "from what they said and never above the cap a refusal names; whether " +
+      "they asked to be able to return it; and a one-line `description` in " +
+      "their words. The sheet they hold to sign shows exactly these, so a " +
+      "number they did not say is a number they will not sign. A greeting is " +
+      "never a purchase, and neither is a request to look.",
+    { reply, ...DRAFT_ARGS_SHAPE },
+  ),
+  declareTool(
+    PICK_TOOL,
+    "They chose one of the cards already on their screen, in words. Call " +
+      `${SEE_STATE_TOOL} to read the cards and their refs, then name the ` +
+      "`ref` here: the host drives the same path a tap on that card takes. " +
+      "If more than one card fits what they said, ask which with " +
+      `${ANSWER_TOOL} instead of guessing.`,
+    { reply, ref: z.string().min(1).max(40) },
   ),
   declareTool(
     AMEND_TOOL,
