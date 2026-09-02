@@ -2,7 +2,6 @@ import type { ShelfView, TurnPlan } from "@covenant/agents";
 import type { IdGenerator, Logger } from "@covenant/domain";
 
 import type { BeatHub } from "../http/beat-hub.js";
-import { miscountsShelf } from "../judge/shelf-claim.js";
 import { askedBy, askTurn } from "./ask-step.js";
 import type { PurchaseResult } from "./purchase-result.js";
 
@@ -90,15 +89,12 @@ export function answerTurn(
   // into `question`, so emitting both said everything twice; the separate
   // field is kept because the composer uses it to offer replies.
   const said = answerLine(plan);
-  const wrong = miscountsShelf(parts.shelf.current(), said);
-  if (wrong) {
-    parts.logger.warn("purchase.answer.miscounted", { run_id: base.runId });
-  }
-  // An ask is its own beat, not a bubble: it is the one utterance of this turn
-  // and the composer has to be able to find it. The reply is still the whole
-  // sentence — `answerLine` merged the question into it.
-  if (!wrong && askedBy(plan) !== null && said.length > 0) {
+  // The model read the shelf through its own tool result and owns what it
+  // says about it; the shell no longer drops sentences it disagrees with.
+  // An ask is its own beat, not a bubble: it is the one utterance of this
+  // turn and the composer has to be able to find it.
+  if (askedBy(plan) !== null && said.length > 0) {
     return askTurn(parts, base, said, plan.replies ?? [], plan.choiceGroups ?? []);
   }
-  return saidTurn(parts, base, plan, said, wrong);
+  return saidTurn(parts, base, plan, said, false);
 }

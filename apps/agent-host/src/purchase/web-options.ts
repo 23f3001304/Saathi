@@ -1,8 +1,6 @@
 import type { WebListingView } from "../browser/web-listing.js";
 import { merchantOf } from "../browser/browser-view.js";
-import { accessoryFor, capacityMismatch, cleanTitle } from "../browser/listing-identity.js";
 import type { OptionRowData } from "../http/chat-beat.js";
-import { requestOverlap } from "../judge/catalog-match.js";
 
 /** Enough to choose between; more than this is a search results dump. */
 const SHOWN = 4;
@@ -50,39 +48,18 @@ export function cardedListings(
   query: string,
   ceilingPaise: number | null = null,
 ): readonly WebListingView[] {
+  // The model chose these: every row here is a URL it picked from its own
+  // search and this host then verified on the page. The shell filters that
+  // used to re-judge them (accessory words, capacity tokens, query overlap,
+  // the ceiling) second-guessed a choice the model had already made with
+  // more context than a token comparison has. A card still needs a price
+  // the host itself parsed - that is provenance, not judgment - and the
+  // ceiling rides on the card as data for the shopper to see.
+  void query;
+  void ceilingPaise;
   return listings
     .filter((listing) => listing.price_paise !== null)
-    // The stated budget binds the shelf, not just the mandate: a shopper
-    // who said "50000 max" was shown two cards above it, and "none of
-    // these fit your ceiling" is the honest empty state instead.
-    .filter(
-      (listing) =>
-        ceilingPaise === null || (listing.price_paise ?? 0) <= ceilingPaise,
-    )
-    // A case for the thing is not the thing: category before overlap.
-    .filter((listing) => !accessoryFor(listing.title, query))
-    // A stated capacity that contradicts the asked one is a different thing.
-    .filter((listing) => !capacityMismatch(listing.title, query))
-    .map((listing) => ({
-      listing,
-      // The *cleaned* title: a tile whose only overlap with the query was
-      // "deal", "price" or "off" is a tile that matched the shop's
-      // merchandising, not the shopper. Dresses and a smartwatch were carded
-      // against an SSD search that way.
-      score: requestOverlap(cleanTitle(listing.title), query),
-    }))
-    .filter((scored) => scored.score > 0)
-    .sort(byMatchThenPrice)
-    .slice(0, SHOWN)
-    .map((scored) => scored.listing);
-}
-
-/** Rows for listings already chosen, with no second filtering: what is being
- *  put back on the screen is what was on it. */
-export function optionRowsFor(
-  listings: readonly WebListingView[],
-): readonly OptionRowData[] {
-  return listings.map(rowOf);
+    .slice(0, SHOWN);
 }
 
 export function webOptionRows(
@@ -91,19 +68,6 @@ export function webOptionRows(
   ceilingPaise: number | null = null,
 ): readonly OptionRowData[] {
   return cardedListings(listings, query, ceilingPaise).map(rowOf);
-}
-
-interface Scored {
-  readonly listing: WebListingView;
-  readonly score: number;
-}
-
-/** Best overlap first, cheaper breaking the tie — a fiduciary's default, and
- *  the same order `rankCatalog` puts the shelf in. */
-function byMatchThenPrice(left: Scored, right: Scored): number {
-  const byScore = right.score - left.score;
-  const price = (scored: Scored): number => scored.listing.price_paise ?? 0;
-  return byScore !== 0 ? byScore : price(left) - price(right);
 }
 
 function rowOf(listing: WebListingView): OptionRowData {

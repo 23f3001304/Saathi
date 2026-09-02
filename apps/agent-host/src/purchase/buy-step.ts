@@ -4,9 +4,8 @@ import { asks, askTurn } from "./ask-step.js";
 import { listingFor } from "./intent-listing.js";
 import { observedFrom } from "./observation.js";
 import { lastSentence } from "./prose.js";
-import { CORRECTIVE, obeys } from "./language-gate.js";
 import { proposeCart, retrieveForCart } from "./propose-step.js";
-import { anchorLine, speakFor } from "./web-errand.js";
+import { speakFor } from "./web-errand.js";
 import type { PurchaseResult } from "./purchase-result.js";
 import type { RunnerConfig, RunnerParts } from "./runner-parts.js";
 
@@ -23,23 +22,6 @@ import type { RunnerConfig, RunnerParts } from "./runner-parts.js";
  * sentence: "UK 8, refundable" is only a purchase together with the line that
  * said running shoes, and both are memories the digest will bind.
  */
-/** One conversation with the buyer, in the shopper's own language. The gate
- *  is the same one the errands stand behind: when the reply disobeys the
- *  anchor line, the model is handed its own answer back with the corrective
- *  and one chance to say it again properly. Live buyers answered an English
- *  kurta request in Hinglish on their first day; scripted ones never could. */
-async function conversed(
-  parts: RunnerParts,
-  stated: readonly string[],
-  replyLanguage: string | null,
-): Promise<Awaited<ReturnType<RunnerParts["buyer"]["converse"]>>> {
-  const prompt = `${stated.join("\n")}\n\n${speakFor(stated, replyLanguage)}`;
-  const first = await parts.buyer.converse(prompt);
-  const said = first.transcript.join("\n");
-  if (obeys(said, replyLanguage, anchorLine(stated))) return first;
-  return parts.buyer.converse(`${CORRECTIVE}${prompt}`);
-}
-
 export async function buyThrough(
   parts: RunnerParts,
   config: RunnerConfig,
@@ -49,18 +31,16 @@ export async function buyThrough(
 ): Promise<PurchaseResult> {
   const request = stated.join("\n");
   const intent = await parts.intents.sign(stated);
-  const conversation = await conversed(parts, stated, replyLanguage);
-  // A purchase turn that ends by asking is waited on like any other; replayed
-  // as a bubble and walked past, every later step reasoned from the value it
-  // had just said it did not have.
-  const inLanguage = (line: string): boolean =>
-    obeys(line, replyLanguage, anchorLine(stated));
+  // Language is context, not a filter: the anchored prompt is trusted.
+  const conversation = await parts.buyer.converse(
+    `${stated.join("\n")}\n\n${speakFor(stated, replyLanguage)}`,
+  );
   const asked = lastSentence(conversation.transcript);
   if (asks(asked)) {
-    parts.narrator.replay(conversation, asked, inLanguage);
+    parts.narrator.replay(conversation, asked);
     return askTurn(parts, base, asked);
   }
-  parts.narrator.replay(conversation, null, inLanguage);
+  parts.narrator.replay(conversation);
   const sku = listingFor(parts.shelf.current(), intent);
   const quote = await parts.fallback.ensureQuote(
     sku,

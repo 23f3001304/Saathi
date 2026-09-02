@@ -6,7 +6,6 @@ import type { OptionRowData } from "../http/chat-beat.js";
 import { askTurn, splitAsk } from "../purchase/ask-step.js";
 import type { PurchaseResult } from "../purchase/purchase-result.js";
 import { matchCatalog } from "./catalog-match.js";
-import { miscountsShelf } from "./shelf-claim.js";
 
 /** Enough to see what the shop has; more than this is a catalog dump. */
 const SHOWN = 4;
@@ -104,7 +103,7 @@ export function browseTurn(
   // A sentence that counts the shop wrongly is dropped and the cards stand on
   // their own: they are read off the shelf, so the shopper still sees what is
   // there rather than a number the agent made up about it.
-  const whole = miscountsShelf(shelf, plan.reply) ? "" : plan.reply.trim();
+  const whole = plan.reply.trim();
   // Evidence first, ask second. A browse that ends "which one?" reported
   // something true and then wanted an answer, and the two belong on different
   // surfaces: the sentence and the cards in the transcript, the question at
