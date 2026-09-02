@@ -74,8 +74,14 @@ export function ChatSession({
   const [webLaunched, setWebLaunched] = useState(false);
   // Between the tap and the window's first beat, the run is busy on a
   // window that does not exist yet; the strip says so and the composer
-  // waits rather than collecting a sentence nobody is reading.
-  const launching = webLaunched && chat.running && chat.sandbox === null;
+  // waits rather than collecting a sentence nobody is reading. Never while
+  // a gate is waiting: the hold-to-sign lives in this same dock, and
+  // blocking it would deadlock the launch on its own signature.
+  const launching =
+    webLaunched &&
+    chat.running &&
+    chat.sandbox === null &&
+    chat.awaiting === null;
   const [signed, setSigned] = useState(false);
   const [billOpen, setBillOpen] = useState(false);
   // A reload of a settled purchase must not re-arm the signing flow: the
