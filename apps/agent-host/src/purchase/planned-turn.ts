@@ -25,6 +25,11 @@ export async function planned(
   },
 ): Promise<PurchaseResult> {
   const plan = await parts.planner.plan(lines, turn.replyLanguage, turn.digest);
+  // The proposal waits here for the sheet: `buyThrough` signs through
+  // `IntentFlow`, whose live judge reads exactly this.
+  if (plan.draft !== null && plan.draft !== undefined) {
+    parts.pending.hold(plan.draft);
+  }
   // A pick of a platform sku rebuilds the standing cart under a pick run id,
   // exactly as a tap through `PurchaseRunner.repropose` does.
   const repropose = (ref: string): Promise<PurchaseResult | null> => {

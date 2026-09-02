@@ -1,3 +1,4 @@
+import { PendingDraft } from "../purchase/pending-draft.js";
 import type { BuyerDeps, BuyerParts } from "./buyer-parts.js";
 import { wireConversationMemory } from "./memory-wiring.js";
 import { intentFlowOf, memoryDepsOf, wireRunner } from "./runner-wiring.js";
@@ -13,18 +14,23 @@ export type { BuyerDeps, BuyerParts } from "./buyer-parts.js";
 export function wireBuyer(deps: BuyerDeps): BuyerParts {
   const { log, dispatcher } = deps.dispatch;
   const intentGate = deps.gates.intent;
-  const intents = intentFlowOf(deps, intentGate);
+  const pending = new PendingDraft();
+  const intents = intentFlowOf(deps, intentGate, pending);
   const webPick = webBuyOf(deps, dispatcher, intents);
   const shared = {
     intentGate,
     intents,
+    pending,
     cartGate: deps.gates.cart,
     conversation: wireConversationMemory(memoryDepsOf(deps)),
     webPick,
   };
   return {
     log,
-    ...shared,
+    intentGate,
+    cartGate: shared.cartGate,
+    conversation: shared.conversation,
+    webPick,
     session: deps.session,
     runner: wireRunner(deps, log, dispatcher, shared),
   };

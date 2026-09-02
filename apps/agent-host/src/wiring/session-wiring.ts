@@ -119,28 +119,6 @@ export function wirePickSession(deps: SessionDeps): AgentSession {
   });
 }
 
-/**
- * DECISION: the intent drafter gets its own session rather than sharing the
- * buyer's. The drafting prompt ends with "reply with one JSON object and
- * nothing else", and a model that has been told that once goes on obeying it —
- * so on a shared conversation the buyer's next answer came back as a JSON blob
- * and was rendered to the shopper as if the agent had said it. Two turns with
- * two different contracts need two conversations.
- */
-export function wireJudgeSession(deps: SessionDeps): AgentSession {
-  // `speaks: false`: the drafter is told to answer with one JSON object and
-  // nothing else, so streaming it would put a raw intent payload — currency,
-  // paise ceiling and all — into the shopper's chat a character at a time.
-  return routedSession(deps, {
-    tools: [],
-    systemPrompt: BUYER_SYSTEM_PROMPT,
-    dispatcher: deps.dispatch.dispatcher,
-    structured: true,
-    speaks: false,
-    decidesByTool: false,
-  });
-}
-
 export interface PlannerParts {
   readonly planner: TurnPlanner;
 }

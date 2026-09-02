@@ -52,7 +52,7 @@ function descriptionOf(
  * nothing, which `draftSchemaFor` rejects outright. No category, no envelope:
  * the cap and the SKU list still bound the purchase.
  */
-function envelopesFor(
+export function envelopesFor(
   sku: CatalogSku,
   ceiling: number,
 ): IntentDraftFields["envelopes"] {

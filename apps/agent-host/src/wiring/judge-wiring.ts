@@ -1,13 +1,10 @@
-import type {
-  AgentSession,
-  IntentDraftDefaults,
-  ShelfView,
-} from "@covenant/agents";
-import type { Logger, PromptJudge } from "@covenant/domain";
+import type { IntentDraftDefaults, ShelfView } from "@covenant/agents";
+import type { PromptJudge } from "@covenant/domain";
 
 import type { AgentHostConfig } from "../config.js";
-import { SessionPromptJudge } from "../judge/session-prompt-judge.js";
-import { StaticPromptJudge } from "../judge/static-prompt-judge.js";
+import { PlanDraftJudge } from "../judge/plan-draft-judge.js";
+import type { PendingDraft } from "../purchase/pending-draft.js";
+import { StaticPromptJudge } from "../session/static-prompt-judge.js";
 
 /** One day: long enough for a cool-off hold to outlive the conversation. */
 const INTENT_TTL_SECONDS = 86_400;
@@ -20,38 +17,31 @@ export interface JudgeDeps {
   readonly config: AgentHostConfig;
   readonly shelf: ShelfView;
   readonly merchantIss: string;
-  readonly session: AgentSession;
-  readonly logger: Logger;
+  /** Where the planner's proposal waits for the sheet. */
+  readonly pending: PendingDraft;
 }
 
 /**
- * The drafter's judge. In live mode the model says what the bounds are and the
- * schema decides whether they are admissible; the deterministic drafter is the
- * floor it falls back to, and that floor is *narrower* than anything the model
- * can propose, so falling back can only ever tighten the user's covenant.
+ * The drafter's judge. Live, the draft is the planner's own proposal; the
+ * schema still holds the operator's cap and the currency as literals.
+ * Scripted, there is no model, and the script reads the sentence itself.
  */
 export function wireJudge(deps: JudgeDeps): PromptJudge {
-  const fallback = new StaticPromptJudge(deps.shelf, {
+  const plan = {
     merchantIss: deps.merchantIss,
     capPaise: deps.config.capPaise,
     currency: COVENANT_CURRENCY,
-  });
+  };
   return deps.config.mode === "live"
-    ? new SessionPromptJudge(
-        deps.session,
-        fallback,
-        deps.logger,
-        deps.merchantIss,
-        deps.shelf,
-      )
-    : fallback;
+    ? new PlanDraftJudge(deps.pending, plan, deps.shelf)
+    : new StaticPromptJudge(deps.shelf, plan);
 }
 
 /**
  * DECISION: `user_cart_confirmation_required` is drafted `false` and the
  * cool-off threshold is drafted above the demo's cap. Why: §6.5's supervised
  * path answers `approve` *plus* an outstanding draft, and a cool-off above
- * threshold parks the purchase — both are correct behaviours and both leave the
+ * threshold parks the purchase, both correct behaviours and both leaving the
  * demo with no terminal payment to show. The hold-to-sign gates are still real
  * (`ConfirmationGate`); what is relaxed is the gateway's second, redundant
  * confirmation, not the user's signature.

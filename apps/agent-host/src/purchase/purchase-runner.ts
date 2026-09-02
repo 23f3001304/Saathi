@@ -56,6 +56,7 @@ export class PurchaseRunner {
     this.parts.cartGate.reset();
     this.parts.log.reset();
     this.parts.lastProposal.clear();
+    this.parts.pending.clear();
     this.parts.offered.claim(chat);
     this.parts.context.claim(chat);
     this.parts.quotes.newRun();

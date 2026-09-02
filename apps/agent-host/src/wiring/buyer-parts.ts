@@ -50,12 +50,10 @@ export interface BuyerDeps {
   readonly identity: BuyerIdentityParts;
   readonly dispatch: DispatchParts;
   readonly session: AgentSession;
-  /** The drafting turn's own conversation; never the buyer's. */
-  readonly judgeSession: AgentSession;
   /** The open-web errand's own conversation; the sandbox tools and no others. */
   readonly webSession: AgentSession;
   /** The tapped-card errand's own conversation. Two contracts, two threads —
-   *  the same reason `wireJudgeSession` does not share the buyer's. */
+   *  the same reason the research errand does not share the buyer's. */
   readonly pickSession: AgentSession;
   /** Where the sandbox window actually went, shared with `WebShopper`. */
   readonly trail: WebTrail;

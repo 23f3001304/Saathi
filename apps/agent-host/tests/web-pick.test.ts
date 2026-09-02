@@ -93,7 +93,7 @@ describe("a tapped card drives the window", () => {
 });
 
 /**
- * The identity rule, one layer out from `resolve-identity.ts`: the person
+ * The identity rule, one layer out from `intent-listing.ts`: the person
  * chooses which card, the host resolves which page. A ref with no page behind
  * it has no nearest match, so nothing is navigated.
  */

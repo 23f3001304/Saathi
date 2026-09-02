@@ -6,11 +6,11 @@ import type {
   ResponseSchema,
 } from "@covenant/domain";
 
-import { matchedSku, NothingStocked } from "../session/catalog-match.js";
-import type { DraftPlanConfig } from "./draft-plan.js";
-import { draftFieldsFor } from "./draft-plan.js";
+import { matchedSku, NothingStocked } from "./catalog-match.js";
+import type { DraftPlanConfig } from "../judge/draft-plan.js";
+import { draftFieldsFor } from "../judge/draft-plan.js";
 
-export function conversationOf(input: PromptInput): string {
+function conversationOf(input: PromptInput): string {
   const value = input["conversation"];
   return Array.isArray(value)
     ? value
@@ -20,11 +20,12 @@ export function conversationOf(input: PromptInput): string {
 }
 
 /**
- * The deterministic drafter. It is not a stand-in for the model: the model's
- * job is to *say* what the bounds are and why, and this decides what they are.
- * That ordering is deliberate — a draft the user is about to sign must not
- * differ between two runs of the same sentence, and a sampled bound is a bound
- * whose value nobody can predict before the signing sheet renders it.
+ * The scripted mode's drafter, which is the fake model reading the sentence.
+ * The model's job is to *say* what the bounds are and why, and this decides
+ * what they are. That ordering is deliberate — a draft the user is about to
+ * sign must not differ between two runs of the same sentence, and a sampled
+ * bound is a bound whose value nobody can predict before the signing sheet
+ * renders it.
  */
 export class StaticPromptJudge implements PromptJudge {
   constructor(

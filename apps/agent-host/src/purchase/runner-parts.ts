@@ -15,6 +15,7 @@ import type { ConversationMemory } from "./conversation-memory.js";
 import type { IntentFlow } from "./intent-flow.js";
 import type { RunNarrator } from "./run-narrator.js";
 import type { LastProposal } from "./last-proposal.js";
+import type { PendingDraft } from "./pending-draft.js";
 import type { MerchantToolFallback } from "./tool-fallback.js";
 import type { ToolLog } from "./tool-log.js";
 import type { TraitMemory } from "./trait-memory.js";
@@ -78,6 +79,8 @@ export interface RunnerParts {
   readonly fallback: MerchantToolFallback;
   /** The standing cart's makings, so a tapped card can rebuild it. */
   readonly lastProposal: LastProposal;
+  /** The planner's proposal, held for the judge that drafts the sheet. */
+  readonly pending: PendingDraft;
   readonly log: ToolLog;
   readonly gateway: GatewayClient;
   readonly carts: CartBuilder;

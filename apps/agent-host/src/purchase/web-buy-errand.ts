@@ -6,7 +6,7 @@ import { WROTE, speakFor } from "./web-errand.js";
  *
  * DECISION: the window is already on the listing before this is read. The host
  * navigated there, from a ref it minted, to a URL it read off a page it opened
- * — the same split as `resolve-identity.ts`, held one layer further out: the
+ * — the same split as `plan-draft-judge.ts`, held one layer further out: the
  * person chose *which card*, the host resolved *which page*. A prompt that
  * asked the model to open a URL would have made that URL a thing a model could
  * choose, and a prompt-injected model could then choose any URL at all.

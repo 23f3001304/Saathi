@@ -1,13 +1,17 @@
 import type { CatalogSku } from "@covenant/agents";
 import { findSku } from "@covenant/agents";
 
-import { UnresolvableDraft } from "../judge/resolve-identity.js";
 import type { SignedIntent } from "./intent-flow.js";
+
+/** The signed intent names a listing this shelf does not hold. The run fails
+ *  rather than approximating: a cart for a neighbouring row is a cart for
+ *  something nobody signed for. */
+export class UnresolvableDraft extends Error {}
 
 /**
  * The listing the signed intent names, resolved against the turn's shelf.
  *
- * This is the same split `resolveIdentity` makes one layer up, held to the
+ * This is the same split `PlanDraftJudge` makes one layer up, held to the
  * end: the model chose *what*, the covenant records it, and the host looks up
  * who sells it. Re-deriving the SKU from the request instead built the quote
  * for one listing while the mandate permitted another, which the gateway

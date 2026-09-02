@@ -29,7 +29,6 @@ import { wireMerchant } from "./merchant-wiring.js";
 import type { ObsParts } from "./obs-wiring.js";
 import { type LaneGates, plannerReadsOf } from "./reads-wiring.js";
 import {
-  wireJudgeSession,
   wirePickSession,
   wireSession,
   wireTurnPlanner,
@@ -94,7 +93,7 @@ function laneState(shared: LaneShared, window: LaneWindowParts): LaneState {
   };
 }
 
-/** The four model conversations and the planner, lane-owned, every one.
+/** The three model conversations and the planner, lane-owned, every one.
  *  Two lanes sharing an `AgentSession` would interleave their transcripts. */
 function laneSessions(
   shared: LaneShared,
@@ -106,7 +105,6 @@ function laneSessions(
   const deps = { ...shared, hook: shared.gateway.hook, merchant, dispatch, sink };
   return {
     session: wireSession(deps),
-    judgeSession: wireJudgeSession(deps),
     webSession: wireWebSession(deps),
     pickSession: wirePickSession(deps),
     planner: wireTurnPlanner(deps, reads).planner,

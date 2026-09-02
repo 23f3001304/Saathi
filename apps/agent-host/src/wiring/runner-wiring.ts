@@ -6,6 +6,7 @@ import type { ConfirmationGate } from "../purchase/confirmation-gate.js";
 import type { ConversationMemory } from "../purchase/conversation-memory.js";
 import { IntentFlow } from "../purchase/intent-flow.js";
 import { LastProposal } from "../purchase/last-proposal.js";
+import type { PendingDraft } from "../purchase/pending-draft.js";
 import { PurchaseRunner } from "../purchase/purchase-runner.js";
 import { RunNarrator } from "../purchase/run-narrator.js";
 import type { RunnerConfig, SandboxOwner } from "../purchase/runner-parts.js";
@@ -56,15 +57,18 @@ function sandboxOf(deps: BuyerDeps): SandboxOwner {
   };
 }
 
-export function intentFlowOf(deps: BuyerDeps, gate: ConfirmationGate): IntentFlow {
+export function intentFlowOf(
+  deps: BuyerDeps,
+  gate: ConfirmationGate,
+  pending: PendingDraft,
+): IntentFlow {
   return new IntentFlow(
     new IntentDrafter(
       wireJudge({
         config: deps.config,
         shelf: deps.merchant.shelf,
         merchantIss: deps.keys.merchantIss,
-        session: deps.judgeSession,
-        logger: deps.obs.logger,
+        pending,
       }),
       deps.keys.intents,
       deps.clock,
@@ -99,6 +103,8 @@ export interface RunnerShared {
   /** One intent flow for the lane: the runner's buys and the web pick's
    *  sign-before-drive both wait on this same gate and ceiling. */
   readonly intents: IntentFlow;
+  /** The planner's proposal, read by the live judge when the sheet is drafted. */
+  readonly pending: PendingDraft;
   readonly cartGate: ConfirmationGate;
   /** Built once above and handed in, because the read route behind
    *  `GET /chat/history` answers from this same instance. */
@@ -155,6 +161,7 @@ export function wireRunner(
     {
       log,
       lastProposal: new LastProposal(),
+      pending: shared.pending,
       cartGate: shared.cartGate,
       buyer: loopOn(deps, deps.session, dispatcher),
       intents: shared.intents,
