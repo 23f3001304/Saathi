@@ -156,10 +156,16 @@ export function ChatSession({
       setWebLaunched(false);
       return;
     }
-    // The tap reaches the server: the standing cart is rebuilt for this
-    // card, and the bill's total follows the cart beat. Without this the
-    // sheet showed the tapped card while the signature released the run's
-    // own default: what you see must be what you sign.
+    // With a cart standing, the tap rebuilds it for this card - what you
+    // see must be what you sign. With NO cart standing (cards offered by a
+    // browse answer), there is nothing to rebuild: the tap becomes the
+    // shopper's own pick sentence and walks the full draft-and-sign path.
+    // Sending it to the rebuild route instead ended in "I no longer have
+    // that listing" over a card straight off this shop's own shelf.
+    if (chat.cart === null && !signed) {
+      answer(option?.title ?? optionId);
+      return;
+    }
     void pickWebOption(optionId, conversationId);
     setConfirmed(true);
     setBillOpen(true);

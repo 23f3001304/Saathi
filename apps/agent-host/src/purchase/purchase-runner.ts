@@ -68,7 +68,12 @@ export class PurchaseRunner {
     this.parts.offered.claim(chat);
     this.parts.context.claim(chat);
     this.parts.quotes.newRun();
-    await this.parts.sandbox.retire();
+    // The window survives the turn on purpose now. Retiring it here dated
+    // from research driving the sandbox, when a stale search could present
+    // itself as current; research rides live web search today, a buy leg
+    // navigates the window to its own listing, and the profile behind it
+    // holds the shopper's sign-in. Deleting all that on every sentence was
+    // "why is the sandbox getting deleted".
     return runId;
   }
 
