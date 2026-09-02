@@ -1,6 +1,4 @@
 
-import { NothingStocked } from "../judge/catalog-match.js";
-import { noStockTurn } from "../judge/no-stock-step.js";
 import { reproposeSku } from "./buy-step.js";
 import { planned } from "./planned-turn.js";
 import { plannerDigest } from "./context-digest.js";
@@ -38,17 +36,12 @@ export class PurchaseRunner {
       await this.parts.shelf.open();
       return await this.drive(base, request, chat ?? null, replyLanguage);
     } catch (cause) {
-      // A shop that stocks nothing like the request is an answer, not a
-      // failure: nothing was drafted, so there is nothing to unwind.
-      return cause instanceof NothingStocked
-        ? this.filed(
-            await noStockTurn(
-              { ...this.parts, chat: chat ?? null },
-              base,
-              cause.request,
-            ),
-          )
-        : this.abort(base, cause);
+      // A drafter that can find nothing to name is a fault of the drafter,
+      // not a turn for the harness to answer on the model's behalf. The
+      // shelf reaches the model as a tool from Stage 2 on, and the draft
+      // becomes the model's own proposal in Stage 3; until then a refusal
+      // here ends the run and drives nothing.
+      return this.abort(base, cause);
     }
   }
 
