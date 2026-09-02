@@ -11,12 +11,14 @@ import {
   DECLINE_TOOL,
   PROPOSE_TOOL,
   REMEMBER_TOOL,
+  SEE_SHELF_TOOL,
+  SEE_STATE_TOOL,
   WEB_LOOK_TOOL,
 } from "../src/buyer/turn-plan.js";
 import { TURN_PLAN_TOOLS } from "../src/buyer/turn-plan-tools.js";
 
 describe("the turn tools", () => {
-  it("offers exactly the six moves and the trait tool, on the buyer's own server", () => {
+  it("offers the six moves, the trait tool and the two reads, on the buyer's own server", () => {
     expect(TURN_PLAN_TOOLS.map((tool) => tool.tool)).toEqual([
       ANSWER_TOOL,
       BROWSE_TOOL,
@@ -25,6 +27,8 @@ describe("the turn tools", () => {
       AMEND_TOOL,
       DECLINE_TOOL,
       REMEMBER_TOOL,
+      SEE_SHELF_TOOL,
+      SEE_STATE_TOOL,
     ]);
     expect(
       TURN_PLAN_TOOLS.every((tool) => tool.server === BUYER_TOOL_SERVER),

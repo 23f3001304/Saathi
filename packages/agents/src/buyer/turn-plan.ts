@@ -35,6 +35,12 @@ export const AMEND_TOOL = "amend_covenant";
 export const DECLINE_TOOL = "decline_purchase";
 export const REMEMBER_TOOL = "remember_trait";
 
+/** The reads. Neither is a move: the model looks, then still calls exactly
+ *  one of the moves above. Declared beside them so every provider hands the
+ *  hook the same `(tool, server)` pair for a look as for a move. */
+export const SEE_SHELF_TOOL = "see_shelf";
+export const SEE_STATE_TOOL = "see_state";
+
 export const TURN_ACTIONS = [
   "answer",
   "browse",

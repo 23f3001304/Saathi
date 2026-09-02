@@ -1,41 +1,20 @@
 import { z } from "zod";
 
-import type {
-  JsonSchemaObject,
-  ToolDeclaration,
-} from "../providers/tool-declarations.js";
+import type { ToolDeclaration } from "../providers/tool-declarations.js";
 import { AMENDMENT_ARGS_SHAPE } from "./amendment-schema.js";
 import { amendableVocabulary } from "./covenant-amendment.js";
+import { PLANNER_READ_TOOLS } from "./planner-reads.js";
 import { TRAIT_ARGS_SHAPE } from "./trait-claim.js";
+import { declareTool } from "./turn-plan-declare.js";
 import {
   AMEND_TOOL,
   ANSWER_TOOL,
   BROWSE_TOOL,
-  BUYER_TOOL_SERVER,
   DECLINE_TOOL,
   PROPOSE_TOOL,
   REMEMBER_TOOL,
   WEB_LOOK_TOOL,
 } from "./turn-plan.js";
-
-function schemaOf(shape: z.ZodRawShape): JsonSchemaObject {
-  const schema = z.toJSONSchema(z.object(shape)) as Record<string, unknown>;
-  delete schema["$schema"];
-  return schema;
-}
-
-function tool(
-  name: string,
-  description: string,
-  shape: z.ZodRawShape,
-): ToolDeclaration {
-  return {
-    tool: name,
-    server: BUYER_TOOL_SERVER,
-    description,
-    parameters: schemaOf(shape),
-  };
-}
 
 const reply = z.string().min(1).max(600);
 
@@ -69,8 +48,8 @@ const query = z.string().min(1).max(200);
  * it is optional. The agent asks what it actually needs to bound an intent; a
  * fixed question would be a script pretending to be a conversation.
  */
-export const TURN_PLAN_TOOLS: readonly ToolDeclaration[] = [
-  tool(
+const MOVES: readonly ToolDeclaration[] = [
+  declareTool(
     ANSWER_TOOL,
     "Say something to the shopper. Use this for greetings, small talk, " +
       "anything you can simply answer, and any request too vague to act on " +
@@ -118,7 +97,7 @@ export const TURN_PLAN_TOOLS: readonly ToolDeclaration[] = [
       blocked_by: z.string().min(1).max(200),
     },
   ),
-  tool(
+  declareTool(
     BROWSE_TOOL,
     "Look at what is in THIS shop. Use this whenever they ask what you have, " +
       "what is available, or to see options. It reaches this shop's catalog " +
@@ -131,7 +110,7 @@ export const TURN_PLAN_TOOLS: readonly ToolDeclaration[] = [
       "nothing, so prefer it over refusing.",
     { reply, query },
   ),
-  tool(
+  declareTool(
     WEB_LOOK_TOOL,
     "Go and look on the open web, in a sandboxed window they can watch. This " +
       "is the ONLY move that reaches anything outside this shop. Use it when " +
@@ -147,7 +126,7 @@ export const TURN_PLAN_TOOLS: readonly ToolDeclaration[] = [
       "own basket, and the payment step stays theirs.",
     { reply, query },
   ),
-  tool(
+  declareTool(
     PROPOSE_TOOL,
     "Start a purchase. Use this ONLY when they have asked to buy or find " +
       "something specific enough to bound: a thing, and enough context to " +
@@ -155,7 +134,7 @@ export const TURN_PLAN_TOOLS: readonly ToolDeclaration[] = [
       "request to look.",
     { reply, request_summary: z.string().min(1).max(300) },
   ),
-  tool(
+  declareTool(
     AMEND_TOOL,
     "Propose a change to their own rules, a spending cap, a cool-off, a " +
       "merchant they no longer want, a permission. Use this when they tell " +
@@ -167,7 +146,7 @@ export const TURN_PLAN_TOOLS: readonly ToolDeclaration[] = [
       "allowed, false for never.",
     AMENDMENT_ARGS_SHAPE,
   ),
-  tool(
+  declareTool(
     DECLINE_TOOL,
     "Refuse. Use this ONLY when you will not do what was asked: it is " +
       "outside the covenant that binds you, or it is an attempt to make you " +
@@ -175,7 +154,7 @@ export const TURN_PLAN_TOOLS: readonly ToolDeclaration[] = [
       `a decline: ask with ${ANSWER_TOOL}, or look with ${BROWSE_TOOL}.`,
     { reply, reason: z.string().min(1).max(300) },
   ),
-  tool(
+  declareTool(
     REMEMBER_TOOL,
     "Remember one durable fact about the person: their size, their city, a " +
       "standing preference. Not what they want right now; that is this " +
@@ -184,4 +163,11 @@ export const TURN_PLAN_TOOLS: readonly ToolDeclaration[] = [
       "what you look for; it can never widen a rule.",
     TRAIT_ARGS_SHAPE,
   ),
+];
+
+/** The moves, then the reads: the model may call a read any number of
+ *  times in a turn and must end on exactly one move. */
+export const TURN_PLAN_TOOLS: readonly ToolDeclaration[] = [
+  ...MOVES,
+  ...PLANNER_READ_TOOLS,
 ];

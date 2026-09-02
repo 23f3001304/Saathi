@@ -91,6 +91,10 @@ export const NON_MONEY_TOOLS: readonly string[] = [
   // whether it lands. Neither can move money and neither can move a bound.
   "amend_covenant",
   "remember_trait",
+  // The planner's reads. A read records nothing and reaches nothing: it
+  // returns host-held facts to the model and cannot move a bound or a rupee.
+  "see_shelf",
+  "see_state",
   ...WEB_SHOP_TOOLS,
 ];
 
