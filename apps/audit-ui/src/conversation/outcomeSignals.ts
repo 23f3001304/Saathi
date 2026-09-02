@@ -37,9 +37,13 @@ export function outcomeSignals(
   // The ids stay off the sentence: txn_ and order_ strings in a shopper
   // bubble read as a crash dump, and the Ledger already holds every one of
   // them. Detail rides along only when it says something a person acts on.
-  const spoken = beat.detail.match(/^(txn_|order_|rzp_)|no link issued/)
-    ? lead
-    : `${lead} ${beat.detail}`.trim();
+  // A failure's detail is a provider's own error string ("the operation was
+  // aborted due to timeout"), which is a stack trace wearing a sentence. The
+  // honest line is the one the harness wrote; the cause belongs in the log.
+  const machine =
+    beat.state === "failed" ||
+    beat.detail.match(/^(txn_|order_|rzp_)|no link issued/) !== null;
+  const spoken = machine ? lead : `${lead} ${beat.detail}`.trim();
   return [
     { kind: "work-done" },
     { kind: "run-idle" },

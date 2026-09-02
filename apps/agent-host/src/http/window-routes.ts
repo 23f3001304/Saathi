@@ -21,7 +21,7 @@ const SSE_HEADERS: Readonly<Record<string, string>> = {
  *  unbounded await here hung the poll, six hung polls exhausted the
  *  browser's per-origin connection budget, and every other request from
  *  that tab queued behind them: the "blank, frozen page" in one bug. */
-const FRAME_CEILING_MS = 600;
+const FRAME_CEILING_MS = 4_000;
 
 function boundedFrame(
   handle: SessionHandle,
@@ -41,7 +41,10 @@ async function frame(
   const captured = await boundedFrame(handle);
   const view = handle.service.view();
   if (captured === null || view === null) {
-    return context.json({ ok: false, reason_code: "NO_SESSION" }, 404);
+    // Not an error: a window with no picture ready yet is the ordinary
+    // state between casts. A 404 here painted every such moment red in
+    // the browser console and read to the shopper as a broken card.
+    return context.json({ ok: false, reason_code: "NO_FRAME" }, 200);
   }
   return context.json(
     { ok: true, frame: payloadOf(captured, 0, view.url, view.state) },

@@ -56,7 +56,10 @@ function envelopesFor(
   sku: CatalogSku,
   ceiling: number,
 ): IntentDraftFields["envelopes"] {
-  if (sku.category === "" || sku.category === "uncategorised") {
+  // "uncategorised" still earns its envelope: it is a real monthly bound on
+  // a real listing, and dropping a bound to tidy a sentence is the wrong
+  // trade. The word is kept out of the description, not out of the mandate.
+  if (sku.category === "") {
     return [];
   }
   return [
