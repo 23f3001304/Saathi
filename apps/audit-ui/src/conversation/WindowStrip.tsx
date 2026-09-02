@@ -19,7 +19,7 @@ function lineFor(attention: AttentionKind | null, busy: boolean): string {
   if (attention === "handoff") {
     return "The window needs you: a sign-in, a code, or the payment step.";
   }
-  if (busy) return "Working in a sandbox window.";
+  if (busy) return "Working in the sandbox window.";
   return "A sandbox window is open for this chat.";
 }
 
@@ -29,7 +29,10 @@ export function WindowStrip({
   attention,
 }: WindowStripProps): JSX.Element | null {
   const { navigate } = useRoute();
-  if (!present && !busy) return null;
+  // No window, no strip. Research runs entirely on live web search now, so
+  // a running turn is not evidence of a sandbox: this line over a windowless
+  // run claimed a window that did not exist.
+  if (!present) return null;
   const urgent = attention === "handoff";
   return (
     <div className={urgent ? styles.stripUrgent : styles.strip}>
