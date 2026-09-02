@@ -63,6 +63,7 @@ function conversationSignals(
           id: beat.questionId,
           prompt: beat.prompt,
           replies: [...beat.replies],
+          groups: beat.groups ?? [],
         },
       ];
     default:

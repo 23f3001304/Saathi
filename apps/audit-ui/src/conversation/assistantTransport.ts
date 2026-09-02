@@ -33,7 +33,13 @@ export type AssistantSignal =
   | { kind: "draft-settled"; streamId: string }
   | { kind: "draft-withdrawn"; streamId: string; reason: string }
   | { kind: "buyer"; text: string }
-  | { kind: "ask"; id: string; prompt: string; replies: string[] }
+  | {
+      kind: "ask";
+      id: string;
+      prompt: string;
+      replies: string[];
+      groups: readonly { label: string; options: readonly string[] }[];
+    }
   | { kind: "activity"; activity: Activity }
   | { kind: "work-done" }
   /** The run reached an outcome. The sandbox card reads this: a window still

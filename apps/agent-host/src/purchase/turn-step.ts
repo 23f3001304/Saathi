@@ -111,7 +111,13 @@ export async function nonPurchaseTurn(
   // still holding an unanswered question ends here instead — the run parks, and
   // the shopper's next sentence is the answer rather than an interruption.
   if (plan.action === "draft_intent" && askedBy(plan) !== null) {
-    return askTurn(parts, base, plan.reply.trim(), plan.replies ?? []);
+    return askTurn(
+      parts,
+      base,
+      plan.reply.trim(),
+      plan.replies ?? [],
+      plan.choiceGroups ?? [],
+    );
   }
   return await moveOf(parts, base, plan, stated, replyLanguage);
 }

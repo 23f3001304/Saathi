@@ -191,13 +191,7 @@ export function ChatSession({
    *  carries the refinements a shopper actually reaches for next. */
   const replies: ComposerAction[] =
     question !== null
-      ? [
-          ...question.replies.map((r) => ({
-            label: r,
-            onClick: () => answer(r),
-          })),
-          { label: "You decide", onClick: () => answer("You decide.") },
-        ]
+      ? [{ label: "You decide", onClick: () => answer("You decide.") }]
       : webChosen !== undefined && webLaunched && !signed
         ? [{ label: "Switch product", onClick: switchProduct }]
         : (stage === "confirm" || stage === "sign") && !signed
@@ -333,7 +327,7 @@ export function ChatSession({
             </p>
           )}
           <SandboxPane
-            active={entries.length > 0 && !signed}
+            active={entries.length > 0 && !signed && visible}
             conversationId={conversationId}
             record={chat.sandbox}
             busy={chat.running}
@@ -391,6 +385,8 @@ export function ChatSession({
         onSend={answer}
         speakText={spokenLine}
         actions={replies}
+        choices={question?.replies ?? undefined}
+        choiceGroups={question?.groups ?? undefined}
         stage={dockStage}
         prompt={askPrompt}
         picker={

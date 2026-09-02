@@ -1,4 +1,5 @@
 import {
+  useEffect,
   useRef,
   useState,
   type FormEvent,
@@ -25,6 +26,15 @@ type ComposerProps = {
   voiceStage?: ReactNode;
   /** Contextual replies for whatever the agent just put on the table. */
   actions?: ComposerAction[];
+  /** A question's own answers, tap-to-toggle: a compound ask ("which kind,
+   *  what size, what budget?") is answered by combining picks, so choices
+   *  select rather than send. The arrow sends the combination, with any
+   *  typed words joined on. Single answers cost one extra tap and read the
+   *  same way every time, which is the trade a form makes on purpose. */
+  choices?: string[];
+  /** The Claude-style compound form: one labelled group per axis, one pick
+   *  per group. When present it replaces flat `choices`. */
+  choiceGroups?: readonly { label: string; options: readonly string[] }[];
   /** The one thing to do right now. Replaces send while it is present. */
   primary?: ReactNode;
   /** What the dock is currently asking for, in one short sentence. */
@@ -53,6 +63,8 @@ export function Composer({
   blocked,
   onSend,
   actions,
+  choices,
+  choiceGroups,
   primary,
   prompt,
   placeholder,
@@ -66,14 +78,55 @@ export function Composer({
 }: ComposerProps): JSX.Element {
   const [text, setText] = useState("");
   const [typing, setTyping] = useState(false);
+  const [picked, setPicked] = useState<readonly string[]>([]);
+  const [byGroup, setByGroup] = useState<Record<string, string>>({});
+  const grouped = (choiceGroups ?? []).length > 0;
+  const choiceKey =
+    (choices ?? []).join("|") +
+    (choiceGroups ?? []).map((g) => g.label + g.options.join(",")).join("|");
+  useEffect(() => {
+    setPicked([]);
+    setByGroup({});
+  }, [choiceKey]);
+
+  function pickInGroup(label: string, option: string): void {
+    setByGroup((held) =>
+      held[label] === option
+        ? Object.fromEntries(
+            Object.entries(held).filter(([key]) => key !== label),
+          )
+        : { ...held, [label]: option },
+    );
+  }
+
+  function toggle(choice: string): void {
+    setPicked((held) =>
+      held.includes(choice)
+        ? held.filter((c) => c !== choice)
+        : [...held, choice],
+    );
+  }
   const askRef = useRef<HTMLDivElement>(null);
   useStageMorph(askRef, stage);
 
   function handleSubmit(e: FormEvent): void {
     e.preventDefault();
-    if (text.trim() === "" || blocked) return;
-    onSend(text.trim());
+    if (blocked) return;
+    const combined = [
+      ...(choiceGroups ?? []).flatMap((group) =>
+        byGroup[group.label] === undefined
+          ? []
+          : [byGroup[group.label] as string],
+      ),
+      ...picked,
+      text.trim(),
+    ]
+      .filter((part) => part !== "")
+      .join(", ");
+    if (combined === "") return;
+    onSend(combined);
     setText("");
+    setPicked([]);
   }
 
   return (
@@ -82,6 +135,50 @@ export function Composer({
         {prompt !== undefined && <p className={styles.prompt}>{prompt}</p>}
         {picker}
       </div>
+      {grouped &&
+        (choiceGroups ?? []).map((group) => (
+          <div key={group.label} className={styles.group}>
+            <span className={styles.groupLabel}>{group.label}</span>
+            <div className={styles.chips}>
+              {group.options.map((option) => (
+                <button
+                  key={option}
+                  type="button"
+                  className={
+                    byGroup[group.label] === option
+                      ? `${styles.chip} ${styles.chipOn}`
+                      : styles.chip
+                  }
+                  aria-pressed={byGroup[group.label] === option}
+                  disabled={blocked}
+                  onClick={() => pickInGroup(group.label, option)}
+                >
+                  {option}
+                </button>
+              ))}
+            </div>
+          </div>
+        ))}
+      {!grouped && choices !== undefined && choices.length > 0 && (
+        <div className={styles.chips}>
+          {choices.map((choice) => (
+            <button
+              key={choice}
+              type="button"
+              className={
+                picked.includes(choice)
+                  ? `${styles.chip} ${styles.chipOn}`
+                  : styles.chip
+              }
+              aria-pressed={picked.includes(choice)}
+              disabled={blocked}
+              onClick={() => toggle(choice)}
+            >
+              {choice}
+            </button>
+          ))}
+        </div>
+      )}
       {actions !== undefined && actions.length > 0 && (
         <div className={styles.chips}>
           {actions.map((action) => (
@@ -101,6 +198,8 @@ export function Composer({
         {(picker !== undefined ||
           (actions !== undefined && actions.length > 0) ||
           primary !== undefined) &&
+        (choices === undefined || choices.length === 0) &&
+        !grouped &&
         !typing ? (
           <button
             type="button"
@@ -125,7 +224,12 @@ export function Composer({
             <button
               type="submit"
               className={styles.send}
-              disabled={blocked || text.trim() === ""}
+              disabled={
+                blocked ||
+                (text.trim() === "" &&
+                  picked.length === 0 &&
+                  Object.keys(byGroup).length === 0)
+              }
               aria-label="Send"
             >
               <svg

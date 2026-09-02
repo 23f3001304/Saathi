@@ -147,6 +147,11 @@ export type ChatBeat =
       readonly questionId: string;
       readonly prompt: string;
       readonly replies: readonly string[];
+      /** A compound ask's labelled axes; empty for a simple question. */
+      readonly groups: readonly {
+        readonly label: string;
+        readonly options: readonly string[];
+      }[];
     }
   | {
       readonly offsetMs: number;

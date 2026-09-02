@@ -28,8 +28,10 @@ function descriptionOf(
   ceiling: number,
   refundable: boolean,
 ): string {
-  const terms = [`at most ${(ceiling / 100).toFixed(2)} INR`];
-  if (sku.category !== "") {
+  const rupees = Math.round(ceiling / 100).toLocaleString("en-IN");
+  const terms = [`at most ₹${rupees}`];
+  // "uncategorised" is a shelf's shrug, not a term anybody signed for.
+  if (sku.category !== "" && sku.category !== "uncategorised") {
     terms.push(sku.category);
   }
   if (refundable) {

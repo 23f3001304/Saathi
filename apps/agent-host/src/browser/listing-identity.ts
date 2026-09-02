@@ -86,3 +86,36 @@ export function accessoryFor(title: string, query: string): boolean {
   }
   return word !== undefined || compatible;
 }
+
+/**
+ * Storage capacity as a number of gigabytes, read off a title or a query.
+ * A unit parser, not a word-list: "2TB", "2 TB", "2048GB" agree with each
+ * other; "512GB" does not agree with any of them.
+ */
+function gigabytesIn(text: string): readonly number[] {
+  const found: number[] = [];
+  for (const match of text.matchAll(/(\d+(?:\.\d+)?)\s*(tb|gb)\b/gi)) {
+    const size = Number(match[1]);
+    if (!Number.isFinite(size) || size <= 0) continue;
+    found.push(match[2]?.toLowerCase() === "tb" ? size * 1000 : size);
+  }
+  return found;
+}
+
+/**
+ * Whether a listing states a capacity that contradicts the one asked for.
+ * Word overlap cannot compare quantities: a 512GB title carrying "NVMe M.2
+ * internal SSD" outscored its own wrong number against a 2TB ask. A query
+ * with no capacity constrains nothing; a title stating none is kept, since
+ * absence is not a contradiction.
+ */
+export function capacityMismatch(title: string, query: string): boolean {
+  const wanted = gigabytesIn(query);
+  if (wanted.length === 0) return false;
+  const stated = gigabytesIn(title);
+  if (stated.length === 0) return false;
+  // 1024-vs-1000 conventions land within a tenth of each other.
+  return !stated.some((size) =>
+    wanted.some((want) => size >= want * 0.9 && size <= want * 1.1),
+  );
+}

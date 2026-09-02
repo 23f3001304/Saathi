@@ -14,6 +14,10 @@ export interface Wire {
   source: EventSource | null;
   /** When a picture last reached the card. `0` means never; see browserFrames. */
   painted: number;
+  /** Whether the last state read named a live window. Frame reads without
+   *  one are guaranteed 404s, and three background chats polling them
+   *  filled real consoles with real noise. */
+  hasView: boolean;
   /** Whether an input-echo burst is already in flight; see browserFrames. */
   bursting: boolean;
   timers: ReturnType<typeof setTimeout>[];
@@ -33,6 +37,7 @@ export function wireOf(
     bursting: false,
     source: null,
     painted: 0,
+    hasView: false,
     timers: [],
   };
 }

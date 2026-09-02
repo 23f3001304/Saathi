@@ -98,7 +98,7 @@ export function answerTurn(
   // and the composer has to be able to find it. The reply is still the whole
   // sentence — `answerLine` merged the question into it.
   if (!wrong && askedBy(plan) !== null && said.length > 0) {
-    return askTurn(parts, base, said, plan.replies ?? []);
+    return askTurn(parts, base, said, plan.replies ?? [], plan.choiceGroups ?? []);
   }
   return saidTurn(parts, base, plan, said, wrong);
 }

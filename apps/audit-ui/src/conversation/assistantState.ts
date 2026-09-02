@@ -104,9 +104,9 @@ function applyAsk(
   state: AssistantSnapshot,
   signal: Extract<AssistantSignal, { kind: "ask" }>,
 ): AssistantSnapshot {
-  const { id, prompt, replies } = signal;
+  const { id, prompt, replies, groups } = signal;
   const entries = dropEcho(closeWork(claimQuietly(state.entries)), prompt);
-  return { ...state, question: { id, prompt, replies }, entries };
+  return { ...state, question: { id, prompt, replies, groups }, entries };
 }
 
 function applyEntrySignal(

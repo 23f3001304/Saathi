@@ -36,6 +36,7 @@ describe("recording the choice", () => {
       reply: "Hello.",
       question: "What is your budget?",
       replies: [],
+      choiceGroups: [],
       query: null,
       // The two routed judgements default safe when the model omits them.
       thingSettled: true,

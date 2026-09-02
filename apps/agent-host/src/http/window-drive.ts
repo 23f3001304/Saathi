@@ -74,7 +74,8 @@ function askedSession(context: AppContext): string | null {
  *  relay was riding; the input threw, the route 500'd, and the person saw a
  *  processing error for pressing a button during a redirect. A swap settles
  *  in a few hundred milliseconds, so one quiet retry usually lands it. */
-const SWAP_ERROR = /connection closed|target closed|session closed|detached/i;
+const SWAP_ERROR =
+  /connection closed|target closed|session closed|detached|internal error|execution context/i;
 const SWAP_RETRY_MS = 300;
 
 async function input(

@@ -67,6 +67,7 @@ function askAt(hub: BeatHub, ref: string): string {
     questionId: `urn:covenant:ask:address:${ref}`,
     prompt: CONFIRM_ADDRESS,
     replies: [...ADDRESS_REPLIES],
+    groups: [],
   });
   return CONFIRM_ADDRESS;
 }

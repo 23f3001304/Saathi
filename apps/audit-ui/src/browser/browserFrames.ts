@@ -47,6 +47,9 @@ export async function frameBurst(
 }
 
 export async function readFrame(wire: Wire): Promise<void> {
+  // No window, no picture: polling frames without a view is a guaranteed
+  // 404, and three background chats doing it filled real consoles.
+  if (!wire.hasView) return;
   try {
     const res = await get(wire.base, scoped("/browser/frame", wire.conversation));
     if (!res.ok) return;

@@ -40,6 +40,22 @@ function textAt(args: ToolArgs, key: string): string {
 
 /** Chips the composer may offer. Anything that is not a short string is not a
  *  tappable answer, and is dropped rather than rendered as one. */
+function groupsAt(args: ToolArgs): readonly { label: string; options: readonly string[] }[] {
+  const raw = args["choice_groups"];
+  if (!Array.isArray(raw)) return [];
+  const groups: { label: string; options: readonly string[] }[] = [];
+  for (const item of raw) {
+    if (typeof item !== "object" || item === null) continue;
+    const held = item as Record<string, unknown>;
+    const label = typeof held["label"] === "string" ? held["label"] : "";
+    const options = Array.isArray(held["options"])
+      ? held["options"].filter((o): o is string => typeof o === "string")
+      : [];
+    if (label !== "" && options.length >= 2) groups.push({ label, options });
+  }
+  return groups;
+}
+
 function repliesAt(args: ToolArgs, key: string): readonly string[] {
   const value = args[key];
   if (!Array.isArray(value)) return [];
@@ -132,6 +148,7 @@ export class TurnPlanCollector implements ToolDispatcher {
       reply,
       question: question.length > 0 && !reply.endsWith("?") ? question : null,
       replies: repliesAt(args, "replies"),
+      choiceGroups: groupsAt(args),
       query: query.length > 0 ? query : null,
       // The two routed judgements. Absent reads as settled and not-fresh,
       // so a provider that drops a field fails toward the old behaviour.

@@ -5,6 +5,7 @@ import { listingFor } from "./intent-listing.js";
 import { observedFrom } from "./observation.js";
 import { lastSentence } from "./prose.js";
 import { proposeCart, retrieveForCart } from "./propose-step.js";
+import { speakFor } from "./web-errand.js";
 import type { PurchaseResult } from "./purchase-result.js";
 import type { RunnerConfig, RunnerParts } from "./runner-parts.js";
 
@@ -26,10 +27,16 @@ export async function buyThrough(
   config: RunnerConfig,
   base: PurchaseResult,
   stated: readonly string[],
+  replyLanguage: string | null = null,
 ): Promise<PurchaseResult> {
   const request = stated.join("\n");
   const intent = await parts.intents.sign(stated);
-  const conversation = await parts.buyer.converse(request);
+  // The same language anchor the errands carry. Scripted mode never needed
+  // it (fixed strings speak no language of their own); the live buyer
+  // answered an English kurta request in Hindi on its first day.
+  const conversation = await parts.buyer.converse(
+    `${request}\n\n${speakFor(stated, replyLanguage)}`,
+  );
   // A purchase turn that ends by asking is waited on like any other. This one
   // used to be replayed as a bubble and walked past: "what size and fit are
   // you after?", then a sort, two options and a refusal — every step of it

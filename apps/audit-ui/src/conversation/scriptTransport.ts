@@ -62,6 +62,7 @@ function play(session: Session, script: Turn[]): void {
     id: turn.id,
     prompt: turn.prompt,
     replies: turn.replies,
+        groups: [],
   });
 }
 

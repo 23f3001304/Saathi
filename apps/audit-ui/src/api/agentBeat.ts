@@ -70,6 +70,7 @@ export type AgentBeat =
       questionId: string;
       prompt: string;
       replies: readonly string[];
+      groups: readonly { label: string; options: readonly string[] }[];
     }
   | {
       offsetMs: number;

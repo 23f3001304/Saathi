@@ -110,6 +110,21 @@ export const TURN_PLAN_TOOLS: readonly ToolDeclaration[] = [
       reply,
       question: z.string().max(300).nullable(),
       replies: z.array(z.string().min(1).max(60)).max(6).nullable(),
+      choice_groups: z
+        .array(
+          z.object({
+            label: z.string().min(1).max(24),
+            options: z.array(z.string().min(1).max(40)).min(2).max(5),
+          }),
+        )
+        .max(4)
+        .nullable()
+        .describe(
+          "For a compound question only: one group per axis you asked " +
+            "(label is the axis, options are its answers). The person " +
+            "picks one per group and answers everything in one send. Use " +
+            "INSTEAD of replies when you ask about more than one axis.",
+        ),
       blocked_by: z.string().min(1).max(200),
     },
   ),

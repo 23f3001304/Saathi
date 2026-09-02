@@ -153,7 +153,14 @@ export class PurchaseRunner {
       turn.replyLanguage,
     );
     const result =
-      answered ?? (await buyThrough(this.parts, this.config, base, turn.stated));
+      answered ??
+      (await buyThrough(
+        this.parts,
+        this.config,
+        base,
+        turn.stated,
+        turn.replyLanguage,
+      ));
     if (slipped) this.noteSlip();
     return result;
   }

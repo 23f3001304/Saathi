@@ -5,7 +5,13 @@ import type { ChatEntry } from "./chatEntry.ts";
 import type { OptionRowData } from "./chatScript.ts";
 import type { SignScope, TransportStatus } from "./assistantTransport.ts";
 
-export type Question = { id: string; prompt: string; replies: string[] };
+export type Question = {
+  id: string;
+  prompt: string;
+  replies: string[];
+  /** A compound ask's labelled axes, Claude-style; empty for a simple ask. */
+  groups: readonly { label: string; options: readonly string[] }[];
+};
 
 /** What the intent signature actually committed to, when a run has said so. */
 export type CovenantView = { capPaise: number; thumbprint: string };

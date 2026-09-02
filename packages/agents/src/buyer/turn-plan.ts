@@ -46,6 +46,11 @@ export const TURN_ACTIONS = [
 
 export type TurnAction = (typeof TURN_ACTIONS)[number];
 
+export interface ChoiceGroup {
+  readonly label: string;
+  readonly options: readonly string[];
+}
+
 export interface TurnPlan {
   readonly action: TurnAction;
   /** The WHOLE of what the agent says this turn. Prose, never a payload. */
@@ -60,6 +65,9 @@ export interface TurnPlan {
    * Empty is normal and means the answer has to be typed.
    */
   readonly replies?: readonly string[];
+  /** A compound question's axes, Claude-style: one labelled group per axis,
+   *  one pick per group. Optional; flat `replies` stays the simple form. */
+  readonly choiceGroups?: readonly ChoiceGroup[];
   /** What to look for, when the move is `browse` or `look_on_web`. */
   readonly query?: string | null;
   /** The model's own judgement that the thing is named precisely enough to

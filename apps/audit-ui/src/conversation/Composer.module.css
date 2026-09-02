@@ -241,3 +241,26 @@
 .chip:nth-child(5n + 5) {
   --chip-pigment: #b23a63;
 }
+
+/* A compound ask, Claude-style: each axis is its own labelled row. */
+.group {
+  display: flex;
+  align-items: baseline;
+  gap: var(--sp-4);
+  margin-bottom: var(--sp-2);
+}
+
+.groupLabel {
+  font-family: var(--font-data, monospace);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-40);
+  min-width: 9ch;
+}
+
+.chipOn {
+  border-color: var(--indigo);
+  color: var(--indigo);
+  background: var(--indigo-12, rgba(35, 33, 150, 0.1));
+}

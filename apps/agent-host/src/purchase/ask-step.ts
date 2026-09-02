@@ -70,12 +70,14 @@ export function askTurn(
   base: PurchaseResult,
   prompt: string,
   replies: readonly string[] = [],
+  groups: readonly { label: string; options: readonly string[] }[] = [],
 ): PurchaseResult {
   parts.hub.emit({
     kind: "question",
     questionId: `urn:covenant:ask:${parts.ids.uuid()}`,
     prompt,
     replies: [...replies],
+    groups: groups.map((g) => ({ label: g.label, options: [...g.options] })),
   });
   parts.hub.emit({
     kind: "outcome",

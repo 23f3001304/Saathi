@@ -32,6 +32,7 @@ async function readState(wire: Wire): Promise<void> {
     if (!res.ok) throw new Error(`browser/state → ${res.status}`);
     wire.failures = 0;
     const view = parseSession(await res.json());
+    wire.hasView = view !== null;
     rememberSession(view?.id ?? "");
     wire.emit({ kind: "session", view });
   } catch (cause) {
