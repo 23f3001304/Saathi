@@ -7,6 +7,8 @@ import styles from "./OptionSet.module.css";
 
 export type OptionSetProps = {
   options: OptionRowData[];
+  /** The signed ceiling, for the under-cap line on each card. */
+  capPaise?: number;
   /**
    * The option that ended up in the cart. Not a rank and not a promotion:
    * it names a decision the buyer has already taken, and its only effect is
@@ -105,6 +107,7 @@ function OptionLine({
 
 export function OptionSet({
   options,
+  capPaise,
   inCartId,
   selectedId,
   onAsk,
@@ -143,6 +146,7 @@ export function OptionSet({
             <OptionRow
               key={option.id}
               option={option}
+              capPaise={capPaise}
               selected={option.id === shown}
               onAsk={() => {
                 setOpenId(option.id);

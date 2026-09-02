@@ -16,7 +16,7 @@ import {
  *  the prompt's own prose models the same punctuation.
  *  v5: a sentence naming two different products is two purchases, taken one
  *  at a time, said so out loud. */
-export const TURN_PLAN_PROMPT_ID = "buyer.turn-plan@v5";
+export const TURN_PLAN_PROMPT_ID = "buyer.turn-plan@v6";
 
 /**
  * What stands over the harness's working-context digest when a turn has one.
@@ -120,8 +120,9 @@ function moveRule(): string {
     "look first, and narrow it once you have seen the page.\n" +
     "What IS a reason to ask first is a thing so underdescribed that no " +
     "page could settle which one they mean - and that outranks the named " +
-    "shop: question first, shop right after, their answers folded into " +
-    "the search. You are the expert: reason about what the product " +
+    "shop and the shelf: question first. 'Shop an " +
+    "ssd for me' names a family, not a thing: ask, never draft. " +
+    "You are the expert: reason about what the product " +
     "actually is, and ask the few axes that decide THIS buy (a drive: " +
     "internal or external, the slot, capacity, budget; shoes: size and " +
     "surface), never a generic form. Ask once, everything in one " +

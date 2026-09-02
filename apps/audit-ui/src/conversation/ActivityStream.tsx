@@ -145,7 +145,12 @@ export function ActivityStream({
     <section className={styles.work} aria-live="polite">
       <header className={styles.workHead}>
         <span className={styles.workLabel}>
-          {done ? `Done · ${activities.length} steps` : "Working…"}
+          {/* "Working…" said nothing; the latest step is what is happening. */}
+          {done
+            ? `Done · ${activities.length} steps`
+            : latest === undefined
+              ? "Working…"
+              : `Working · ${latest.text.slice(0, 64)}`}
         </span>
         <div className={styles.modes} role="group" aria-label="How much to show">
           {MODES.map((m) => (

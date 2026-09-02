@@ -141,3 +141,11 @@
     stroke-dashoffset: 0;
   }
 }
+
+/* The delta to the signed ceiling: quiet, green, and unique to this product. */
+.underCap {
+  font-family: var(--font-mono, monospace);
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  color: var(--forest, #14706a);
+}

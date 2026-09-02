@@ -1,11 +1,15 @@
 import type { JSX } from "react";
 import type { OptionRowData } from "./chatScript.ts";
 import { Money } from "../primitives/Money.tsx";
+import { rupeesRounded } from "../primitives/formatMoney.ts";
 import { Glyph } from "../primitives/Glyph.tsx";
 import { ProductImage } from "../primitives/ProductImage.tsx";
 import styles from "./OptionRow.module.css";
 
 type OptionRowProps = {
+  /** The signed ceiling, when one exists: the delta under it is the one line
+   *  no competitor can print, because nobody else has a signed cap. */
+  capPaise?: number;
   option: OptionRowData;
   selected: boolean;
   onAsk: () => void;
@@ -51,6 +55,7 @@ function Evidence({ option }: { option: OptionRowData }): JSX.Element {
 
 export function OptionRow({
   option,
+  capPaise,
   selected,
   onAsk,
 }: OptionRowProps): JSX.Element {
@@ -76,6 +81,11 @@ export function OptionRow({
       </span>
       <span className={styles.title}>{option.title}</span>
       <Money paise={option.pricePaise} className={styles.price} />
+      {capPaise !== undefined && capPaise > option.pricePaise && (
+        <span className={styles.underCap}>
+          {rupeesRounded(capPaise - option.pricePaise)} under your cap
+        </span>
+      )}
       <Evidence option={option} />
     </button>
   );

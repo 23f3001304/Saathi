@@ -171,19 +171,49 @@ export function ChatSession({
     options.length > 0 && !signed ? (
       <OptionSet
         options={options}
+        capPaise={chat.covenant?.capPaise}
         selectedId={pickedId ?? undefined}
         onAsk={choose}
       />
     ) : undefined;
 
+  // The live set sits in the dock; the transcript keeps the evidence line.
+  const optionsLive =
+    options.length > 0 && !signed && !webLaunched && question === null;
+
+  /** Every reply ends in something tappable. A question always carries "You
+   *  decide" so the agent's judgement is one tap away; a live option set
+   *  carries the refinements a shopper actually reaches for next. */
   const replies: ComposerAction[] =
     question !== null
-      ? question.replies.map((r) => ({ label: r, onClick: () => answer(r) }))
+      ? [
+          ...question.replies.map((r) => ({
+            label: r,
+            onClick: () => answer(r),
+          })),
+          { label: "You decide", onClick: () => answer("You decide.") },
+        ]
       : webChosen !== undefined && webLaunched && !signed
         ? [{ label: "Switch product", onClick: switchProduct }]
         : (stage === "confirm" || stage === "sign") && !signed
           ? [{ label: "Change choice", onClick: changeChoice }]
-          : [];
+          : optionsLive && pickedId === null
+            ? [
+                {
+                  label: "Cheaper",
+                  onClick: () => answer("Find me cheaper ones."),
+                },
+                {
+                  label: "Better rated",
+                  onClick: () => answer("Find better rated ones."),
+                },
+                {
+                  label: "None of these",
+                  onClick: () =>
+                    answer("None of these fit. Look for different ones."),
+                },
+              ]
+            : [];
 
   /**
    * Everything the run can be waiting on a person for, in one place — because
@@ -193,10 +223,6 @@ export function ChatSession({
    */
   const awaitingPick = options.length > 0 && pickedId === null && !signed;
   const fromWeb = options.some((option) => option.sourceUrl !== undefined);
-  // The live set sits in the dock — the box transforms into the choice — and
-  // the transcript keeps the evidence line, so the one strip never shows twice.
-  const optionsLive =
-    options.length > 0 && !signed && !webLaunched && question === null;
   const askPrompt =
     awaiting === "intent"
       ? "Nothing has been searched for yet: that starts when you sign."
@@ -266,7 +292,8 @@ export function ChatSession({
       return (
         <div key={i} className={styles.offer}>
           <p className={styles.offerLine}>
-            {options.length} fit, in my order. Nobody paid to be here.
+            {options.length} fit, in the order I would buy them. Nobody paid
+            to be here.
           </p>
         </div>
       );
@@ -365,6 +392,7 @@ export function ChatSession({
           optionsLive ? (
             <OptionSet
               options={options}
+              capPaise={chat.covenant?.capPaise}
               selectedId={pickedId ?? undefined}
               onAsk={choose}
             />
