@@ -16,7 +16,7 @@ export class WebProgress {
   private filledSlots: readonly string[] = [];
   private handed: HandoffReason | null = null;
   private cartClicked = false;
-  private signedIn = false;
+  private signedInFromVault = false;
   private challenged: "code" | "password" | null = null;
 
   /** Slots this host actually typed into, this errand. */
@@ -65,8 +65,13 @@ export class WebProgress {
 
   /** The host signed in from the vault, and what still challenged after. */
   recordSignedIn(challenge: "code" | "password" | null): void {
-    this.signedIn = true;
+    this.signedInFromVault = true;
     this.challenged = challenge;
+  }
+
+  /** This host typed the stored sign-in, whatever the shop said next. */
+  get signedIn(): boolean {
+    return this.signedInFromVault;
   }
 
   /** A code page stands and the window is still the agent's: the shape that
@@ -79,7 +84,7 @@ export class WebProgress {
     this.filledSlots = [];
     this.handed = null;
     this.cartClicked = false;
-    this.signedIn = false;
+    this.signedInFromVault = false;
     this.challenged = null;
   }
 
