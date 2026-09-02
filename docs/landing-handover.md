@@ -8,6 +8,7 @@ React + TS workspace app, port 5199: `cd apps/landing && npx vite --port
 no-JS prerender). Repo gates that must stay green: `npx tsc -b`,
 `npx eslint . --max-warnings 0`, `npx depcruise apps packages tools`.
 Do not touch any other app in the repo.
+remove anything of landing page and start again
 
 ## What the product is (the story you are selling)
 An AI shopping agent whose strings stay in the user's hand. You give your

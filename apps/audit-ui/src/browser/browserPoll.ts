@@ -14,6 +14,8 @@ export interface Wire {
   source: EventSource | null;
   /** When a picture last reached the card. `0` means never; see browserFrames. */
   painted: number;
+  /** Whether an input-echo burst is already in flight; see browserFrames. */
+  bursting: boolean;
   timers: ReturnType<typeof setTimeout>[];
 }
 
@@ -28,6 +30,7 @@ export function wireOf(
     emit,
     stopped: false,
     failures: 0,
+    bursting: false,
     source: null,
     painted: 0,
     timers: [],

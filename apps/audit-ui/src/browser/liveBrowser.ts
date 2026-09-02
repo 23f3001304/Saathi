@@ -8,6 +8,7 @@ import type {
   RelayInput,
   RelayOutcome,
 } from "./browserTransport.ts";
+import { frameBurst } from "./browserFrames.ts";
 import {
   get,
   handshake,
@@ -105,7 +106,12 @@ export function liveBrowser(
     start: (emit) => startWatch(base, conversation, emit, hold),
     relay: async (input: RelayInput): Promise<RelayOutcome> => {
       try {
-        return parseRelay(await post(base, lane("/browser/input"), input));
+        const outcome = parseRelay(
+          await post(base, lane("/browser/input"), input),
+        );
+        // The echo: repaint now, not at the next cast tick.
+        if (hold.wire !== null) void frameBurst(hold.wire);
+        return outcome;
       } catch {
         return parseRelay(null);
       }

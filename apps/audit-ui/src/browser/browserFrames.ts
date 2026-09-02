@@ -22,6 +22,30 @@ function safeJson(raw: string): unknown {
   }
 }
 
+/**
+ * The input echo. While a person drives, the picture answering a keystroke
+ * one cast-tick later reads as lag even though the window acted at once, so
+ * every relayed input pulls a short burst of frames to bridge the gap. One
+ * burst in flight at a time: fast typing extends the feeling, never piles
+ * requests, and the host's own frame ceiling bounds each read.
+ */
+export async function frameBurst(
+  wire: Wire,
+  reads = 4,
+  gapMs = 80,
+): Promise<void> {
+  if (wire.bursting || wire.stopped) return;
+  wire.bursting = true;
+  try {
+    for (let i = 0; i < reads && !wire.stopped; i += 1) {
+      await readFrame(wire);
+      await new Promise((resolve) => setTimeout(resolve, gapMs));
+    }
+  } finally {
+    wire.bursting = false;
+  }
+}
+
 export async function readFrame(wire: Wire): Promise<void> {
   try {
     const res = await get(wire.base, scoped("/browser/frame", wire.conversation));
