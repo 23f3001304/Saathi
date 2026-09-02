@@ -72,6 +72,7 @@ const LABELS: Readonly<
  * and the classifier's refusals; anything unnamed keeps the generic line.
  */
 const CAUSES: Readonly<Record<string, string>> = {
+  no_signed_intent: "no signed rule to check it against",
   bot_check: "the shop wants a human check",
   page_unreachable: "the page stopped answering",
   page_moved: "the page moved mid-read",
