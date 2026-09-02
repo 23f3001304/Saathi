@@ -1,8 +1,11 @@
 import type { ToolOutcome } from "../shared/agent-session.js";
 
-const SOMETHING_MATCHED =
-  "They are already being shown these as cards, with the prices. Do not list " +
-  "them again; say what you make of them, in one sentence, or say nothing.";
+const BROWSED_NOTE =
+  "The host puts this shop's matching items, if any, on their screen as " +
+  "cards after this turn. Do not list rows; say what you make of what you " +
+  "asked for, once, or say nothing. If nothing fits they see no cards, so " +
+  "when you are not sure what this shop holds, ask them or call " +
+  "look_on_web if they want it found elsewhere.";
 
 /**
  * What an answer turn did: nothing. No page was opened and no catalog was
@@ -46,7 +49,7 @@ export function browsedOutcome(): ToolOutcome {
     content: JSON.stringify({
       ok: true,
       recorded: "browse",
-      note: SOMETHING_MATCHED,
+      note: BROWSED_NOTE,
     }),
     isError: false,
   };

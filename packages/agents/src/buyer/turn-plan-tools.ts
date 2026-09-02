@@ -123,12 +123,12 @@ export const TURN_PLAN_TOOLS: readonly ToolDeclaration[] = [
     "Look at what is in THIS shop. Use this whenever they ask what you have, " +
       "what is available, or to see options. It reaches this shop's catalog " +
       "and nothing else, so do not say you will look anywhere else from here. " +
-      "It answers with `matches`: how many things here fit. The matching " +
-      "items are shown to them as cards, so do not write the list out: say " +
-      "what you did and what you think, once. If `matches` is 0 say so in " +
-      `their own language, and call ${WEB_LOOK_TOOL} to go and find it if ` +
-      "they want it found. Looking is not buying: it signs nothing, spends " +
-      "nothing and commits to nothing, so prefer it over refusing.",
+      "The host puts the matching items, if any, on their screen as cards " +
+      "after this turn: say what you did and what you think, once, and " +
+      "never list rows. If you are unsure what this shop holds, ask, or " +
+      `call ${WEB_LOOK_TOOL} when they want it found elsewhere. Looking is ` +
+      "not buying: it signs nothing, spends nothing and commits to " +
+      "nothing, so prefer it over refusing.",
     { reply, query },
   ),
   tool(
