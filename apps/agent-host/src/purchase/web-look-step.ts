@@ -93,7 +93,7 @@ export class WebLookStep implements WebLook {
     const wrote = stated.length > 0 ? stated : [base.request];
     const errand = await this.attempt(query, wrote, replyLanguage, seen);
     const opened = this.trail.since(from);
-    this.offered?.offer(cardedListings(this.findings.since(seen), query));
+    this.offered?.offer(cardedListings(this.findings.since(seen)));
     const found = reportFindings(this.hub, {
       errand,
       opened,
@@ -145,7 +145,7 @@ export class WebLookStep implements WebLook {
             summariseFor(
               asked,
               replyLanguage,
-              cardedListings(this.findings.since(seen), query),
+              cardedListings(this.findings.since(seen)),
             ),
         },
         this.logger,

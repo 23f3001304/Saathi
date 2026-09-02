@@ -22,41 +22,15 @@ const SHOWN = 4;
  *
  * DECISION: a listing whose price would not parse into this covenant's currency
  * is dropped rather than shown at zero. A card states a number under a picture;
- * a card with a made-up number is worse than no card.
- *
- * DECISION: and a tile that matches nothing in the query is dropped too, even
- * when the window really was shown it. `requestOverlap` is the same word
- * overlap the shelf is matched with, so an open-web card is chosen the way a
- * catalog card is. Live, an errand that searched a storefront for an SSD and
- * then bounced back to its front page offered "Starting ₹99" and "Wireless" —
- * real tiles, really read, and not one of them what anybody asked for. Nothing
- * matching means no cards: the errand's own sentence still stands, and an
- * empty grid is better than four confident wrong ones.
- */
-/**
- * Exactly the findings that will become cards, as findings.
- *
- * DECISION: the summary is grounded on this rather than on every tile the
- * window was shown, because the prose and the cards have to be about the same
- * things. A live run recommended a SanDisk at ₹17,999 above a grid of Ustick,
- * HIKVISION, Crucial and EVM: every one of them real, none of them the one it
- * was talking about. The filter that decides what is on screen now also
- * decides what may be spoken about.
+ * a card with a made-up number is worse than no card. That is the only rule
+ * left here: the word-overlap, accessory, capacity and ceiling filters that
+ * re-judged the model's own reported rows are gone, because every row here is
+ * a URL the model picked with the conversation in front of it and this host
+ * then read the price off the page itself.
  */
 export function cardedListings(
   listings: readonly WebListingView[],
-  query: string,
-  ceilingPaise: number | null = null,
 ): readonly WebListingView[] {
-  // The model chose these: every row here is a URL it picked from its own
-  // search and this host then verified on the page. The shell filters that
-  // used to re-judge them (accessory words, capacity tokens, query overlap,
-  // the ceiling) second-guessed a choice the model had already made with
-  // more context than a token comparison has. A card still needs a price
-  // the host itself parsed - that is provenance, not judgment - and the
-  // ceiling rides on the card as data for the shopper to see.
-  void query;
-  void ceilingPaise;
   return listings
     .filter((listing) => listing.price_paise !== null)
     .slice(0, SHOWN);
@@ -64,10 +38,8 @@ export function cardedListings(
 
 export function webOptionRows(
   listings: readonly WebListingView[],
-  query: string,
-  ceilingPaise: number | null = null,
 ): readonly OptionRowData[] {
-  return cardedListings(listings, query, ceilingPaise).map(rowOf);
+  return cardedListings(listings).map(rowOf);
 }
 
 function rowOf(listing: WebListingView): OptionRowData {

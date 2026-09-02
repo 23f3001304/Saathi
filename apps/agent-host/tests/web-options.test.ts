@@ -88,18 +88,17 @@ describe("what the window read becomes", () => {
 
   it("offers them as an options beat rather than as a paragraph", async () => {
     const options = await offered();
-    // Equal word overlap on "runners", so the cheaper card leads — the order
-    // `rankCatalog` puts the shelf in, applied to what a page printed.
+    // Read order, one card per product: Red Runners was on both reads under
+    // two tracking URLs and takes one of the four places; the sock pack's
+    // "20% off" is not a price, so it has no card.
     expect(options.map((option) => option.title)).toEqual([
-      "Trail Runners",
       "Red Runners",
       "Blue Runners",
+      "Trail Runners",
     ]);
-    // Red Runners was on both reads under two tracking URLs; it is one thing
-    // the shopper can be offered, and it takes one of the four places.
     expect(options).toHaveLength(3);
-    expect(options[1]?.pricePaise).toBe(249_900);
-    expect(options[2]?.sourceUrl).toBe(PRODUCT_BLUE);
+    expect(options[0]?.pricePaise).toBe(249_900);
+    expect(options[1]?.sourceUrl).toBe(PRODUCT_BLUE);
     expect(options[0]?.merchant).toBe("shop.example");
   });
 });
@@ -142,12 +141,13 @@ describe("a card built from a page says so on its face", () => {
 });
 
 /**
- * The failure this rule was written from: a live errand searched Amazon for an
- * SSD, bounced back to the storefront, and offered its promo rail — "Starting
- * ₹99", "Wireless" — because that page happened to carry the most tiles.
+ * The rows on the table are the ones the model reported and this host
+ * verified. The word-overlap filter that stood here dropped tiles whose title
+ * shared no token with the query, and with it dropped every verified row a
+ * model had chosen for a reason a token comparison cannot see.
  */
-describe("only tiles that answer the question", () => {
-  it("drops what the window was shown but nobody asked for", async () => {
+describe("every verified tile is offered, whatever the query was", () => {
+  it("does not re-judge the rows against the query's words", async () => {
     const step = new WebLookStep(
       hub,
       walking(),
@@ -157,7 +157,8 @@ describe("only tiles that answer the question", () => {
       "INR",
     );
     await step.look(emptyResult("r3", "ssd"), { ...PLAN, query: "1TB SSD" });
-    expect(hub.snapshot().some((beat) => beat.kind === "options")).toBe(false);
+    const beat = hub.snapshot().find((entry) => entry.kind === "options");
+    expect(beat?.kind === "options" ? beat.options : []).toHaveLength(3);
   });
 });
 

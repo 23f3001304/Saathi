@@ -35,12 +35,8 @@ function emit(hub: BeatHub, text: string, harness: boolean): void {
 
 /** How many cards went out, so the closing line can only promise what is
  *  actually on the screen underneath it. */
-function offer(
-  hub: BeatHub,
-  found: readonly WebListingView[],
-  query: string,
-): number {
-  const options = webOptionRows(found, query);
+function offer(hub: BeatHub, found: readonly WebListingView[]): number {
+  const options = webOptionRows(found);
   if (options.length > 0) {
     hub.emit({ kind: "options", options });
   }
@@ -81,7 +77,7 @@ export function reportFindings(
   // up as one.
   const said = closingLine(request.errand);
   emit(hub, said, request.errand.told === "");
-  const offered = offer(hub, request.found, request.query);
+  const offered = offer(hub, request.found);
   const closing = provenance(request.opened, offered);
   emit(hub, closing, true);
   return [said, closing];
