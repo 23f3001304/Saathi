@@ -120,6 +120,9 @@ export class WebToolRunner {
   private async open(call: ToolCall): Promise<ToolOutcome> {
     const parsed = webOpenArgs.safeParse(call.args);
     if (!parsed.success) return badArgs(parsed.error);
+    if (TRACKER_PATH.test(parsed.data.url)) {
+      return trackerLink(parsed.data.url);
+    }
     if (this.pin?.allows(parsed.data.url) === false) {
       return offPin(parsed.data.url);
     }
@@ -160,6 +163,26 @@ function failureOf(outcome: ToolOutcome): string | null {
 
 /** Refused, and told what to do instead: the errand is about one listing, and
  *  the way back to it is the shop's own search, not another product. */
+/** A sponsored click-tracker is not a page: the one live run that opened
+ *  /sspa/click wedged its window in a redirect chain and every read after
+ *  it burned the full watchdog. Refused at the tool, so no prompt has to
+ *  win this argument. */
+const TRACKER_PATH = /\/(sspa\/click|gp\/slredirect|aax-|adclick|clk)/i;
+
+function trackerLink(url: string): ToolOutcome {
+  return {
+    content: JSON.stringify({
+      ok: false,
+      failure: "tracker_link",
+      human:
+        "That link is the shop's ad tracker, not a product page. Open the " +
+        "listing's own link instead.",
+      url,
+    }),
+    isError: true,
+  };
+}
+
 function offPin(url: string): ToolOutcome {
   return {
     content: JSON.stringify({

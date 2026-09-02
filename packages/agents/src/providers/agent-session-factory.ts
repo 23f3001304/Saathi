@@ -45,6 +45,10 @@ export interface AgentSessionRequest {
   readonly tools?: readonly ToolDeclaration[];
   readonly fetchImpl?: typeof fetch;
   readonly maxToolIterations?: number;
+  /** Reasoning effort for reasoning models (OpenAI path). Absent falls back
+   *  to COVENANT_OPENAI_REASONING in env, then "medium": a reasoning model
+   *  left at the API default is a reasoning model switched off. */
+  readonly reasoningEffort?: "low" | "medium" | "high";
   readonly timeoutMs?: number;
   /** Where the adapter opens a draft per model round trip. Absent means the
    *  blocking path: every adapter answers the same way with nobody watching. */
@@ -75,6 +79,16 @@ interface Resolved {
   readonly apiKey: string;
   readonly tools: readonly ToolDeclaration[];
   readonly maxToolIterations: number;
+}
+
+const EFFORTS = new Set(["low", "medium", "high"]);
+
+function effortOf(
+  request: AgentSessionRequest,
+): "low" | "medium" | "high" {
+  if (request.reasoningEffort !== undefined) return request.reasoningEffort;
+  const env = request.env["COVENANT_OPENAI_REASONING"] ?? "";
+  return EFFORTS.has(env) ? (env as "low" | "medium" | "high") : "medium";
 }
 
 export function createAgentSession(
@@ -124,6 +138,7 @@ function httpSession(
     systemPrompt: request.systemPrompt,
     tools: resolved.tools,
     maxToolIterations: resolved.maxToolIterations,
+    reasoningEffort: effortOf(request),
   };
   const drafts = request.drafts ?? null;
   if (resolved.id === "gemini") {

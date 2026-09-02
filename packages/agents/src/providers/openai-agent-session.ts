@@ -26,6 +26,11 @@ export interface OpenAiSessionConfig {
   readonly systemPrompt: string;
   readonly tools: readonly ToolDeclaration[];
   readonly maxToolIterations: number;
+  /** Reasoning effort for models that reason. Absent, the API's own default
+   *  applies, which for a reasoning model is far below what it can do: the
+   *  planner spent weeks being corrected by shell gates for judgement calls
+   *  the model makes fine once its reasoning is actually dialed up. */
+  readonly reasoningEffort?: "low" | "medium" | "high";
 }
 
 type OpenAiInputItem = JsonRecord;
@@ -108,6 +113,9 @@ export class OpenAiExchange implements ProviderExchange {
       tools: this.config.tools.map(declarationPayload),
       tool_choice: "auto",
       store: false,
+      ...(this.config.reasoningEffort === undefined
+        ? {}
+        : { reasoning: { effort: this.config.reasoningEffort } }),
     };
   }
 

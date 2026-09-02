@@ -49,6 +49,21 @@ export const SPOKE_TOO_SOON = "this shop does not stock it";
  * off and found nothing. What they asked for is on their screen; the honest
  * move is to point at it, not to go and look for it a second time.
  */
+/**
+ * The newest line, read for what it wants done with the cards on the table.
+ * "None of these", "cheaper", "different" is a verdict on the offered set:
+ * re-presenting the same four cards to a person who just rejected them reads
+ * as an agent with no memory. A rejection routes to a fresh errand instead,
+ * and the errand's known block already tells it not to re-offer these.
+ */
+const REFINES =
+  /none of these|not these|different|cheaper|better|something else|other one|nahi|aur (dikha|options)|sasta|behtar/i;
+
+export function refinesOffer(request: string): boolean {
+  const tail = request.trim().split("\n").at(-1) ?? "";
+  return REFINES.test(tail);
+}
+
 export const ALREADY_FOUND =
   "This shop doesn't stock that, but what I found for you on the open web is " +
   "still here. Pick one and I'll take it forward in that shop's own window; " +
@@ -89,7 +104,7 @@ export async function noStockTurn(
   parts.drafts?.withdrawLast(SPOKE_TOO_SOON);
   parts.logger.info("purchase.not_stocked", { run_id: base.runId });
   const already = parts.offered.live(parts.chat);
-  if (already.length > 0) {
+  if (already.length > 0 && !refinesOffer(request)) {
     return represent(parts, base, already.length);
   }
   parts.hub.emit({ kind: "message", text: NOT_STOCKED, variant: "system" });

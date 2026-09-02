@@ -5,6 +5,34 @@ import { overlong, REGISTER_CORRECTIVE } from "./bubble-register.js";
 import { CORRECTIVE, obeys } from "./language-gate.js";
 
 /**
+ * The spec gate: prompts kept losing this one, so it is shell law now.
+ * Three prompt versions told the planner that a bare family word ('shop an
+ * ssd for me') is a question, never an errand, and three live runs drafted
+ * or looked anyway. The harness now refuses an acting move when the
+ * shopper's own lines carry no distinguishing signal at all: no digit
+ * anywhere (a capacity, a size, a budget all carry one), and none of the
+ * kind-words a spec is made of. One refusal, one regeneration, the same
+ * convention as the language gate; if the model disobeys twice the errand's
+ * own clarify gate still stands behind it.
+ */
+const SPEC_WORDS =
+  /internal|external|portable|wireless|wired|gaming|running|leather|cotton|silk|men|women|kids|small|medium|large|navy|black|white|red|blue|green|nvme|sata|ssd case|refundable/i;
+
+const ACTING: readonly string[] = ["draft_intent", "look_on_web", "browse"];
+
+export function underdescribed(lines: readonly string[]): boolean {
+  const text = lines.join(" ");
+  if (/\d/.test(text)) return false;
+  return !SPEC_WORDS.test(text);
+}
+
+export const SPEC_CORRECTIVE =
+  "The harness refused that move: their words name a product family with " +
+  "no distinguishing spec anywhere (no size, capacity, kind, budget or " +
+  "colour). This turn must ask the expert clarifying question instead. " +
+  "Ask once, everything in one question, likely answers in `replies`.";
+
+/**
  * The same check the errand's commit passes, applied to the planner's.
  *
  * DECISION: at every commit, not only at the one that was failing. The errand
@@ -42,14 +70,18 @@ function spokenBy(plan: TurnPlan): string {
 interface Fault {
   /** Prepended to the prompt on the retry. */
   readonly note: string;
-  readonly rule: "language" | "register";
+  readonly rule: "language" | "register" | "spec";
 }
 
 function faultIn(
   plan: TurnPlan,
   replyLanguage: string | null,
   anchor: string,
+  vague: boolean,
 ): Fault | null {
+  if (vague && ACTING.includes(plan.action)) {
+    return { note: SPEC_CORRECTIVE, rule: "spec" };
+  }
   const spoken = spokenBy(plan);
   if (!obeys(spoken, replyLanguage, anchor)) {
     return { note: CORRECTIVE, rule: "language" };
@@ -69,14 +101,17 @@ export async function plannedTurn(
    *  lost the record would re-plan a different, poorer turn. */
   context = "",
 ): Promise<PlannedTurn> {
+  // Vague only while nothing has been found yet: once options exist the
+  // conversation has ground to act on, and the gate stands down.
+  const vague = context === "" && underdescribed(lines);
   const first = await planner.plan(lines, replyLanguage, "", context);
-  const fault = faultIn(first, replyLanguage, anchor);
+  const fault = faultIn(first, replyLanguage, anchor, vague);
   if (fault === null) {
     return { plan: first, slipped: false };
   }
   logger.warn("buyer.turn.rejected", { rule: fault.rule, attempt: 1 });
   const second = await planner.plan(lines, replyLanguage, fault.note, context);
-  const again = faultIn(second, replyLanguage, anchor);
+  const again = faultIn(second, replyLanguage, anchor, vague);
   if (again === null) {
     return { plan: second, slipped: false };
   }
