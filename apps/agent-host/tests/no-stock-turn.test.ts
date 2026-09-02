@@ -4,11 +4,7 @@ import type { TurnPlan } from "@covenant/agents";
 import { beforeEach, describe, expect, it } from "vitest";
 
 import { BeatHub } from "../src/http/beat-hub.js";
-import {
-  NOT_STOCKED,
-  noStockTurn,
-  SPOKE_TOO_SOON,
-} from "../src/judge/no-stock-step.js";
+import { noStockTurn, SPOKE_TOO_SOON } from "../src/judge/no-stock-step.js";
 import type { PurchaseResult } from "../src/purchase/purchase-result.js";
 import { emptyResult } from "../src/purchase/purchase-result.js";
 import { RecordingLogger, StepClock } from "./support/fakes.js";
@@ -59,14 +55,13 @@ function run(): Promise<PurchaseResult> {
 }
 
 describe("the turn a shop with nothing to sell produces", () => {
-  it("says so as a harness statement, not in the agent's own voice", async () => {
+  it("adds no canned harness sentence: the errand speaks for the turn", async () => {
+    // The fixed "this shop doesn't stock that" surfaced in conversations
+    // where it answered nothing; the transition is the model's to say now,
+    // in the shopper's own language, from the errand's summary leg.
     await run();
-    const said = hub
-      .snapshot()
-      .filter((beat) => beat.kind === "message")
-      .map((beat) => (beat.kind === "message" ? beat : null));
-    expect(said[0]?.text).toBe(NOT_STOCKED);
-    expect(said[0]?.variant).toBe("system");
+    const said = hub.snapshot().filter((beat) => beat.kind === "message");
+    expect(said).toEqual([]);
   });
 
   it("drafts nothing and asks for no signature", async () => {
@@ -82,11 +77,11 @@ describe("the turn a shop with nothing to sell produces", () => {
     expect(webLook.asked).toEqual([SSD]);
   });
 
-  it("ends the run answered, not failed", async () => {
+  it("ends the run answered, with the errand's own words", async () => {
     const result = await run();
     expect(result.status).toBe("answered");
     expect(result.failure).toBeNull();
-    expect(result.transcript[0]).toBe(NOT_STOCKED);
+    expect(result.transcript[0]).toBe("Amazon lists a 1TB NVMe at 6,499.");
   });
 });
 
@@ -127,31 +122,22 @@ function withCards() {
 }
 
 describe("a shop that cannot serve it, when the web already has", () => {
-  it("puts the cards back rather than researching from scratch", async () => {
-    // Every `draft_intent` on a two-item shelf lands here, so "OK" to an
-    // errand's own findings was answered with a fresh errand that wandered off
-    // and found nothing. What they asked for was already on their screen.
+  it("still hands the turn to the errand, whose known block holds the cards", async () => {
+    // The re-present used to answer "none of these" with the same four
+    // cards. The errand reads the known block and judges: answer from it,
+    // offer it again, or search fresh. Routing is no longer the harness's
+    // word-list to get wrong.
     const parts = withCards();
 
     const result = await noStockTurn(parts, base, SSD);
 
-    expect(webLook.anchors).toEqual([]);
-    const offered = hub
-      .snapshot()
-      .flatMap((beat) => (beat.kind === "options" ? beat.options : []));
-    expect(offered.map((row) => row.sku)).toEqual(["w3"]);
+    expect(webLook.anchors).toHaveLength(1);
     expect(result.status).toBe("answered");
   });
-});
 
-describe("a sentence the shelf contradicts does not stand", () => {
-  it("takes it back off the screen", async () => {
+  it("withdraws the streamed draft that promised a purchase", async () => {
     const parts = withCards();
-
     await noStockTurn(parts, base, SSD);
-
-    // "Your purchase request is ready for you to review and sign", said before
-    // anything had read the shelf, followed by "I have drafted nothing".
     expect(parts.withdrawn).toEqual([SPOKE_TOO_SOON]);
   });
 });

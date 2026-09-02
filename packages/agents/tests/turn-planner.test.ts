@@ -37,6 +37,9 @@ describe("recording the choice", () => {
       question: "What is your budget?",
       replies: [],
       query: null,
+      // The two routed judgements default safe when the model omits them.
+      thingSettled: true,
+      freshSearch: false,
       amendment: null,
       traits: [],
     });

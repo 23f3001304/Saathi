@@ -1,4 +1,4 @@
-import type { CDPSession, Page } from "puppeteer";
+import type { CDPSession, Frame, Page } from "puppeteer";
 
 import type { CastFrame, CastSettings, Caster } from "../ports.js";
 
@@ -18,9 +18,33 @@ import type { CastFrame, CastSettings, Caster } from "../ports.js";
  * producing, so acknowledging only once the caller has finished with a frame
  * makes Chrome itself the backpressure — the alternative, acking on arrival,
  * would have this process queueing frames it cannot keep up with.
+ *
+ * DECISION: the cast follows the page across navigations. A cross-process
+ * navigation (a checkout hopping to a sign-in origin) swaps the target under
+ * the CDP session, the screencast events simply stop, and no error says so —
+ * the live view froze on the last painted frame of the old process for as
+ * long as anybody watched. A main-frame navigation now restarts the cast on
+ * the page's current target, coalesced so a redirect chain restarts it once,
+ * at the end, rather than per hop.
  */
+const RESTART_COALESCE_MS = 180;
+
 export class PuppeteerCaster implements Caster {
   private session: CDPSession | null = null;
+  private held: {
+    readonly settings: CastSettings;
+    readonly onFrame: (frame: CastFrame) => void;
+  } | null = null;
+  private restartTimer: ReturnType<typeof setTimeout> | null = null;
+  private readonly onNavigated = (frame: Frame): void => {
+    if (this.held === null || frame !== this.page.mainFrame()) return;
+    if (this.restartTimer !== null) clearTimeout(this.restartTimer);
+    this.restartTimer = setTimeout(() => {
+      this.restartTimer = null;
+      void this.reattach();
+    }, RESTART_COALESCE_MS);
+    this.restartTimer.unref?.();
+  };
 
   constructor(private readonly page: Page) {}
 
@@ -29,11 +53,20 @@ export class PuppeteerCaster implements Caster {
     onFrame: (frame: CastFrame) => void,
   ): Promise<void> {
     await this.stop();
+    this.held = { settings, onFrame };
+    this.page.on("framenavigated", this.onNavigated);
+    await this.attach();
+  }
+
+  private async attach(): Promise<void> {
+    const held = this.held;
+    if (held === null) return;
     const session = await this.page.createCDPSession();
     this.session = session;
-    const mediaType = settings.format === "jpeg" ? "image/jpeg" : "image/png";
+    const mediaType =
+      held.settings.format === "jpeg" ? "image/jpeg" : "image/png";
     session.on("Page.screencastFrame", (event) => {
-      onFrame({
+      held.onFrame({
         bytes: Buffer.from(event.data, "base64"),
         mediaType,
         ack: event.sessionId,
@@ -46,12 +79,25 @@ export class PuppeteerCaster implements Caster {
       });
     });
     await session.send("Page.startScreencast", {
-      format: settings.format,
-      quality: settings.quality,
-      maxWidth: settings.maxWidth,
-      maxHeight: settings.maxHeight,
-      everyNthFrame: settings.everyNthFrame,
+      format: held.settings.format,
+      quality: held.settings.quality,
+      maxWidth: held.settings.maxWidth,
+      maxHeight: held.settings.maxHeight,
+      everyNthFrame: held.settings.everyNthFrame,
     });
+  }
+
+  /** The navigation landed; the old session may be a corpse. Tear it down
+   *  without ceremony and cast from the page's current target. */
+  private async reattach(): Promise<void> {
+    if (this.held === null) return;
+    const old = this.session;
+    this.session = null;
+    if (old !== null) {
+      await old.send("Page.stopScreencast").catch(() => undefined);
+      await old.detach().catch(() => undefined);
+    }
+    await this.attach().catch(() => undefined);
   }
 
   async ack(frame: number): Promise<void> {
@@ -61,6 +107,12 @@ export class PuppeteerCaster implements Caster {
   }
 
   async stop(): Promise<void> {
+    this.held = null;
+    this.page.off("framenavigated", this.onNavigated);
+    if (this.restartTimer !== null) {
+      clearTimeout(this.restartTimer);
+      this.restartTimer = null;
+    }
     const session = this.session;
     this.session = null;
     if (session === null) return;

@@ -62,6 +62,12 @@ export interface TurnPlan {
   readonly replies?: readonly string[];
   /** What to look for, when the move is `browse` or `look_on_web`. */
   readonly query?: string | null;
+  /** The model's own judgement that the thing is named precisely enough to
+   *  act on. The harness routes on it; absent means true. */
+  readonly thingSettled?: boolean;
+  /** The model's own judgement that the newest line asks to look again or
+   *  differently. The harness routes on it; absent means false. */
+  readonly freshSearch?: boolean;
   /** The change to the covenant the model proposed. A proposal and nothing
    *  more: only a signature applies one. */
   readonly amendment?: ProposedAmendment | null;

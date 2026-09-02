@@ -70,6 +70,13 @@ function askedSession(context: AppContext): string | null {
   return header === undefined || header === "" ? null : header;
 }
 
+/** The page swapping processes under a click closes the CDP connection the
+ *  relay was riding; the input threw, the route 500'd, and the person saw a
+ *  processing error for pressing a button during a redirect. A swap settles
+ *  in a few hundred milliseconds, so one quiet retry usually lands it. */
+const SWAP_ERROR = /connection closed|target closed|session closed|detached/i;
+const SWAP_RETRY_MS = 300;
+
 async function input(
   context: AppContext,
   handle: SessionHandle,
@@ -86,6 +93,23 @@ async function input(
     // same shape the rest of this host uses for a rejected write.
     return context.json(await handle.service.relay(parsed.data), 200);
   } catch (cause) {
+    if (cause instanceof Error && SWAP_ERROR.test(cause.message)) {
+      await new Promise((resolve) => setTimeout(resolve, SWAP_RETRY_MS));
+      try {
+        return context.json(await handle.service.relay(parsed.data), 200);
+      } catch {
+        return context.json(
+          {
+            ok: false,
+            reason_code: "PAGE_CHANGING",
+            human:
+              "The page is changing under that click. Give it a second " +
+              "and try again.",
+          },
+          200,
+        );
+      }
+    }
     return refusal(context, cause);
   }
 }

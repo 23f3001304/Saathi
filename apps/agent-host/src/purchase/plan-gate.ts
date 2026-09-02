@@ -15,16 +15,19 @@ import { CORRECTIVE, obeys } from "./language-gate.js";
  * convention as the language gate; if the model disobeys twice the errand's
  * own clarify gate still stands behind it.
  */
-const SPEC_WORDS =
-  /internal|external|portable|wireless|wired|gaming|running|leather|cotton|silk|men|women|kids|small|medium|large|navy|black|white|red|blue|green|nvme|sata|ssd case|refundable/i;
-
 const ACTING: readonly string[] = ["draft_intent", "look_on_web", "browse"];
 
-export function underdescribed(lines: readonly string[]): boolean {
-  const text = lines.join(" ");
-  if (/\d/.test(text)) return false;
-  return !SPEC_WORDS.test(text);
-}
+/**
+ * The shell's own question, for a model that refused to ask twice. Generic
+ * where the model's would have been expert, but a generic question honestly
+ * asked beats an errand honestly wasted: the informed clarify gate at the
+ * errand's summary stays the tailored path when this one is answered
+ * loosely. Harness copy in the agent's slot, by decision: the alternative
+ * was acting on a thing nobody could name.
+ */
+export const SPEC_ASK =
+  "Before I go looking: which kind exactly do you mean, and what is the " +
+  "most you want to spend? Size or capacity too, if it matters.";
 
 export const SPEC_CORRECTIVE =
   "The harness refused that move: their words name a product family with " +
@@ -79,7 +82,9 @@ function faultIn(
   anchor: string,
   vague: boolean,
 ): Fault | null {
-  if (vague && ACTING.includes(plan.action)) {
+  // The model's own judgement, made a routed fact: an acting move whose
+  // plan admits the thing is not settled is a question wearing a search.
+  if (vague && ACTING.includes(plan.action) && plan.thingSettled === false) {
     return { note: SPEC_CORRECTIVE, rule: "spec" };
   }
   const spoken = spokenBy(plan);
@@ -89,6 +94,17 @@ function faultIn(
   return overlong(spoken)
     ? { note: REGISTER_CORRECTIVE, rule: "register" }
     : null;
+}
+
+/** Twice refused to ask is where persuasion ends and the shell asks itself:
+ *  this rule exists because prompts kept losing it, and a gate that folds
+ *  after two tries is a prompt with extra steps. */
+function specForced(second: TurnPlan, logger: Logger): PlannedTurn {
+  logger.warn("buyer.turn.spec_forced", {});
+  return {
+    plan: { ...second, action: "answer", reply: SPEC_ASK, question: null, query: null },
+    slipped: false,
+  };
 }
 
 export async function plannedTurn(
@@ -101,9 +117,9 @@ export async function plannedTurn(
    *  lost the record would re-plan a different, poorer turn. */
   context = "",
 ): Promise<PlannedTurn> {
-  // Vague only while nothing has been found yet: once options exist the
-  // conversation has ground to act on, and the gate stands down.
-  const vague = context === "" && underdescribed(lines);
+  // The gate stands down once options exist: the conversation has ground
+  // to act on, and re-asking a settled shopper is its own failure.
+  const vague = context === "";
   const first = await planner.plan(lines, replyLanguage, "", context);
   const fault = faultIn(first, replyLanguage, anchor, vague);
   if (fault === null) {
@@ -116,6 +132,7 @@ export async function plannedTurn(
     return { plan: second, slipped: false };
   }
   logger.warn("buyer.turn.rejected", { rule: again.rule, attempt: 2 });
+  if (again.rule === "spec") return specForced(second, logger);
   // Only a language slip is said out loud. A reply that stayed a sentence too
   // long is worse writing, not a broken promise, and an apology for it would
   // be one more sentence nobody asked for.

@@ -133,6 +133,10 @@ export class TurnPlanCollector implements ToolDispatcher {
       question: question.length > 0 && !reply.endsWith("?") ? question : null,
       replies: repliesAt(args, "replies"),
       query: query.length > 0 ? query : null,
+      // The two routed judgements. Absent reads as settled and not-fresh,
+      // so a provider that drops a field fails toward the old behaviour.
+      thingSettled: args["thing_settled"] !== false,
+      freshSearch: args["fresh_search"] === true,
       amendment: null,
       traits: [],
     };
