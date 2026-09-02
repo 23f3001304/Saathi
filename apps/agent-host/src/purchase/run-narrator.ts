@@ -45,12 +45,27 @@ export class RunNarrator {
    * presentation, nothing is lost by not saying it twice, and the sentences
    * around it stand.
    */
-  replay(conversation: ConversationResult, held: string | null = null): void {
+  replay(
+    conversation: ConversationResult,
+    held: string | null = null,
+    /** Line-level language check. The gate re-converses on a transcript
+     *  that disobeys as a whole, but one stray line in an obeying whole
+     *  still reached the screen - a Hindi sentence mid-English run. A line
+     *  the check refuses is logged and skipped; the composed summary
+     *  already carries what it said. */
+    keep: (line: string) => boolean = () => true,
+  ): void {
     const rows = this.log.listings.map((listing) => listing.label);
     for (const text of conversation.transcript.filter(isProse)) {
       if (text.trim() === held) continue;
       if (restatesRow(text, rows)) {
         this.logger?.info("purchase.narrator.restated", { chars: text.length });
+        continue;
+      }
+      if (!keep(text)) {
+        this.logger?.info("purchase.narrator.language_dropped", {
+          chars: text.length,
+        });
         continue;
       }
       this.hub.emit({ kind: "message", text });

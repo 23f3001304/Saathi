@@ -38,7 +38,13 @@ export function wireSession(deps: SessionDeps): AgentSession {
       systemPrompt: BUYER_SYSTEM_PROMPT,
       dispatcher: deps.dispatch.dispatcher,
       structured: false,
-      speaks: true,
+      // DECISION: the buyer does not stream either, completing "one
+      // utterance, one emitter". Its turns reach the screen through the
+      // narrator's replay and the answer step, both shell-emitted and both
+      // gated; a streamed draft of the same prose arrived first, worded
+      // slightly differently, and folded into the strip as a pill above
+      // the very bubble it duplicated.
+      speaks: false,
       decidesByTool: false,
     });
   }

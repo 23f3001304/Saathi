@@ -53,12 +53,14 @@ export async function buyThrough(
   // A purchase turn that ends by asking is waited on like any other; replayed
   // as a bubble and walked past, every later step reasoned from the value it
   // had just said it did not have.
+  const inLanguage = (line: string): boolean =>
+    obeys(line, replyLanguage, anchorLine(stated));
   const asked = lastSentence(conversation.transcript);
   if (asks(asked)) {
-    parts.narrator.replay(conversation, asked);
+    parts.narrator.replay(conversation, asked, inLanguage);
     return askTurn(parts, base, asked);
   }
-  parts.narrator.replay(conversation);
+  parts.narrator.replay(conversation, null, inLanguage);
   const sku = listingFor(parts.shelf.current(), intent);
   const quote = await parts.fallback.ensureQuote(
     sku,
