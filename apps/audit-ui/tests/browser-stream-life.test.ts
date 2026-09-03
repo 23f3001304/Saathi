@@ -81,7 +81,7 @@ class FakeSource {
 }
 
 interface Host {
-  readonly server: Server;
+  server: Server;
   /** Every `/browser/frame` this host answered: the shutter fallback, which a
    *  healthy stream must not need. */
   polls: number;
@@ -107,11 +107,16 @@ function answer(host: Host, req: IncomingMessage, res: ServerResponse): void {
   res.end(JSON.stringify({ ok: false }));
 }
 
+/**
+ * One object, handed back rather than copied. `polls` is a number: a spread
+ * would give the handler one counter to raise and the test another to read,
+ * and the assertion about the shutter would be a sentence that cannot be
+ * false — the worst kind of test, because it reads like evidence.
+ */
 function start(port: number): Promise<Host> {
   const host: Host = { server: null as never, polls: 0 };
-  const server = createServer((req, res) => answer(host, req, res));
-  const live = { ...host, server };
-  return new Promise((done) => server.listen(port, () => done(live)));
+  host.server = createServer((req, res) => answer(host, req, res));
+  return new Promise((done) => host.server.listen(port, () => done(host)));
 }
 
 const sleep = (ms: number): Promise<void> =>
