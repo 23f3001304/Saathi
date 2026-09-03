@@ -16,21 +16,12 @@ function idsAt(key: string): (body: unknown) => readonly string[] {
       .filter((id) => id.length > 0);
 }
 
-/** Google returns `models[].name` as `models/<id>`; the API wants the bare id. */
-function googleNames(body: unknown): readonly string[] {
-  return recordsAt(asRecord(body) ?? {}, "models")
-    .map((entry) => stringAt(entry, "name").replace(/^models\//, ""))
-    .filter((name) => name.length > 0);
-}
-
 /**
  * Every one of these was read off the vendor's current reference before it was
  * written, not recalled:
  *
  * - OpenAI     GET https://api.openai.com/v1/models
  *              `Authorization: Bearer <key>` → `{object:"list", data:[{id,…}]}`
- * - Google     GET https://generativelanguage.googleapis.com/v1beta/models
- *              `x-goog-api-key` → `{models:[{name:"models/…",…}]}`
  * - Sarvam     GET https://api.sarvam.ai/v2/models
  *              Documented as **unauthenticated**, listing only what the caller's
  *              account can reach. The response body is not shown in the docs, so
@@ -49,11 +40,6 @@ export const DISCOVERY_ENDPOINTS: Readonly<
     url: "https://api.openai.com/v1/models",
     headers: (apiKey) => ({ authorization: `Bearer ${apiKey}` }),
     read: idsAt("data"),
-  },
-  gemini: {
-    url: "https://generativelanguage.googleapis.com/v1beta/models",
-    headers: (apiKey) => ({ "x-goog-api-key": apiKey }),
-    read: googleNames,
   },
   sarvam: {
     url: "https://api.sarvam.ai/v2/models",

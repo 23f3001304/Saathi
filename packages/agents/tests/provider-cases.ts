@@ -1,9 +1,5 @@
 import { MoneyToolRegistry } from "../src/buyer/money-tool-registry.js";
 import { PreToolUseHook } from "../src/buyer/pre-tool-use-hook.js";
-import {
-  GEMINI_BASE_URL,
-  GeminiAgentSession,
-} from "../src/providers/gemini-agent-session.js";
 import { GuardedToolDispatcher } from "../src/providers/guarded-tool-dispatcher.js";
 import { OpenAiAgentSession } from "../src/providers/openai-agent-session.js";
 import { JsonTransport } from "../src/providers/provider-transport.js";
@@ -69,18 +65,6 @@ export const PROVIDER_CASES: readonly ProviderCase[] = [
     call: wire.openAiCall,
     text: wire.openAiText,
     results: wire.openAiResults,
-    toolNames: flatNames,
-  },
-  {
-    id: "gemini",
-    build: (fetchImpl, guard) =>
-      new GeminiAgentSession(guard, transport(fetchImpl, "gemini"), {
-        ...base,
-        baseUrl: GEMINI_BASE_URL,
-      }),
-    call: wire.geminiCall,
-    text: wire.geminiText,
-    results: wire.geminiResults,
     toolNames: flatNames,
   },
   {

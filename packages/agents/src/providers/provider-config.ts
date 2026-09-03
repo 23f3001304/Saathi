@@ -7,7 +7,7 @@ export const MODEL_ENV_KEY = "COVENANT_AGENT_MODEL";
 export const DEFAULT_AGENT_MODEL = "gpt-5.6";
 
 /** The providers a Covenant agent can run on. `openai` is the default. */
-export const AGENT_PROVIDERS = ["openai", "gemini", "sarvam"] as const;
+export const AGENT_PROVIDERS = ["openai", "sarvam"] as const;
 
 export type AgentProviderId = (typeof AGENT_PROVIDERS)[number];
 
@@ -30,13 +30,6 @@ export const PROVIDER_SPECS: Readonly<Record<AgentProviderId, ProviderSpec>> = {
     defaultModel: DEFAULT_AGENT_MODEL,
     apiKeyEnvKeys: ["OPENAI_API_KEY"],
     baseUrl: "https://api.openai.com/v1",
-  },
-  gemini: {
-    id: "gemini",
-    defaultModel: "gemini-3.7-flash",
-    // GOOGLE_API_KEY first: the Gemini docs say it wins when both are set.
-    apiKeyEnvKeys: ["GOOGLE_API_KEY", "GEMINI_API_KEY"],
-    baseUrl: "https://generativelanguage.googleapis.com/v1beta",
   },
   sarvam: {
     id: "sarvam",

@@ -59,7 +59,7 @@ describe("provider selection", () => {
     ).toThrow(new RegExp(AGENT_PROVIDERS.join(", ")));
   });
 
-  it.each(["claude"])("no longer knows %s", (id) => {
+  it.each(["claude", "gemini"])("no longer knows %s", (id) => {
     expect(() => resolveProviderId({ COVENANT_AGENT_PROVIDER: id })).toThrow(
       ProviderConfigError,
     );

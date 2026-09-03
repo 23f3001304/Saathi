@@ -45,7 +45,6 @@ export * from "./providers/agent-session-factory.js";
 export * from "./providers/attempt-drafts.js";
 export * from "./providers/chat-completions-session.js";
 export * from "./providers/chat-completions-stream.js";
-export * from "./providers/gemini-agent-session.js";
 export * from "./providers/guarded-tool-dispatcher.js";
 export * from "./providers/openai-agent-session.js";
 export * from "./providers/openai-stream.js";

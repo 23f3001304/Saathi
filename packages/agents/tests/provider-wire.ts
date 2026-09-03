@@ -53,36 +53,6 @@ export function openAiResults(body: Wire): readonly FedBackResult[] {
   }));
 }
 
-// --- Gemini Interactions API ---------------------------------------------
-
-export function geminiCall(callId: string, name: string, args: Wire): Wire {
-  return {
-    id: "int_1",
-    status: "requires_action",
-    steps: [{ type: "function_call", id: callId, name, arguments: args }],
-  };
-}
-
-export function geminiText(text: string): Wire {
-  return {
-    id: "int_2",
-    status: "completed",
-    steps: [{ type: "model_output", content: [{ type: "text", text }] }],
-  };
-}
-
-export function geminiResults(body: Wire): readonly FedBackResult[] {
-  return typed(body, "input", "function_result").map((step) => {
-    const blocks = Array.isArray(step["result"])
-      ? (step["result"] as readonly Wire[])
-      : [];
-    return {
-      id: String(step["call_id"]),
-      content: blocks.map((block) => String(block["text"])).join(""),
-    };
-  });
-}
-
 // --- OpenAI-compatible Chat Completions (Sarvam) --------------------------
 
 export function chatCall(callId: string, name: string, args: Wire): Wire {

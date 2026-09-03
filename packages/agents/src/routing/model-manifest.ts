@@ -14,6 +14,5 @@ export const STATIC_MODEL_MANIFEST: Readonly<
   Record<AgentProviderId, readonly string[]>
 > = {
   openai: ["gpt-5.6-luna", "gpt-5.6-terra", "gpt-5.6-sol"],
-  gemini: ["gemini-3.7-flash", "gemini-3.1-pro-preview"],
   sarvam: ["sarvam-105b-conversations", "sarvam-105b"],
 };

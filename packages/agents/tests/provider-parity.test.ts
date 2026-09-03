@@ -148,7 +148,7 @@ describe("conversation state survives across turns", () => {
   );
 });
 
-/** `input` on OpenAI/Gemini, `messages` on Chat Completions. */
+/** `input` on OpenAI, `messages` on Chat Completions. */
 function historyLength(body: Wire): number {
   const input = body["input"];
   const messages = body["messages"];

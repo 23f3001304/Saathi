@@ -17,8 +17,7 @@ const cases = PROVIDER_CASES.map(
 
 const CATALOG_TOOL = "mcp__covenant_merchant__catalog_search";
 
-const [openAiCase, geminiCase, sarvamCase] = PROVIDER_CASES as readonly [
-  ProviderCase,
+const [openAiCase, sarvamCase] = PROVIDER_CASES as readonly [
   ProviderCase,
   ProviderCase,
 ];
@@ -104,23 +103,6 @@ describe("openai emits the documented Responses declaration shape", () => {
     expect(declaration["parameters"]).not.toHaveProperty("$schema");
     expect(bodyAt(run, 0)["store"]).toBe(false);
     expect(run.urls).toEqual(["https://api.openai.com/v1/responses"]);
-  });
-});
-
-describe("gemini emits the documented Interactions declaration shape", () => {
-  it("is flat with no strict, posted to /interactions", async () => {
-    const run = await runTurn(geminiCase, [{ steps: [] }]);
-
-    expect(Object.keys(firstDeclaration(run)).sort()).toEqual([
-      "description",
-      "name",
-      "parameters",
-      "type",
-    ]);
-    expect(bodyAt(run, 0)["store"]).toBe(false);
-    expect(run.urls).toEqual([
-      "https://generativelanguage.googleapis.com/v1beta/interactions",
-    ]);
   });
 });
 

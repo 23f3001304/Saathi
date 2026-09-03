@@ -38,7 +38,7 @@ export type Env = Readonly<Record<string, string | undefined>>;
  * chosen for a different job. A key that exists for one purpose does not
  * thereby volunteer for every purpose.
  */
-export const CHAT_PROVIDERS: readonly AgentProviderId[] = ["openai", "gemini"];
+export const CHAT_PROVIDERS: readonly AgentProviderId[] = ["openai"];
 
 export interface RouterDeps {
   readonly config: AgentHostConfig;

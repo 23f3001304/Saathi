@@ -1,6 +1,5 @@
 import type { PreToolUseHook } from "../buyer/pre-tool-use-hook.js";
 import type { AgentSession, ToolDispatcher } from "../shared/agent-session.js";
-import { GeminiAgentSession, GEMINI_BASE_URL } from "./gemini-agent-session.js";
 import { GuardedToolDispatcher } from "./guarded-tool-dispatcher.js";
 import { OpenAiAgentSession } from "./openai-agent-session.js";
 import type { AgentProviderId, Env } from "./provider-config.js";
@@ -120,12 +119,6 @@ function httpSession(
       : {}),
   };
   const drafts = request.drafts ?? null;
-  if (resolved.id === "gemini") {
-    return new GeminiAgentSession(guard, transport, {
-      ...config,
-      baseUrl: GEMINI_BASE_URL,
-    });
-  }
   if (resolved.id === "sarvam") {
     return new SarvamAgentSession(
       guard,

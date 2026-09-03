@@ -68,11 +68,6 @@ const FAMILIES: Readonly<
     ["gpt-5.6", caps(1_050_000, "premium", "slow")],
     ["gpt-5-nano", caps(400_000, "economy", "fast")],
   ],
-  gemini: [
-    ["gemini-3.5-flash-lite", caps(1_000_000, "economy", "fast")],
-    ["gemini-3.7-flash", caps(1_000_000, "economy", "fast")],
-    ["gemini-3.1-pro", caps(1_000_000, "premium", "slow")],
-  ],
   sarvam: [
     // Sarvam's conversational variant is tuned for voice turns: fast and cheap,
     // but not the one to hand a strict JSON contract to.

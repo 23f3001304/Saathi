@@ -18,13 +18,6 @@ const OPENAI_LIST = {
   ],
 };
 
-const GOOGLE_LIST = {
-  models: [
-    { name: "models/gemini-3.7-flash", inputTokenLimit: 1_000_000 },
-    { name: "models/embedding-001" },
-  ],
-};
-
 describe("model discovery", () => {
   it("asks OpenAI for its list with a bearer token and reads data[].id", async () => {
     const { fetch: fetchImpl, calls } = capturingFetch([
@@ -38,18 +31,6 @@ describe("model discovery", () => {
     expect(calls[0]?.init?.method).toBe("GET");
     expect(headerOf(calls[0]!, "authorization")).toBe("Bearer sk-test");
     expect(ids).toContain("gpt-5.6-luna");
-  });
-
-  it("strips Google's models/ prefix off the resource name", async () => {
-    const { fetch: fetchImpl, calls } = capturingFetch([
-      jsonResponse(200, GOOGLE_LIST),
-    ]);
-    const ids = await new HttpModelDiscovery(fetchImpl).discover(
-      "gemini",
-      "g-k",
-    );
-    expect(headerOf(calls[0]!, "x-goog-api-key")).toBe("g-k");
-    expect(ids).toEqual(["gemini-3.7-flash", "embedding-001"]);
   });
 });
 
