@@ -45,6 +45,7 @@ function stepOn(said = "It is in the basket.", carts = false): WebBuyStep {
       // Whose turn it is at the window, read off the real state machine the
       // way `web-wiring.ts` reads it: the step asks this of every errand.
       theirs: () => web.service.current()?.currentState() === "user-drive",
+      view: () => web.service.view(),
     },
     web.trail,
     web.findings,

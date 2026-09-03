@@ -57,6 +57,7 @@ export function webBuyOf(
     {
       open: (url) => deps.shopper.open(url),
       theirs: () => deps.browser.current()?.currentState() === "user-drive",
+      view: () => deps.browser.view(),
     },
     deps.trail,
     deps.findings,

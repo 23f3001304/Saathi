@@ -96,16 +96,19 @@ export function ChatSession({
       ? chat.picked !== null && chat.sandbox !== null
       : hand.launched;
   /**
-   * The host saying something new supersedes the hand: a fresh offer clears
-   * the choice, and a card the model named in words takes the screen. Compared
-   * against the last value seen rather than against the hand's, so "Switch
-   * product" and "Change choice" still stand between beats.
+   * The host naming a *different* card supersedes the hand: a fresh offer
+   * clears the choice, and a card the model named in words takes the screen.
+   * A host agreeing with the hand changes nothing, which is the whole of the
+   * live launch: the errand says which card it is fetching the moment it
+   * starts, and reading that echo as news threw away the launch that caused
+   * it. Compared against the last value seen rather than against the hand's,
+   * so "Switch product" and "Change choice" still stand between beats.
    */
   const spoken = useRef(chat.picked);
   useEffect(() => {
     if (chat.picked === spoken.current) return;
     spoken.current = chat.picked;
-    setHand(null);
+    setHand((held) => (held !== null && held.id === chat.picked ? held : null));
   }, [chat.picked]);
   // Between the tap and the window's first beat, the run is busy on a
   // window that does not exist yet; the strip says so and the composer

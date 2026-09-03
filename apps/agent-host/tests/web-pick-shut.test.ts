@@ -56,12 +56,20 @@ function stepOn(sandbox: SandboxOpener, says: string): WebBuyStep {
 
 /** A window that never lands. */
 function shut(): SandboxOpener {
-  return { open: () => Promise.resolve(SHUT), theirs: () => false };
+  return {
+    open: () => Promise.resolve(SHUT),
+    theirs: () => false,
+    view: () => null,
+  };
 }
 
 /** A window that opens and is theirs from the first tool on. */
 function handed(): SandboxOpener {
-  return { open: (url: string) => web.shopper.open(url), theirs: () => true };
+  return {
+    open: (url: string) => web.shopper.open(url),
+    theirs: () => true,
+    view: () => web.service.view(),
+  };
 }
 
 function said(): string[] {

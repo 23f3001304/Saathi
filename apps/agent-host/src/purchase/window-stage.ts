@@ -1,3 +1,6 @@
+import type { BeatHub } from "../http/beat-hub.js";
+import type { SandboxView } from "../http/chat-beat.js";
+
 /**
  * Whether the shopper is being shown the sandbox window.
  *
@@ -28,6 +31,24 @@ export interface WindowStage {
    * window reaped mid-errand. The returned function releases the hold.
    */
   hold(): () => void;
+}
+
+/** Whoever can say what the window on screen currently looks like. */
+export interface WindowShower {
+  /** The window as it stands, or `null` on a host with none to show. */
+  view(): SandboxView | null;
+}
+
+/**
+ * The window is open and may be being watched now, so the log says so now.
+ * Written only when the run settled, it left a shopper who opened the Windows
+ * tab mid-errand restoring a chat that knew which card had been picked and not
+ * that anything was fetching it, and so being asked to launch the shop it was
+ * already standing in. The settle-time record stays; the later state wins.
+ */
+export function showWindow(hub: BeatHub, shower: WindowShower): void {
+  const session = shower.view();
+  if (session !== null) hub.emit({ kind: "sandbox", session });
 }
 
 /** For the turn steps that never touch a window. */

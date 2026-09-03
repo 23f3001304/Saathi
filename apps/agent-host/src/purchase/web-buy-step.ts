@@ -22,12 +22,12 @@ import { closePick, settleAs } from "./web-pick-close.js";
 import type { WebPickPark } from "./web-pick-park.js";
 import type { WebErrand } from "./errand-run.js";
 import type { WebPin } from "./web-pin.js";
-import type { WindowStage } from "./window-stage.js";
-import { OPEN_STAGE } from "./window-stage.js";
+import type { WindowShower, WindowStage } from "./window-stage.js";
+import { OPEN_STAGE, showWindow } from "./window-stage.js";
 
 /** The one sandbox move this step makes itself, and the question it asks
  *  first: whose turn is it at the window? */
-export interface SandboxOpener {
+export interface SandboxOpener extends WindowShower {
   open(url: string): Promise<WebResult>;
   /** True while the shopper holds the wheel. */
   theirs(): boolean;
@@ -92,9 +92,8 @@ export class WebBuyStep {
       this.logger.warn("purchase.web_pick.unresolved", { ref });
       return settleAs(this.hub, base, [], "web_pick_unknown");
     }
-    // The ref has claimed a listing, so the choice is now a fact about the run
-    // and is written down before the window moves: the client replays it, and
-    // a chat that remounts mid-errand must not re-offer the card being fetched.
+    // The ref has claimed a listing, so the choice is a fact about the run and
+    // is written down before the window moves; see `http/chat-pick.ts`.
     this.hub.emit({ kind: "picked", ref });
     await covenantFirst(this.intents, listing);
     const from = this.trail.length;
@@ -108,6 +107,7 @@ export class WebBuyStep {
       );
       return settleAs(this.hub, base, spokenBy(this.hub, told), "web_pick_shut");
     }
+    showWindow(this.hub, this.sandbox);
     this.progress.reset();
     const home = await profileOf(this.address);
     const said = await this.errand(

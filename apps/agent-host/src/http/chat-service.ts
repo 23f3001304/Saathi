@@ -15,6 +15,7 @@ import type {
 import type { SortKeySignal } from "./sort-key-write.js";
 
 import { cancelChat } from "./chat-cancel.js";
+import { carryOnPick, pickCard, type PickEngine } from "./chat-pick.js";
 import { writeSortKey } from "./sort-key-write.js";
 
 export type {
@@ -109,45 +110,26 @@ export class ChatService {
     }
   }
 
-  /** Wheel back = carry on: the parked checkout resumes by itself. */
   carryOn(): PurchaseResult | null {
-    if (!this.webPick.parked || this.busy) return null;
-    const language = this.language;
-    return this.queue(
-      emptyResult("urn:covenant:pick:carry-on", "carry on"),
-      async (busy) => {
-        if (busy !== null) await busy.catch(() => undefined);
-        return this.webPick.resume([], language);
-      },
-    );
+    return this.busy ? null : carryOnPick(this.engine());
   }
 
-  /** A tapped card queues like a sentence: one window, one timeline. */
   pick(ref: string): PurchaseResult {
-    const stated = this.current?.request ?? "";
-    const language = this.language;
-    return this.queue(emptyResult(`urn:covenant:pick:${ref}`, ref), (busy) =>
-      this.picked(busy, ref, stated, language),
-    );
+    return pickCard(this.engine(), ref);
   }
 
-  private async picked(
-    inFlight: Promise<PurchaseResult> | null,
-    ref: string,
-    stated: string,
-    replyLanguage: string | null,
-  ): Promise<PurchaseResult> {
-    if (inFlight !== null) await inFlight.catch(() => undefined);
-    try {
-      const reproposed = await this.runner.repropose(ref);
-      // A stale ref was never a choice, so nothing is said until it rebuilds;
-      // `WebBuyStep` says it for the leg where a listing is what resolves.
-      if (reproposed === null) return await this.webPick.buy(ref, [stated], replyLanguage);
-      this.hub.emit({ kind: "picked", ref });
-      return reproposed;
-    } finally {
-      this.recordSandbox();
-    }
+  /** Read at the moment of the tap, so a queued leg carries what was said and
+   *  the language it was said in, not whatever the next turn changed them to. */
+  private engine(): PickEngine {
+    return {
+      hub: this.hub,
+      runner: this.runner,
+      webPick: this.webPick,
+      stated: this.current?.request ?? "",
+      language: this.language,
+      queue: (pending, work) => this.queue(pending, work),
+      settled: () => this.recordSandbox(),
+    };
   }
 
   private recordSandbox(): void {

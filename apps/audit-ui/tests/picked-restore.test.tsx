@@ -153,6 +153,17 @@ describe("coming back to a chat whose card was already chosen", () => {
     expect(screen.queryByRole("button", { name: "None of these" })).toBeNull();
   });
 
+  // The founder's own path: the Windows tab and back while the errand is still
+  // driving. The host now writes the window's beat when it opens rather than
+  // when the run settles, so this transcript exists mid-errand at all.
+  it("shows the errand under way instead of the cards, mid-errand", () => {
+    chatWith([OFFER, PICKED, WINDOW]);
+
+    expect(screen.getByRole("button", { name: "Switch product" })).toBeTruthy();
+    expect(screen.getByText(/Going for/)).toBeTruthy();
+    expect(screen.queryByRole("button", { name: /Crucial E100/ })).toBeNull();
+  });
+
   it("still opens the menu when nothing has been picked", () => {
     chatWith([OFFER]);
 
@@ -193,5 +204,30 @@ describe("a fresh set of cards after a launched errand", () => {
 
     expect(screen.getByRole("button", { name: "Cheaper" })).toBeTruthy();
     expect(screen.queryByRole("button", { name: "Switch product" })).toBeNull();
+  });
+});
+
+/**
+ * The host names the card at the *start* of the errand now, which is the same
+ * card the hand just launched. Reading any change as "the host has moved on"
+ * threw the launch away mid-errand: the cards unfolded, the dock re-asked for
+ * a shop it was already standing in, and a second press queued a duplicate run.
+ */
+describe("the host echoing the launch the hand just made", () => {
+  beforeEach(readyToRender);
+
+  it("leaves the errand alone rather than asking to start it again", () => {
+    chatWith([OFFER]);
+    fireEvent.click(screen.getByRole("button", { name: /Crucial E100/ }));
+    fireEvent.click(screen.getByRole("button", { name: "Go to the shop" }));
+    expect(screen.getByRole("button", { name: "Switch product" })).toBeTruthy();
+
+    // What the host says as the errand begins. The window's own beat does not
+    // follow until it is open, and once did not follow until the run settled.
+    later([PICKED]);
+
+    expect(screen.getByRole("button", { name: "Switch product" })).toBeTruthy();
+    expect(screen.queryByRole("button", { name: "Go to the shop" })).toBeNull();
+    expect(held.picks).toEqual(["w1"]);
   });
 });

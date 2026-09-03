@@ -71,6 +71,7 @@ function stepWith(errand: Errand): WebBuyStep {
     {
       open: (url: string) => web.shopper.open(url),
       theirs: () => web.service.current()?.currentState() === "user-drive",
+      view: () => web.service.view(),
     },
     web.trail,
     web.findings,

@@ -1,7 +1,6 @@
 // Which card was chosen is a fact about the run, so the host says it out loud
 // and the durable log keeps it. Said where the ref *resolves*, never on the way
-// in: a tap carries a ref off a card that may be a run old, and announcing the
-// choice before either leg had claimed it wrote a beat for a card nobody bought.
+// in: a tap carries a ref off a card that may be a run old.
 import type { GatewayClient, TurnPlan } from "@covenant/agents";
 import { beforeEach, describe, expect, it } from "vitest";
 
@@ -15,7 +14,7 @@ import type { PurchaseResult } from "../src/purchase/purchase-result.js";
 import { emptyResult } from "../src/purchase/purchase-result.js";
 import { WebBuyStep } from "../src/purchase/web-buy-step.js";
 import { WebPickPark } from "../src/purchase/web-pick-park.js";
-import { RESULTS } from "./support/fake-shop.js";
+import { PRODUCT, RESULTS } from "./support/fake-shop.js";
 import { RecordingLogger, SeqIds, StepClock } from "./support/fakes.js";
 import { webHarness, type WebHarness } from "./support/web-harness.js";
 
@@ -32,13 +31,16 @@ function refs(hub: BeatHub): string[] {
 
 let web: WebHarness;
 let hub: BeatHub;
-/** What the log held at the moment the window was handed the listing's URL. */
+/** What the log held when the window was handed the listing's URL, and then
+ *  when the errand began driving what it found there. */
 let opened: ChatBeat[][];
+let drove: ChatBeat[][];
 
 beforeEach(async () => {
   web = webHarness();
   hub = new BeatHub(new StepClock(), new RecordingLogger());
   opened = [];
+  drove = [];
   // Reads the results page, so the refs the cards carry actually exist.
   await web.call("web_open", { url: RESULTS });
   await web.call("web_read");
@@ -48,13 +50,15 @@ function stepOn(): WebBuyStep {
   return new WebBuyStep(
     hub,
     {
-      converse: () =>
-        Promise.resolve({
+      converse: () => {
+        drove.push([...hub.snapshot()]);
+        return Promise.resolve({
           transcript: [],
           blocked: [],
           turns: 1,
           completed: true,
-        }),
+        });
+      },
     },
     {
       open: (url: string) => {
@@ -62,6 +66,7 @@ function stepOn(): WebBuyStep {
         return web.shopper.open(url);
       },
       theirs: () => false,
+      view: () => web.service.view(),
     },
     web.trail,
     web.findings,
@@ -83,6 +88,17 @@ describe("the open-web leg, where a listing is what resolves", () => {
     await stepOn().buy("w99", []);
     expect(refs(hub)).toEqual([]);
     expect(opened).toEqual([]);
+  });
+
+  // The founder opened the Windows tab while the errand was still driving. The
+  // window's beat was written only when the run settled, so he came back to a
+  // pick with no window and a dock asking for a shop it was already in.
+  it("says the window is open before the errand drives it", async () => {
+    await stepOn().buy("w1", []);
+    const seen = (drove[0] ?? []).flatMap((beat) =>
+      beat.kind === "sandbox" ? [beat.session.url] : [],
+    );
+    expect(seen).toEqual([PRODUCT]);
   });
 });
 
