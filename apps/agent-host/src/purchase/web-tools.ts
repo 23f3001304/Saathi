@@ -21,6 +21,20 @@ export const webVerifyArgs = z.object({
   urls: z.array(z.url()).min(1).max(6),
 });
 
+/** One product the model read on a page this host verified: the page's own
+ *  title for it and the price it printed, copied out. Both are checked
+ *  verbatim against that read before a ref exists. */
+const webCardRow = z.object({
+  url: z.url(),
+  title: z.string().min(1).max(500),
+  price_text: z.string().min(1).max(300),
+  image_url: z.url().nullable().default(null),
+});
+
+export const webCardArgs = z.object({
+  rows: z.array(webCardRow).min(1).max(8),
+});
+
 export const webEnterCodeArgs = z.object({
   code: z.string().regex(/^[0-9]{4,10}$/),
 });
@@ -57,6 +71,7 @@ export type WebRefArgs = z.infer<typeof webRefArgs>;
 export type WebPressArgs = z.infer<typeof webPressArgs>;
 export type WebWriteArgs = z.infer<typeof webWriteArgs>;
 export type WebFoundArgs = z.infer<typeof webFoundArgs>;
+export type WebCardArgs = z.infer<typeof webCardArgs>;
 
 /**
  * The sandbox as a tool surface.

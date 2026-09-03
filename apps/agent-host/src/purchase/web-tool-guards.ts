@@ -27,7 +27,8 @@ export const CART_INSTEAD =
  *  /sspa/click wedged its window in a redirect chain and every read after
  *  it burned the full watchdog. Refused at the tool, so no prompt has to
  *  win this argument. */
-export const TRACKER_PATH = /\/(sspa\/click|gp\/slredirect|aax-|adclick|clk\b)/i;
+export const TRACKER_PATH =
+  /\/(sspa\/click|gp\/slredirect|aax-|adclick|clk\b)/i;
 
 export function trackerLink(url: string): ToolOutcome {
   return {
@@ -42,7 +43,6 @@ export function trackerLink(url: string): ToolOutcome {
     isError: true,
   };
 }
-
 
 /** Refused, and told what to do instead: the errand is about one listing, and
  *  the way back to it is the shop's own search, not another product. */
@@ -75,7 +75,6 @@ export function unreachable(tool: string): ToolOutcome {
   };
 }
 
-
 /**
  * Carried back on every page the errand reads, because the instruction it has
  * to still be following when it finally speaks is several thousand tokens of
@@ -90,7 +89,6 @@ export const WRITE_IN =
   "Whatever you say to them, write it in the language of their own lines " +
   "quoted at the top of this errand, not the language of this note, and not " +
   "the language of the page you have just read.";
-
 
 export function outcomeOf(result: WebResult): ToolOutcome {
   return {
@@ -107,11 +105,29 @@ export function badArgs(error: z.ZodError): ToolOutcome {
       issues: error.issues,
     }),
     isError: true,
-  };}
+  };
+}
 
 export function unknown(tool: string): ToolOutcome {
   return {
     content: JSON.stringify({ ok: false, failure: "unknown_tool", tool }),
     isError: true,
   };
+}
+
+/** The failure code a refused call carries, for the pill that records it. The
+ *  JSON was written one frame down by the helpers above, so the parse is of
+ *  this module's own writing; anything unreadable stays a generic failure. */
+export function failureOf(outcome: ToolOutcome): string | null {
+  if (!outcome.isError) return null;
+  try {
+    const body: unknown = JSON.parse(outcome.content);
+    const failure =
+      typeof body === "object" && body !== null
+        ? (body as Record<string, unknown>)["failure"]
+        : null;
+    return typeof failure === "string" ? failure : "failed";
+  } catch {
+    return "failed";
+  }
 }

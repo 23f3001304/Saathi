@@ -7,6 +7,8 @@ import { mergeListings } from "../read/listing-merge.js";
 import { readPageDom } from "./read-script.js";
 import { readDeclaredListings } from "./listing-script.js";
 import { readTileListings } from "./tile-script.js";
+import type { PriceCandidate } from "./price-probe.js";
+import { priceProbe } from "./price-probe.js";
 
 /** One page of a batch, as this host read it. `dom: null` names a page that
  *  refused to load, timed out, or was refused by the navigation policy. */
@@ -14,10 +16,13 @@ export interface BatchRead {
   readonly requested: string;
   readonly url: string;
   readonly dom: PageDom | null;
-  /** The currency string the page renders biggest - the price a product
-   *  page is showing. Empty where none was found (a storefront, a search
-   *  page). Site-agnostic: prominence is every shop's own signal. */
-  readonly priceText: string;
+  /** Every money string the page printed, most prominent first, each with
+   *  the words around it. Empty where none was found. Nothing here says
+   *  which one is a price: that is a reading, and it is not this host's. */
+  readonly prices: readonly PriceCandidate[];
+  /** What the page shows a person, whitespace collapsed - long enough to
+   *  read a listing out of, short enough to hand to a model. */
+  readonly text: string;
   /** The page's own words said the thing cannot be bought right now. */
   readonly soldOut: boolean;
   readonly failure: string | null;
@@ -25,6 +30,7 @@ export interface BatchRead {
 
 const PER_PAGE_MS = 15_000;
 const PARALLEL = 5;
+const MAX_TEXT = 8_000;
 
 /** The stock probe is a text scan of the page this host itself loaded: data
  *  capture off a real document, not a judgment about anybody's sentence. */
@@ -91,7 +97,9 @@ export class HeadlessReader {
       // One settle beat for late-rendered prices; cheap next to a full load.
       await new Promise((resolve) => setTimeout(resolve, 600));
       const dom = await readAll(page);
-      const price = await page.evaluate(priceProbe).catch(() => "");
+      const prices = await page
+        .evaluate(priceProbe)
+        .catch((): PriceCandidate[] => []);
       const text = await page
         .evaluate(() => document.body.innerText.slice(0, 20_000))
         .catch(() => "");
@@ -99,7 +107,8 @@ export class HeadlessReader {
         requested: url,
         url: page.url(),
         dom,
-        priceText: price,
+        prices,
+        text: flatten(text),
         soldOut: SOLD_OUT.test(text),
         failure: null,
       };
@@ -149,45 +158,14 @@ function refused(url: string, failure: string): BatchRead {
     requested: url,
     url,
     dom: null,
-    priceText: "",
+    prices: [],
+    text: "",
     soldOut: false,
     failure,
   };
 }
 
-/** Runs inside the page, serialized over CDP, so it is one flat function.
- *  A candidate is an element whose own text IS a money string, whole and
- *  alone - "₹9,390.00", never "Under Rs. 700/month" - with anything struck
- *  through excluded. Prominence scores it: a visible candidate by its own
- *  font size, a hidden one (the accessibility span split-digit prices ship
- *  their readable copy in) by the visible container it sits inside. The
- *  biggest wins, which is the shop's own way of saying which number is the
- *  price. */
-function priceProbe(): string {
-  const WHOLE = /^(?:₹|Rs\.?|INR)\s?[\d,]+(?:\.\d+)?$/;
-  const owns = (el: Element): string =>
-    Array.from(el.childNodes)
-      .filter((node) => node.nodeType === 3)
-      .map((node) => node.textContent ?? "")
-      .join("")
-      .trim();
-  const sizeOf = (el: Element): number => {
-    const box = el.getBoundingClientRect();
-    if (box.width > 0 && box.height > 0) {
-      return Number.parseFloat(getComputedStyle(el).fontSize) || 0;
-    }
-    const parent = el.parentElement;
-    if (parent === null) return 0;
-    const held = parent.getBoundingClientRect();
-    return held.width > 0 && held.height > 0
-      ? Number.parseFloat(getComputedStyle(parent).fontSize) || 0
-      : 0;
-  };
-  const best = Array.from(document.querySelectorAll("span,div,p,ins,b,strong"))
-    .filter((el) => el.closest("del,s,strike") === null)
-    .map((el) => ({ text: owns(el), el }))
-    .filter((held) => WHOLE.test(held.text))
-    .map((held) => ({ text: held.text, size: sizeOf(held.el) }))
-    .sort((a, b) => b.size - a.size)[0];
-  return best?.text ?? "";
+/** The page's own words, without its line breaks and its indentation. */
+function flatten(raw: string): string {
+  return raw.replace(/\s+/g, " ").trim().slice(0, MAX_TEXT);
 }

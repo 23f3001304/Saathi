@@ -36,6 +36,16 @@ export const WEB_FOUND_TOOL = "web_found";
 export const WEB_SIGN_IN_TOOL = "web_sign_in";
 export const WEB_ENTER_CODE_TOOL = "web_enter_code";
 export const WEB_VERIFY_TOOL = "web_verify";
+/**
+ * Naming the products on the pages `web_verify` just read, so the host can
+ * card them.
+ *
+ * F2: it moves no money and reaches no rail. All it asks for is a ref against
+ * a title and a price, and the host mints one only where both strings are
+ * verbatim on a page it opened itself and the price parses above zero — the
+ * model can name what it read, never what it would like to be true.
+ */
+export const WEB_CARD_TOOL = "web_card";
 export const WEB_GLANCE_TOOL = "web_glance";
 /**
  * Giving the window back to the shopper, because the model read the page and
@@ -61,6 +71,7 @@ export const WEB_SHOP_TOOLS: readonly string[] = [
   WEB_SIGN_IN_TOOL,
   WEB_ENTER_CODE_TOOL,
   WEB_VERIFY_TOOL,
+  WEB_CARD_TOOL,
   WEB_GLANCE_TOOL,
   WEB_HANDOVER_TOOL,
 ];

@@ -8,7 +8,8 @@ import type { WebFindings } from "../browser/web-listing.js";
 import { SignInVerbs } from "../browser/web-sign-in.js";
 import { GlanceVerbs } from "../browser/web-glance.js";
 import { HandoverMove } from "../browser/web-handover-move.js";
-import { VerifyVerbs } from "../browser/web-verify.js";
+import { VerifiedReads, VerifyVerbs } from "../browser/web-verify.js";
+import { CardVerbs } from "../browser/web-card.js";
 import type { CredentialVault } from "../session/credential-vault.js";
 import type { WebProgress } from "../browser/web-progress.js";
 import { WebShopper } from "../browser/web-shopper.js";
@@ -79,7 +80,8 @@ export interface DispatchDeps {
  * gate still decides which rows come back, and only rows filed under a trait
  * predicate reach the form.
  */
-export const ADDRESS_RECALL = "delivery address name phone city state pincode country";
+export const ADDRESS_RECALL =
+  "delivery address name phone city state pincode country";
 
 /** The sandbox tools: every move written down for the shopper, and the pin
  *  that keeps a buy errand about the listing they tapped. */
@@ -92,6 +94,9 @@ function webRunner(deps: DispatchDeps, shopper: WebShopper): WebToolRunner {
         label,
       }),
   };
+  // One table of reads for the errand: `web_verify` fills it, `web_card`
+  // is checked against it, and a URL in neither was never opened here.
+  const reads = new VerifiedReads();
   return new WebToolRunner(
     shopper,
     new HandoverMove(() => deps.browser.current(), deps.progress),
@@ -106,7 +111,10 @@ function webRunner(deps: DispatchDeps, shopper: WebShopper): WebToolRunner {
       deps.trail,
       deps.progress,
     ),
-    new VerifyVerbs(deps.reader, deps.findings, deps.trail, steps),
+    {
+      verify: new VerifyVerbs(deps.reader, reads, deps.trail, steps),
+      card: new CardVerbs(deps.findings, reads),
+    },
     new GlanceVerbs(deps.browser),
   );
 }

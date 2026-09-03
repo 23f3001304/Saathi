@@ -3,6 +3,7 @@ import type { ToolCall, ToolOutcome } from "@covenant/agents";
 import {
   badArgs,
   CART_INSTEAD,
+  failureOf,
   offPin,
   outcomeOf,
   TRACKER_PATH,
@@ -21,6 +22,7 @@ import {
   WEB_SHOP_TOOLS,
 } from "@covenant/agents";
 
+import type { CardVerbs } from "../browser/web-card.js";
 import type { HandoverMove } from "../browser/web-handover-move.js";
 import type { WebFindings } from "../browser/web-listing.js";
 import type { WebShopper } from "../browser/web-shopper.js";
@@ -31,7 +33,13 @@ import { CALL_CEILING_MS, withinCall } from "./call-ceiling.js";
 import type { WebPin } from "./web-pin.js";
 import type { StepSink } from "./web-steps.js";
 import { stepLabel } from "./web-steps.js";
-import { actCall, foundCall, vaultCall, verifyCall } from "./web-act-calls.js";
+import {
+  actCall,
+  cardCall,
+  foundCall,
+  vaultCall,
+  verifyCall,
+} from "./web-act-calls.js";
 import { webHandoverArgs, webOpenArgs, webRefArgs } from "./web-tools.js";
 
 export function isWebTool(tool: string): boolean {
@@ -70,8 +78,15 @@ export class WebToolRunner {
     private readonly findings: WebFindings | null = null,
     /** The vault's tool face; `null` on a host with no vault wired. */
     private readonly vaultVerbs: SignInVerbs | null = null,
-    /** The batched research reader; `null` where none is wired. */
-    private readonly verifyVerbs: VerifyVerbs | null = null,
+    /** The research lane's two verbs. They arrive together because they
+     *  share one table of reads - `web_verify` fills it and `web_card` is
+     *  checked against it - and a host that wired one without the other
+     *  would card rows off pages nobody opened. Both `null` where no
+     *  research is wired. */
+    private readonly research: {
+      verify: VerifyVerbs | null;
+      card: CardVerbs | null;
+    } = { verify: null, card: null },
     /** The errand's eyes; `null` where no window can be pictured. */
     private readonly glanceVerbs: GlanceVerbs | null = null,
   ) {}
@@ -103,7 +118,8 @@ export class WebToolRunner {
     const stateful = await this.statefulCall(call);
     return (
       stateful ??
-      verifyCall(call, this.verifyVerbs) ??
+      verifyCall(call, this.research.verify) ??
+      cardCall(call, this.research.card) ??
       foundCall(call, this.findings) ??
       (await actCall(call, this.shopper)) ??
       (await vaultCall(call, this.vaultVerbs)) ??
@@ -179,22 +195,5 @@ export class WebToolRunner {
       }),
       isError: true,
     };
-  }
-}
-
-/** The failure code a refused call carries, for the pill that records it.
- *  The runner built this JSON itself one frame down, so the parse is of its
- *  own writing; anything unreadable stays a generic failure. */
-function failureOf(outcome: ToolOutcome): string | null {
-  if (!outcome.isError) return null;
-  try {
-    const body: unknown = JSON.parse(outcome.content);
-    const failure =
-      typeof body === "object" && body !== null
-        ? (body as Record<string, unknown>)["failure"]
-        : null;
-    return typeof failure === "string" ? failure : "failed";
-  } catch {
-    return "failed";
   }
 }

@@ -79,6 +79,21 @@ describe("what the errand is told to write in", () => {
   });
 });
 
+describe("what the errand is told to do with a page it has read", () => {
+  const composed = errandFor("1TB SSD", ["a 1TB SSD under 50000"], "INR");
+
+  it("hands the reading to the model rather than doing it for it", () => {
+    expect(composed).toContain("the money strings on it with the words");
+    expect(composed).toContain("Read them like a person would.");
+    expect(composed).toContain("call web_card once");
+  });
+
+  it("no longer promises that a verified row is already a card", () => {
+    expect(composed).not.toContain("only rows that come back with a ref");
+    expect(composed).toContain("Only rows web_card returns with a ref");
+  });
+});
+
 describe("what the look hands the errand", () => {
   it("passes the shopper's own half of the conversation through", async () => {
     const step = lookStep(errand());

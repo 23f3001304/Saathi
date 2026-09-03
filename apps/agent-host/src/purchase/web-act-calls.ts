@@ -1,5 +1,6 @@
 import type { ToolCall, ToolOutcome } from "@covenant/agents";
 import {
+  WEB_CARD_TOOL,
   WEB_ENTER_CODE_TOOL,
   WEB_FOUND_TOOL,
   WEB_VERIFY_TOOL,
@@ -13,10 +14,12 @@ import type { z } from "zod";
 import type { WebShopper } from "../browser/web-shopper.js";
 import type { SignInVerbs } from "../browser/web-sign-in.js";
 import type { VerifyVerbs } from "../browser/web-verify.js";
+import type { CardVerbs } from "../browser/web-card.js";
 import type { WebFindings } from "../browser/web-listing.js";
 import type { WebResult } from "../browser/web-result.js";
 import { badArgs, outcomeOf, unknown } from "./web-tool-guards.js";
 import {
+  webCardArgs,
   webEnterCodeArgs,
   webFoundArgs,
   webVerifyArgs,
@@ -124,4 +127,20 @@ export function verifyCall(
   if (call.tool !== WEB_VERIFY_TOOL) return null;
   if (verbs === null) return Promise.resolve(unknown(call.tool));
   return parsedCall(webVerifyArgs, call, (args) => verbs.verify(args.urls));
+}
+
+/** The model naming the listings on pages it has just been handed. Untrusted
+ *  rows, like `web_found`'s: the difference is that every string here is
+ *  checked against the read this host took, rather than trusted because the
+ *  model wrote it down. */
+export function cardCall(
+  call: ToolCall,
+  verbs: CardVerbs | null,
+): ToolOutcome | null {
+  if (call.tool !== WEB_CARD_TOOL) return null;
+  if (verbs === null) return unknown(call.tool);
+  const parsed = webCardArgs.safeParse(call.args);
+  return parsed.success
+    ? outcomeOf(verbs.card(parsed.data.rows))
+    : badArgs(parsed.error);
 }

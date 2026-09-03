@@ -1,23 +1,77 @@
-import type { BatchRead, HeadlessReader } from "@covenant/browser-drive";
+import type { BatchRead, PriceCandidate } from "@covenant/browser-drive";
 
-import type { WebFindings } from "./web-listing.js";
 import type { StepSink } from "../purchase/web-steps.js";
 import type { WebResult } from "./web-result.js";
 import type { WebTrail } from "./web-trail.js";
-import { webFailure, webOk } from "./web-result.js";
+import { webOk } from "./web-result.js";
+
+/** The one thing verifying needs a browser for. Named as a port rather than
+ *  taken as the class, so a test can hand it a page it wrote itself. */
+export interface BatchReader {
+  readMany(urls: readonly string[]): Promise<readonly BatchRead[]>;
+}
+
+/** A product the page published about itself, in the web's own vocabulary
+ *  (`schema.org/Product`, OpenGraph) or, failing that, the first tile the
+ *  reader recognised. Still the page's claim, still untrusted. */
+export interface DeclaredProduct {
+  readonly name: string;
+  readonly price_text: string;
+  readonly image_url: string | null;
+}
+
+/** One page as this host read it, handed over whole. There is no `ref` here
+ *  and no listing: a read is evidence, and naming the product out of it is
+ *  `web_card`'s job. */
+export interface VerifiedPage {
+  readonly url: string;
+  readonly ok: boolean;
+  readonly sold_out: boolean;
+  readonly title: string | null;
+  readonly heading: string | null;
+  readonly declared: DeclaredProduct | null;
+  readonly prices: readonly PriceCandidate[];
+  readonly text: string;
+  readonly failure: string | null;
+}
+
+/**
+ * The pages this errand has actually opened, keyed by the URL each one
+ * settled on. It is the whole of what `web_card` may card against: a row
+ * naming a URL that is not in here was never read by this host, and no
+ * amount of confidence in the model's memory of it changes that.
+ */
+export class VerifiedReads {
+  private readonly byUrl = new Map<string, VerifiedPage>();
+
+  remember(pages: readonly VerifiedPage[]): void {
+    for (const page of pages) {
+      this.byUrl.set(page.url, page);
+    }
+  }
+
+  find(url: string): VerifiedPage | null {
+    return this.byUrl.get(url) ?? null;
+  }
+}
 
 /**
  * Batched verification for research: the model names up to six product URLs
  * it found by search, and this host reads them all at once, headless and
- * read-only, off the pages themselves. Every card the shopper sees is built
- * from these reads - the price this host parsed, the stock line this host
- * saw - never from a search snippet's memory of the page. A row the page
- * says is out of stock is reported back and never carded.
+ * read-only, off the pages themselves.
+ *
+ * DECISION: it records nothing. This used to mint a card per page out of the
+ * document title and the biggest money string, which on a signed-out Amazon
+ * page are "Hello, Sign In" and a cart widget's ₹0.00 — the host guessing at
+ * a listing and being wrong in the shopper's face. What it hands back now is
+ * what the page printed, in the shape a person reads it in, and the model
+ * says which of it is a product by calling `web_card`.
  */
 export class VerifyVerbs {
   constructor(
-    private readonly reader: HeadlessReader,
-    private readonly findings: WebFindings,
+    private readonly reader: BatchReader,
+    /** Where the batch is kept for `CardVerbs` to check rows against. */
+    private readonly reads: VerifiedReads,
     private readonly trail: WebTrail,
     /** One pill per page read: research off the window still shows its
      *  work, or a seventy-second search reads as a hang. */
@@ -28,99 +82,48 @@ export class VerifyVerbs {
     this.steps?.step(
       urls.length === 1 ? "Checking 1 page" : `Checking ${urls.length} pages`,
     );
-    const reads = await this.reader.readMany(urls);
-    const rows = reads.map((read) => this.rowOf(read));
-    for (const row of rows) {
-      this.steps?.step(pillFor(row));
+    const read = await this.reader.readMany(urls);
+    const pages = read.map((one) => pageOf(one));
+    for (const page of pages) {
+      if (page.ok) this.trail.record(page.url);
+      this.steps?.step(pillFor(page));
     }
-    const carded = rows.filter((row) => row.ref !== null);
-    if (carded.length === 0) {
-      return webFailure(
-        "nothing_verified",
-        "None of those pages yielded a listing this host could read in " +
-          "stock. Search again with different words or different shops; do " +
-          "not recommend anything from these URLs.",
-        { pages: rows },
-      );
-    }
-    return webOk({ pages: rows, carded: carded.length });
-  }
-
-  /** One page, one row: recorded (and carded) only when the page loaded,
-   *  presented a product, and did not say it cannot be bought right now.
-   *  The page's own h1 and its biggest printed price name the product; the
-   *  first listing tile is only a fallback, because on a product page the
-   *  tiles are the upsells - a warranty, an enclosure - not the product. */
-  private rowOf(read: BatchRead): VerifiedRow {
-    const listing = productOf(read);
-    const base = baseRow(read, listing);
-    if (listing === null || read.soldOut) {
-      return { ...base, ref: null };
-    }
-    this.trail.record(read.url);
-    // The href is the page this host verified, never the tile's own link:
-    // a pick must open exactly what was read.
-    const recorded = this.findings.record([{ ...listing, href: read.url }]);
-    return { ...base, ref: recorded[0]?.ref ?? null };
+    this.reads.remember(pages);
+    return webOk({ pages });
   }
 }
 
-interface VerifiedRow {
-  readonly url: string;
-  readonly ok: boolean;
-  readonly sold_out: boolean;
-  readonly title: string | null;
-  readonly price_text: string | null;
-  readonly ref: string | null;
-  readonly failure: string | null;
-}
-
-function productOf(read: BatchRead): {
-  title: string;
-  priceText: string;
-  href: string;
-  imageUrl: string | null;
-} | null {
-  // The page's own <title> names the product; the probe's price is the one
-  // the page renders biggest. The first listing tile is only a fallback,
-  // because on a product page the tiles are upsells: a warranty, a case.
-  const title = read.dom?.title.trim() ?? "";
-  if (title !== "" && read.priceText !== "") {
-    return { title, priceText: read.priceText, href: read.url, imageUrl: null };
-  }
+/** One read, turned into the shape the model reads it in. Every field is the
+ *  page's own characters; nothing here chooses between them. */
+function pageOf(read: BatchRead): VerifiedPage {
   const tile = read.dom?.listings[0] ?? null;
-  return tile === null
-    ? null
-    : {
-        title: tile.title,
-        priceText: tile.priceText,
-        href: read.url,
-        imageUrl: tile.imageUrl,
-      };
-}
-
-function baseRow(
-  read: BatchRead,
-  listing: { title: string; priceText: string } | null,
-): Omit<VerifiedRow, "ref"> {
   return {
     url: read.url,
     ok: read.dom !== null,
     sold_out: read.soldOut,
-    title: listing === null ? null : listing.title,
-    price_text: listing === null ? null : listing.priceText,
+    title: read.dom?.title.trim() ?? null,
+    heading: read.dom?.heading ?? null,
+    declared:
+      tile === null
+        ? null
+        : {
+            name: tile.title,
+            price_text: tile.priceText,
+            image_url: tile.imageUrl,
+          },
+    prices: read.prices,
+    text: read.text,
     failure: read.failure,
   };
 }
 
 /** What one read says on its pill: the shop, and what stopped it if
  *  anything did. Never the title (a pill is a glance, the card is the read). */
-function pillFor(row: VerifiedRow): string {
-  const shop = hostOf(row.url);
-  if (row.failure !== null) return `${shop} · did not load`;
-  if (row.sold_out) return `${shop} · out of stock`;
-  if (row.ref === null) return `${shop} · no listing readable`;
-  return `Read ${shop} · ${row.price_text ?? ""}`.trim();
+function pillFor(page: VerifiedPage): string {
+  const shop = hostOf(page.url);
+  if (page.failure !== null) return `${shop} · did not load`;
+  if (page.sold_out) return `${shop} · out of stock`;
+  return `Read ${shop}`;
 }
 
 function hostOf(url: string): string {

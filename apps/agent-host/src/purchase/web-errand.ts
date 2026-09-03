@@ -29,12 +29,15 @@ const ERRAND =
   "When your search has surfaced three to six real candidates, call " +
   "web_verify once with their direct product page URLs, on the shop " +
   "itself, never a redirect or an ad link. This host then opens every " +
-  "one at once and reads the title, the printed price and the stock " +
-  "line off the pages themselves; only rows that come back with a ref " +
-  "are on cards, so recommend from those rows and no others, using the " +
-  "prices the host read, not the prices your search remembered. A row " +
-  "that came back sold out or unreadable is dead: if too few survive, " +
-  "search once more and verify again before concluding.\n" +
+  "one at once, headless, and hands you what each page printed: its " +
+  "title, its heading, any product the page declares, the money strings " +
+  "on it with the words around them, and an excerpt. Read them like a " +
+  "person would. Then call web_card once, naming for each real product " +
+  "page its title and its printed price exactly as the page shows them. " +
+  "A sign-in wall, a basket widget, a category or search page, a total " +
+  "that belongs to a cart, is not a listing: leave it out and say in one " +
+  "line what you left out when it matters to them. Only rows web_card " +
+  "returns with a ref are cards; recommend from those and no others.\n" +
   "Prices in results are the pages' own claims, never quotes. Nobody " +
   "signed them, and the payment step stays the shopper's.\n\n" +
   "Shop where they actually live. Their ceiling is denominated in the " +

@@ -127,12 +127,20 @@ export class WebFindings {
   private viewOf(listing: PageListing): WebListingView | null {
     const url = targetOf(listing.href);
     if (url === null || listing.title === "") return null;
+    const paise = parsePaise(listing.priceText);
+    // Nothing a shopper can buy costs nothing. A ₹0.00 row is page chrome
+    // that reached the shelf — a signed-out cart widget, a sign-in bar —
+    // and the live run that carded "Cart 0 item(s) - ₹0.00" is why this is
+    // here rather than in whichever caller happened to notice. Unparseable
+    // is still allowed and still `null`: that is a price nobody could read,
+    // which is a different thing from a price of nothing.
+    if (paise !== null && paise <= 0) return null;
     this.minted += 1;
     return {
       ref: `w${this.minted}`,
       title: listing.title,
       price_text: listing.priceText,
-      price_paise: parsePaise(listing.priceText),
+      price_paise: paise,
       url,
       image_url: pictureOf(listing.imageUrl),
     };

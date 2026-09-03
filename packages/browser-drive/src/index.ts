@@ -54,6 +54,7 @@ export * from "./chrome/puppeteer-caster.js";
 export * from "./chrome/read-script.js";
 export * from "./chrome/listing-script.js";
 export * from "./chrome/tile-script.js";
+export * from "./chrome/price-probe.js";
 
 export * from "./container/docker-args.js";
 export * from "./container/run-args.js";
