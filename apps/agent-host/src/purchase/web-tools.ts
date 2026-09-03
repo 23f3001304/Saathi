@@ -32,7 +32,7 @@ const webCardRow = z.object({
 });
 
 export const webCardArgs = z.object({
-  rows: z.array(webCardRow).min(1).max(8),
+  rows: z.array(webCardRow).min(1).max(6),
 });
 
 export const webEnterCodeArgs = z.object({

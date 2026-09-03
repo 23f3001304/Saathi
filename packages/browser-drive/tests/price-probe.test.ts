@@ -7,7 +7,7 @@ import { launch } from "puppeteer";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import type { PriceCandidate } from "../src/chrome/price-probe.js";
-import { priceProbe } from "../src/chrome/price-probe.js";
+import { rankPrices, scanPrices } from "../src/chrome/price-probe.js";
 
 const LAUNCH_MS = 60_000;
 
@@ -56,7 +56,9 @@ async function pricesOn(html: string): Promise<readonly PriceCandidate[]> {
   try {
     page = await held.newPage();
     await page.setContent(html);
-    return await page.evaluate(priceProbe);
+    // The shipped pair: the page collects, the host ranks. Testing them
+    // together is testing what `HeadlessReader` actually calls.
+    return rankPrices(await page.evaluate(scanPrices));
   } finally {
     await page?.close().catch(() => undefined);
   }

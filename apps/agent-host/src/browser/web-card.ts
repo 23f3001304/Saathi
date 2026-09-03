@@ -1,20 +1,15 @@
 import { parsePaise } from "@covenant/browser-drive";
 
+import { pictureFor } from "./web-card-image.js";
 import type { WebFindings } from "./web-listing.js";
 import type { WebResult } from "./web-result.js";
 import type { VerifiedPage, VerifiedReads } from "./web-verify.js";
 import { webOk } from "./web-result.js";
 
-/**
- * Why a named row did not become a card. Every one of these is a fact about
- * the page this host itself opened, checked here rather than argued about in
- * a prompt: no word list, no shape rule, nothing that guesses what a listing
- * looks like.
- *
- * `off_shop` is declared and not yet raised: the shop pin that fills it lands
- * next, and a reason the model may one day read is better in the union now
- * than bolted on beside it later.
- */
+/** Why a named row did not become a card: a fact about the page this host
+ *  itself opened, checked here rather than argued about in a prompt - no word
+ *  list, no shape rule, nothing that guesses what a listing looks like.
+ *  `off_shop` is declared and not yet raised; the shop pin fills it next. */
 export type CardRefusal =
   | "url_not_verified"
   | "off_shop"
@@ -32,9 +27,9 @@ export interface CardRow {
   readonly image_url?: string | null;
 }
 
-/** Generous caps, trimmed here, exactly as `web_found` trims: a model that
- *  annotated a price has still read a real listing, and the trim is also
- *  what makes a trailing space of the model's own harmless. */
+/** Generous caps, trimmed here as `web_found` trims: a model that annotated
+ *  a price has still read a real listing, and the trim is also what makes a
+ *  trailing space of the model's own harmless. */
 const MAX_TITLE = 200;
 const MAX_PRICE = 60;
 
@@ -44,11 +39,9 @@ const MAX_PRICE = 60;
  * DECISION: verbatim containment and a numeric floor, and nothing else. The
  * host cannot tell a product from page chrome — it tried, and carded "Hello,
  * Sign In" at ₹0.00 — but it *can* tell whether the words the model wrote are
- * the words the page printed, and whether the price is a number above zero.
- * That is the whole integrity claim here: a card carries what some page
- * actually said, at a price somebody could be charged. Which of those the
- * shopper wants is the model's reading, and it is made with the page's own
- * text in front of it.
+ * the words the page printed and whether the price is a number above zero.
+ * Which of those the shopper wants is the model's reading, made with the
+ * page's own text in front of it.
  */
 export class CardVerbs {
   constructor(
@@ -61,8 +54,9 @@ export class CardVerbs {
     const refused: { url: string; reason: CardRefusal }[] = [];
     for (const row of rows) {
       const stated = trimmed(row);
-      const reason = refusalFor(stated, this.reads.find(row.url));
-      const view = reason === null ? this.mint(stated) : null;
+      const read = this.reads.find(row.url);
+      const reason = refusalFor(stated, read);
+      const view = reason === null ? this.mint(stated, read) : null;
       if (view !== null) carded.push(view);
       // The findings table has the last word and can still refuse a row all
       // four checks passed - a `file:` URL, say. It will not put that on a
@@ -72,16 +66,16 @@ export class CardVerbs {
     return webOk({ carded, refused });
   }
 
-  /** The ref is minted by the findings table, exactly as it is for a tile
-   *  read off a page, so a pick still resolves only to a row this host
-   *  recorded. */
-  private mint(row: CardRow): CardedRow | null {
+  /** The ref is minted by the findings table, exactly as for a tile read off
+   *  a page, so a pick still resolves only to a row this host recorded; the
+   *  picture is whatever survived `pictureFor`. */
+  private mint(row: CardRow, read: VerifiedPage | null): CardedRow | null {
     const view = this.findings.record([
       {
         title: row.title,
         priceText: row.price_text,
         href: row.url,
-        imageUrl: row.image_url ?? null,
+        imageUrl: pictureFor(read, row.image_url),
       },
     ])[0];
     return view === undefined
@@ -91,17 +85,19 @@ export class CardVerbs {
           url: view.url,
           title: view.title,
           price_text: view.price_text,
+          image_url: view.image_url,
         };
   }
 }
 
-/** A card, as the model reads it back: the host's ref and the words it
- *  accepted. */
+/** A card as the model reads it back: the host's ref, the words it accepted,
+ *  and `image_url: null` where the card goes up under the woven mark. */
 interface CardedRow {
   readonly ref: string;
   readonly url: string;
   readonly title: string;
   readonly price_text: string;
+  readonly image_url: string | null;
 }
 
 function trimmed(row: CardRow): CardRow {
@@ -113,12 +109,10 @@ function trimmed(row: CardRow): CardRow {
   };
 }
 
-/**
- * The order is the order a person would ask in: was this page read at all,
- * is that a price, did the page print it, is that what the page calls the
- * thing. A ₹0.00 row is refused as free before it is refused as absent,
- * because "nothing costs nothing" is the more useful sentence to read back.
- */
+/** The order a person would ask in: was this page read at all, is that a
+ *  price, did the page print it, is that what the page calls the thing. A
+ *  ₹0.00 row is refused as free before it is refused as absent, because
+ *  "nothing costs nothing" is the more useful sentence to read back. */
 function refusalFor(
   row: CardRow,
   read: VerifiedPage | null,
@@ -140,10 +134,10 @@ function printed(read: VerifiedPage, price: string): boolean {
   );
 }
 
-/** A product page's own name for the thing is often only in the title tag or
- *  the h1 - the body text says "Add to cart" and the specs. Those three are
- *  the page's own words too, so naming the thing by one of them is verbatim
- *  in exactly the sense that matters. */
+/** A page's own name for the thing is often only in its title tag or its h1 -
+ *  the body text says "Add to cart" and the specs. Those are the page's own
+ *  words too, so naming it by one of them is verbatim in the sense that
+ *  matters. `declared` is the page's published product, never a tile. */
 function named(read: VerifiedPage, title: string): boolean {
   return (
     read.text.includes(title) ||

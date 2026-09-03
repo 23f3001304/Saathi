@@ -66,7 +66,7 @@ export const RESEARCH_TOOL_DECLARATIONS: readonly ToolDeclaration[] = [
       "page and the price is above zero; a refused row says why. Leave out " +
       "what is not for sale - a sign-in bar, a basket widget, a category " +
       `page, a cart total. Only rows with a ref are cards. ${UNTRUSTED}`,
-    parameters: schemaOf({ rows: z.array(cardRow).min(1).max(8) }),
+    parameters: schemaOf({ rows: z.array(cardRow).min(1).max(6) }),
   },
 ];
 

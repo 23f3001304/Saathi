@@ -2,13 +2,13 @@ import type { Browser, Page } from "puppeteer";
 import { launch } from "puppeteer";
 
 import type { NavigationPolicy } from "../drive/navigation-policy.js";
-import type { PageDom } from "../read/page-dom.js";
+import type { PageDom, PageListing } from "../read/page-dom.js";
 import { mergeListings } from "../read/listing-merge.js";
 import { readPageDom } from "./read-script.js";
 import { readDeclaredListings } from "./listing-script.js";
 import { readTileListings } from "./tile-script.js";
-import type { PriceCandidate } from "./price-probe.js";
-import { priceProbe } from "./price-probe.js";
+import type { PriceCandidate, ScannedPrice } from "./price-probe.js";
+import { rankPrices, scanPrices } from "./price-probe.js";
 
 /** One page of a batch, as this host read it. `dom: null` names a page that
  *  refused to load, timed out, or was refused by the navigation policy. */
@@ -16,6 +16,12 @@ export interface BatchRead {
   readonly requested: string;
   readonly url: string;
   readonly dom: PageDom | null;
+  /** What the page published about itself in the web's own vocabulary -
+   *  `schema.org/Product`, microdata, OpenGraph. Kept apart from `dom.listings`,
+   *  which merges these with the tiles the reader inferred: a tile is this
+   *  host's reading of a layout, and calling one a declaration would let an
+   *  upsell speak in the shop's own voice. Empty where nothing was declared. */
+  readonly declared: readonly PageListing[];
   /** Every money string the page printed, most prominent first, each with
    *  the words around it. Empty where none was found. Nothing here says
    *  which one is a price: that is a reading, and it is not this host's. */
@@ -96,18 +102,19 @@ export class HeadlessReader {
       });
       // One settle beat for late-rendered prices; cheap next to a full load.
       await new Promise((resolve) => setTimeout(resolve, 600));
-      const dom = await readAll(page);
-      const prices = await page
-        .evaluate(priceProbe)
-        .catch((): PriceCandidate[] => []);
+      const read = await readAll(page);
+      const scanned = await page
+        .evaluate(scanPrices)
+        .catch((): ScannedPrice[] => []);
       const text = await page
         .evaluate(() => document.body.innerText.slice(0, 20_000))
         .catch(() => "");
       return {
         requested: url,
         url: page.url(),
-        dom,
-        prices,
+        dom: read.dom,
+        declared: read.declared,
+        prices: rankPrices(scanned),
         text: flatten(text),
         soldOut: SOLD_OUT.test(text),
         failure: null,
@@ -131,11 +138,19 @@ export class HeadlessReader {
   }
 }
 
-async function readAll(page: Page): Promise<PageDom> {
+interface FullRead {
+  readonly dom: PageDom;
+  readonly declared: readonly PageListing[];
+}
+
+async function readAll(page: Page): Promise<FullRead> {
   const dom = await page.evaluate(readPageDom);
   const declared = await page.evaluate(readDeclaredListings);
   const implied = await page.evaluate(readTileListings);
-  return { ...dom, listings: mergeListings(declared, implied) };
+  return {
+    dom: { ...dom, listings: mergeListings(declared, implied) },
+    declared,
+  };
 }
 
 async function quieten(page: Page): Promise<void> {
@@ -158,6 +173,7 @@ function refused(url: string, failure: string): BatchRead {
     requested: url,
     url,
     dom: null,
+    declared: [],
     prices: [],
     text: "",
     soldOut: false,

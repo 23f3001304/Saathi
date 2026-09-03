@@ -11,9 +11,10 @@ export interface BatchReader {
   readMany(urls: readonly string[]): Promise<readonly BatchRead[]>;
 }
 
-/** A product the page published about itself, in the web's own vocabulary
- *  (`schema.org/Product`, OpenGraph) or, failing that, the first tile the
- *  reader recognised. Still the page's claim, still untrusted. */
+/** A product the page published about itself, in the web's own vocabulary:
+ *  `schema.org/Product`, microdata, OpenGraph. Not a tile - a tile is this
+ *  host's reading of a layout, and a page that declares nothing declares
+ *  nothing. Still the page's claim, still untrusted. */
 export interface DeclaredProduct {
   readonly name: string;
   readonly price_text: string;
@@ -30,6 +31,11 @@ export interface VerifiedPage {
   readonly title: string | null;
   readonly heading: string | null;
   readonly declared: DeclaredProduct | null;
+  /** Every picture the page attached to a product, declared or tiled, `https:`
+   *  only. It is what a named `image_url` has to be one of: a picture is the
+   *  one thing on a card nobody reads as a claim - it is simply believed - so
+   *  it has to have come off the page exactly as the words did. */
+  readonly images: readonly string[];
   readonly prices: readonly PriceCandidate[];
   readonly text: string;
   readonly failure: string | null;
@@ -96,7 +102,7 @@ export class VerifyVerbs {
 /** One read, turned into the shape the model reads it in. Every field is the
  *  page's own characters; nothing here chooses between them. */
 function pageOf(read: BatchRead): VerifiedPage {
-  const tile = read.dom?.listings[0] ?? null;
+  const product = read.declared[0] ?? null;
   return {
     url: read.url,
     ok: read.dom !== null,
@@ -104,17 +110,28 @@ function pageOf(read: BatchRead): VerifiedPage {
     title: read.dom?.title.trim() ?? null,
     heading: read.dom?.heading ?? null,
     declared:
-      tile === null
+      product === null
         ? null
         : {
-            name: tile.title,
-            price_text: tile.priceText,
-            image_url: tile.imageUrl,
+            name: product.title,
+            price_text: product.priceText,
+            image_url: product.imageUrl,
           },
+    images: picturesOf(read),
     prices: read.prices,
     text: read.text,
     failure: read.failure,
   };
+}
+
+/** The page's own product pictures, declarations first, each one once. The
+ *  merged listings already carry the declared ones, but a declaration with no
+ *  link is dropped on the way in, and its picture is still the page's. */
+function picturesOf(read: BatchRead): readonly string[] {
+  const shown = [...read.declared, ...(read.dom?.listings ?? [])]
+    .map((listing) => listing.imageUrl)
+    .filter((url): url is string => url !== null && url.startsWith("https://"));
+  return [...new Set(shown)];
 }
 
 /** What one read says on its pill: the shop, and what stopped it if
