@@ -174,8 +174,8 @@ export function loadConfig(env: Env): AgentHostConfig {
  * Live mode needs **one** provider key, and the registry decides which. The
  * router discovers what each key can reach and chooses among the providers
  * that are actually configured, so naming a vendor here would only contradict
- * `AGENT_PROVIDERS`: live mode needs the chat provider's key, whichever
- * provider the registry is down to.
+ * `AGENT_PROVIDERS`: whichever providers it still lists are the ones a key can
+ * start the host on.
  */
 export function keyedProviders(env: Env): readonly string[] {
   return AGENT_PROVIDERS.filter((id) => hasProviderApiKey(env, id));
