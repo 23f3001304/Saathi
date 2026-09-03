@@ -5,6 +5,7 @@ import {
   WEB_ENTER_CODE_TOOL,
   WEB_FILL_ADDRESS_TOOL,
   WEB_GLANCE_TOOL,
+  WEB_HANDOVER_TOOL,
   WEB_VERIFY_TOOL,
   WEB_OPEN_TOOL,
   WEB_PRESS_TOOL,
@@ -66,8 +67,24 @@ export const WEB_TOOL_DECLARATIONS: readonly ToolDeclaration[] = [
     server: WEB_TOOL_SERVER,
     description:
       "Read the open page: its text, its links, and the controls you may aim " +
-      `at, each with a ref. ${UNTRUSTED}`,
+      "at, each with a ref. It also returns `looks_like` and `because` - what " +
+      "this host noticed on the page (a payment field, a password box, a " +
+      "human check) and the label that gave it away. Those are sightings, not " +
+      `verdicts: you decide what the page is. ${UNTRUSTED}`,
     parameters: schemaOf({}),
+  },
+  {
+    tool: WEB_HANDOVER_TOOL,
+    server: WEB_TOOL_SERVER,
+    description:
+      "Hand the window to the shopper. Call it when the page in front of you " +
+      "is the payment step (you never press what pays), asks them to sign in " +
+      "and web_sign_in has nothing stored, or asks them to prove they are " +
+      "human. `why` is one sentence they will read.",
+    parameters: schemaOf({
+      reason: z.enum(["payment", "sign-in", "human-check", "other"]),
+      why: z.string().min(1).max(300),
+    }),
   },
   {
     tool: WEB_SEARCH_TOOL,

@@ -7,6 +7,7 @@ import type { HeadlessReader } from "@covenant/browser-drive";
 import type { WebFindings } from "../browser/web-listing.js";
 import { SignInVerbs } from "../browser/web-sign-in.js";
 import { GlanceVerbs } from "../browser/web-glance.js";
+import { HandoverMove } from "../browser/web-handover-move.js";
 import { VerifyVerbs } from "../browser/web-verify.js";
 import type { CredentialVault } from "../session/credential-vault.js";
 import type { WebProgress } from "../browser/web-progress.js";
@@ -93,6 +94,7 @@ function webRunner(deps: DispatchDeps, shopper: WebShopper): WebToolRunner {
   };
   return new WebToolRunner(
     shopper,
+    new HandoverMove(() => deps.browser.current(), deps.progress),
     steps,
     undefined,
     deps.pin,

@@ -6,7 +6,7 @@ import { settledRead } from "./settled-read.js";
 import type { KnownAddress } from "./web-address-fill.js";
 import { fillKnownAddress } from "./web-address-fill.js";
 import { checkCartAgainst } from "./web-cart-check.js";
-import { handOver } from "./web-handover.js";
+import { observeWindow } from "./web-handover.js";
 import type { WebFindings } from "./web-listing.js";
 import type { WebProgress } from "./web-progress.js";
 import type { WebPageView } from "./web-page-view.js";
@@ -33,9 +33,10 @@ const SUBMIT = "\n";
  * Shopping the open web, as the operations the buyer agent can call. Every
  * one goes through `GuardedPage`, so the guarantees are the sandbox's own:
  * the classifier decides what may be typed and clicked, a block moves the
- * wheel to the user, and nothing here can reach anything but a DOM. Every
- * read is checked for the two things that end the agent's turn — a bot
- * check, the payment step — and hands over instead of reporting a page.
+ * wheel to the user, and nothing here can reach anything but a DOM. A read
+ * also names what the page looks like — a bot check, a sign-in wall, the
+ * payment step — and only names it: acting on that is the model's own move,
+ * `web_handover`.
  */
 export class WebShopper {
   private readonly refs = new PageRefs();
@@ -75,10 +76,8 @@ export class WebShopper {
   read(): Promise<WebResult> {
     return this.onSession(async (session) => {
       const dom = await settledRead(session, this.waiter);
-      return (
-        handOver(session, dom, (why) => this.progress.recordHandover(why)) ??
-        webOk({ page: this.viewOf(dom), provenance: WEB_PROVENANCE })
-      );
+      const page = this.viewOf(dom);
+      return webOk({ page, ...observeWindow(dom), provenance: WEB_PROVENANCE });
     });
   }
 

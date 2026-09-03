@@ -118,28 +118,29 @@ describe("where the window may go", () => {
 });
 
 /**
- * A door only the shopper can open ends the agent's turn at the window, and it
- * says so on *arrival* — not after somebody reaches at a control and is
- * refused. Before this, the agent landed on a sign-in wall, found nothing it
- * could press, and reported a dead end with no window offered.
+ * A door only the shopper can open is now something the read *says*, not
+ * something it does. The host names what it saw; whether that page is the end
+ * of the agent's road is the model's reading of it, and `web_handover` is how
+ * that reading moves the wheel.
  */
 describe("a door only the shopper can open", () => {
-  it("hands the window over on reaching a sign-in wall", async () => {
+  it("names a sign-in wall in the read instead of stopping on it", async () => {
     await web.call("web_open", { url: SIGNIN });
     const body = await web.body("web_read");
-    expect(body["failure"]).toBe("at_login_step");
-    expect(body["signal"]).toBe("password_field");
-    expect(web.service.current()?.handoff().current()?.reason).toBe("login");
+    expect(body["ok"]).toBe(true);
+    expect(body["looks_like"]).toEqual(["sign-in"]);
+    expect(String((body["because"] as string[])[0])).toContain("Password");
+    expect(web.service.current()?.currentState()).toBe("agent-drive");
     expect(web.page.typed).toEqual([]);
   });
 
-  it("hands the window over on reaching a page that asks for an instrument", async () => {
+  it("names a page that asks for an instrument, and stays at the wheel", async () => {
     await web.call("web_open", { url: CHECKOUT });
     const body = await web.body("web_read");
-    expect(body["failure"]).toBe("at_payment_step");
-    expect(body["signal"]).toBe("payment_field");
-    expect(web.service.current()?.currentState()).toBe("user-drive");
-    expect(web.service.current()?.handoff().current()?.reason).toBe("payment");
+    expect(body["ok"]).toBe(true);
+    expect(body["looks_like"]).toEqual(["payment"]);
+    expect(web.service.current()?.currentState()).toBe("agent-drive");
+    expect(web.service.current()?.handoff().current()).toBe(null);
     expect(web.page.clicked).toEqual([]);
   });
 });

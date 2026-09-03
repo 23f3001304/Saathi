@@ -25,6 +25,14 @@ export const webEnterCodeArgs = z.object({
   code: z.string().regex(/^[0-9]{4,10}$/),
 });
 
+/** Giving the window back. The reason is a closed list because it maps to
+ *  `HandoffReason`, which is closed for the same reason; `why` is the model's
+ *  own sentence and the only thing about this move it writes. */
+export const webHandoverArgs = z.object({
+  reason: z.enum(["payment", "sign-in", "human-check", "other"]),
+  why: z.string().min(1).max(300),
+});
+
 export const webFoundArgs = z.object({
   found: z
     .array(

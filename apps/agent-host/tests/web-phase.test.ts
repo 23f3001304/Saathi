@@ -138,8 +138,8 @@ describe("a phase with nothing to show is not a phase with nothing to say", () =
   });
 
   it("shows a refusal rather than hiding it, and names the cause", () => {
-    expect(stepLabel("web_add_to_cart", { ref: "c1" }, "bot_check")).toBe(
-      "Put it in the shop's basket · the shop wants a human check",
+    expect(stepLabel("web_add_to_cart", { ref: "c1" }, "user_is_driving")).toBe(
+      "Put it in the shop's basket · paused, the window is yours",
     );
     // A code the map does not name still reads as a refusal, never a blank.
     expect(stepLabel("web_add_to_cart", { ref: "c1" }, "failed")).toBe(

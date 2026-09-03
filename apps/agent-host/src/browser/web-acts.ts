@@ -1,7 +1,7 @@
 import type { BrowserSession, PageDom, Waiter } from "@covenant/browser-drive";
 
 import { SETTLE_MS, settledRead } from "./settled-read.js";
-import { handOver } from "./web-handover.js";
+import { observeWindow } from "./web-handover.js";
 import type { WebProgress } from "./web-progress.js";
 import type { WebPageView } from "./web-page-view.js";
 import { WEB_PROVENANCE } from "./web-page-view.js";
@@ -13,8 +13,8 @@ import { webOk, webRefusal } from "./web-result.js";
  * The acting verbs' shared shape, split from `WebShopper` so each file keeps
  * one idea: the shopper owns the session and the refs, this owns what an act
  * is. Every act ends the same way — the page settles, the trail records where
- * the window went, and a bot check or a payment step hands the window over
- * rather than being reported as a page.
+ * the window went, and the page it landed on is named for what it looks like,
+ * so the model knows which step it is standing on before its next move.
  */
 export interface ActDeps {
   readonly waiter: Waiter;
@@ -31,13 +31,14 @@ export async function settleAfterAct(
 ): Promise<WebResult> {
   const dom = await settledRead(session, deps.waiter, SETTLE_MS);
   deps.trail.record(dom.url);
-  const handed = handOver(session, dom, (why) =>
-    deps.progress.recordHandover(why),
-  );
-  if (handed !== null) return handed;
-  // Act landed, page settled, window still ours: only now is it a fact.
+  // Act landed and the page settled: only now is it a fact.
   if (carted) deps.progress.recordCarted();
-  return webOk({ ...fact, page: deps.view(dom), provenance: WEB_PROVENANCE });
+  return webOk({
+    ...fact,
+    page: deps.view(dom),
+    ...observeWindow(dom),
+    provenance: WEB_PROVENANCE,
+  });
 }
 
 /** A click aimed at a point from the last read's own boxes. The judge is the

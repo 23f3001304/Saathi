@@ -25,6 +25,7 @@ import type { JournalSink } from "@covenant/browser-drive";
 import type { Clock } from "@covenant/domain";
 
 import { BrowserService } from "../../src/browser/browser-service.js";
+import { HandoverMove } from "../../src/browser/web-handover-move.js";
 import type { AddressFact } from "../../src/browser/web-address-fill.js";
 import { WebFindings } from "../../src/browser/web-listing.js";
 import { WebProgress } from "../../src/browser/web-progress.js";
@@ -109,6 +110,7 @@ function sessionOf(
 function guardOf(
   shopper: WebShopper,
   ledger: CountingSink,
+  handover: HandoverMove,
 ): GuardedToolDispatcher {
   return new GuardedToolDispatcher(
     new PreToolUseHook(
@@ -118,7 +120,7 @@ function guardOf(
       new SilentTracer(),
       { tenantId: "tnt_demo", attackId: null },
     ),
-    new WebOnlyDispatcher(new WebToolRunner(shopper)),
+    new WebOnlyDispatcher(new WebToolRunner(shopper, handover)),
     null,
   );
 }
@@ -176,7 +178,8 @@ export function webHarness(traits: readonly AddressFact[] = []): WebHarness {
     { lookup: () => Promise.resolve(traits) },
     progress,
   );
-  const guard = guardOf(shopper, ledger);
+  const handover = new HandoverMove(() => service.current(), progress);
+  const guard = guardOf(shopper, ledger, handover);
   const call = callerOn(guard);
   return {
     page,

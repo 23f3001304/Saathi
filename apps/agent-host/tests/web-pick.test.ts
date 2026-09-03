@@ -189,10 +189,10 @@ describe("a delivery box on a checkout page", () => {
     expect(web.service.current()?.currentState()).toBe("agent-drive");
   });
 
-  it("still hands the window over on reading that page", async () => {
+  it("names that page as payment on reading it, and keeps the wheel", async () => {
     await web.call("web_open", { url: CHECKOUT });
     const body = await web.body("web_read");
-    expect(body["failure"]).toBe("at_payment_step");
-    expect(web.service.current()?.handoff().current()?.reason).toBe("payment");
+    expect(body["looks_like"]).toEqual(["payment"]);
+    expect(web.service.current()?.handoff().current()).toBe(null);
   });
 });

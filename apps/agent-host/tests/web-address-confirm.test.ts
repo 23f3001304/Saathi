@@ -49,12 +49,17 @@ function filling(text: string) {
   };
 }
 
+/** A read names the step; only these move the wheel, and the model makes them. */
+const AT_CARD = { reason: "payment", why: "the card step is yours to take" };
+const AT_SIGN_IN = { reason: "sign-in", why: "the shop wants your account" };
+
 /** An errand that walks on to the page which asks for a card. */
 function onward() {
   return {
     converse: async () => {
       await web.call("web_open", { url: CHECKOUT });
       await web.call("web_read");
+      await web.call("web_handover", AT_CARD);
       return {
         transcript: ["At payment."],
         blocked: [],
@@ -169,6 +174,7 @@ describe("a resume that arrives before the shopper is through", () => {
         if (prompts.length <= 2) {
           await web.call("web_open", { url: SIGNIN });
           await web.call("web_read");
+          await web.call("web_handover", AT_SIGN_IN);
         }
         return {
           transcript: ["The shop is still waiting on you at the sign-in."],

@@ -37,6 +37,16 @@ export const WEB_SIGN_IN_TOOL = "web_sign_in";
 export const WEB_ENTER_CODE_TOOL = "web_enter_code";
 export const WEB_VERIFY_TOOL = "web_verify";
 export const WEB_GLANCE_TOOL = "web_glance";
+/**
+ * Giving the window back to the shopper, because the model read the page and
+ * decided the next step is not the agent's to take.
+ *
+ * F2: it moves no money, and it is the one tool here that could not even in
+ * principle — all it does is move the session state machine to `user-drive`,
+ * which takes the agent's hands *off* the page. The window it hands over
+ * reaches no rail and holds no key, exactly as before.
+ */
+export const WEB_HANDOVER_TOOL = "web_handover";
 
 export const WEB_SHOP_TOOLS: readonly string[] = [
   WEB_OPEN_TOOL,
@@ -52,6 +62,7 @@ export const WEB_SHOP_TOOLS: readonly string[] = [
   WEB_ENTER_CODE_TOOL,
   WEB_VERIFY_TOOL,
   WEB_GLANCE_TOOL,
+  WEB_HANDOVER_TOOL,
 ];
 
 /** The money surface of §4.1, as tool names. */

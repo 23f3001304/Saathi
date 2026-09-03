@@ -18,6 +18,7 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import { BrowserService } from "../src/browser/browser-service.js";
 import { buildFixtureShopSession } from "../src/browser/sandbox-factory.js";
+import { HandoverMove } from "../src/browser/web-handover-move.js";
 import { WebToolRunner } from "../src/purchase/web-tool-runner.js";
 import { SilentLogger, StepClock } from "./support/fakes.js";
 import { webShopperOn, WebOnlyDispatcher } from "./support/web-harness.js";
@@ -92,6 +93,8 @@ beforeAll(async () => {
     ids: { uuid: () => "chrome" },
     logger,
   });
+  const shopper = webShopperOn(service);
+  const hand = new HandoverMove(() => service.current(), shopper.progress);
   guard = new GuardedToolDispatcher(
     new PreToolUseHook(
       new MoneyToolRegistry(),
@@ -102,7 +105,7 @@ beforeAll(async () => {
     ),
     // One runner for the suite: the ref table a read fills is what the next
     // click resolves against, and a fresh shopper per call would lose it.
-    new WebOnlyDispatcher(new WebToolRunner(webShopperOn(service))),
+    new WebOnlyDispatcher(new WebToolRunner(shopper, hand)),
     null,
   );
 }, LAUNCH_MS);
@@ -170,17 +173,20 @@ chrome("the real cart, against the signed ceiling", () => {
 
 chrome("the real refusals", () => {
   /**
-   * The real checkout fixture asks for a card, so reading it is the end of the
-   * agent's road: the wheel moves on arrival rather than after it reaches at
-   * the commit button. The button rule itself is table-tested in
-   * `packages/browser-drive/tests/cases-checkout.ts`, both sides of it.
+   * The real checkout fixture asks for a card, and reading it says so while
+   * leaving the wheel where it is. Moving it is `web_handover`, which the
+   * model calls. The button rule itself is table-tested in
+   * `packages/browser-drive/tests/cases-checkout.ts`.
    */
-  it("hands the real window over on reaching the real payment page", async () => {
+  it("names the real payment page, then hands it over when asked", async () => {
     await body("web_open", { url: fixtureShopUrl("checkout.html") });
     const read = await body("web_read");
-    expect(read["failure"]).toBe("at_payment_step");
-    expect(String(read["human"])).toContain("yours");
-    expect(service.current()?.currentState()).toBe("user-drive");
+    expect(read["ok"]).toBe(true);
+    expect(read["looks_like"]).toEqual(["payment"]);
+    expect(service.current()?.currentState()).toBe("agent-drive");
+    const why = "this page takes the money and that press is yours";
+    const handed = await body("web_handover", { reason: "payment", why });
+    expect(String(handed["human"])).toContain("yours");
     expect(service.current()?.handoff().current()?.reason).toBe("payment");
     service.current()?.handoff().resume();
   });

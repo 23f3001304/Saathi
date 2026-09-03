@@ -15,11 +15,13 @@ import {
   WEB_CART_TOOL,
   WEB_FILL_ADDRESS_TOOL,
   WEB_GLANCE_TOOL,
+  WEB_HANDOVER_TOOL,
   WEB_OPEN_TOOL,
   WEB_READ_TOOL,
   WEB_SHOP_TOOLS,
 } from "@covenant/agents";
 
+import type { HandoverMove } from "../browser/web-handover-move.js";
 import type { WebFindings } from "../browser/web-listing.js";
 import type { WebShopper } from "../browser/web-shopper.js";
 import type { SignInVerbs } from "../browser/web-sign-in.js";
@@ -30,7 +32,7 @@ import type { WebPin } from "./web-pin.js";
 import type { StepSink } from "./web-steps.js";
 import { stepLabel } from "./web-steps.js";
 import { actCall, foundCall, vaultCall, verifyCall } from "./web-act-calls.js";
-import { webOpenArgs, webRefArgs } from "./web-tools.js";
+import { webHandoverArgs, webOpenArgs, webRefArgs } from "./web-tools.js";
 
 export function isWebTool(tool: string): boolean {
   return WEB_SHOP_TOOLS.includes(tool);
@@ -48,6 +50,12 @@ export function isWebTool(tool: string): boolean {
 export class WebToolRunner {
   constructor(
     private readonly shopper: WebShopper,
+    /** Giving the window back, by name. Stated rather than defaulted, so that
+     *  every host that wires a runner has to say whether it has a window to
+     *  hand over; `null` is the honest answer where there is none, and the
+     *  model hears "not a tool here" rather than a silent success that handed
+     *  nobody anything. */
+    private readonly handoverMove: HandoverMove | null,
     /** Where each move is written down for the shopper to read. Optional so a
      *  test can drive the tools without a hub behind them. */
     private readonly steps: StepSink | null = null,
@@ -117,9 +125,21 @@ export class WebToolRunner {
         return outcomeOf(await this.shopper.fillAddress());
       case WEB_GLANCE_TOOL:
         return await this.glance();
+      case WEB_HANDOVER_TOOL:
+        return await this.handover(call);
       default:
         return null;
     }
+  }
+
+  /** The one move that ends the agent's turn on purpose. It reaches no rail
+   *  and presses nothing: all it does is move the wheel to the shopper. */
+  private async handover(call: ToolCall): Promise<ToolOutcome> {
+    if (this.handoverMove === null) return unknown(WEB_HANDOVER_TOOL);
+    const parsed = webHandoverArgs.safeParse(call.args);
+    if (!parsed.success) return badArgs(parsed.error);
+    const { reason, why } = parsed.data;
+    return outcomeOf(await this.handoverMove.raise(reason, why));
   }
 
   private async open(call: ToolCall): Promise<ToolOutcome> {

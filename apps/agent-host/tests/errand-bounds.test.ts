@@ -29,7 +29,7 @@ describe("a sandbox call that stops answering is a tool result", () => {
     // each browser call would leave the next one added unguarded, so the bound
     // sits at the one place every sandbox call passes through.
     const shopper = { read: () => NEVER } as unknown as WebShopper;
-    const runner = new WebToolRunner(shopper, null, 20);
+    const runner = new WebToolRunner(shopper, null, null, 20);
 
     const outcome = await runner.run({
       tool: "web_read",
@@ -49,6 +49,7 @@ describe("a sandbox call that stops answering is a tool result", () => {
     const shopper = { read: () => NEVER } as unknown as WebShopper;
     const runner = new WebToolRunner(
       shopper,
+      null,
       { step: (label) => steps.push(label) },
       20,
     );

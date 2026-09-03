@@ -2,6 +2,7 @@ import {
   WEB_ADD_TO_CART_TOOL,
   WEB_CART_TOOL,
   WEB_FILL_ADDRESS_TOOL,
+  WEB_HANDOVER_TOOL,
   WEB_OPEN_TOOL,
   WEB_PRESS_TOOL,
   WEB_READ_TOOL,
@@ -62,25 +63,29 @@ const LABELS: Readonly<
   [WEB_WRITE_TOOL]: () => "Typed into a box on the page",
   [WEB_CART_TOOL]: () => "Read the basket total",
   [WEB_FILL_ADDRESS_TOOL]: () => "Filled the delivery form",
+  [WEB_HANDOVER_TOOL]: () => "Handed the window to you",
 };
 
 /**
  * Why a step did not land, in words a shopper can act on. "did not go
  * through" twice in a row read as an unexplained malfunction; the failure
  * code the tool result already carries names the cause, so the pill does too.
- * Codes come from `web-result.ts`, `web-tool-runner.ts`, `web-challenge.ts`
- * and the classifier's refusals; anything unnamed keeps the generic line.
+ * Codes come from `web-result.ts`, `web-tool-runner.ts` and the classifier's
+ * refusals; anything unnamed keeps the generic line.
+ *
+ * DECISION: `bot_check`, `at_login_step` and `at_payment_step` are gone from
+ * here because nothing raises them any more. A read no longer stops on those
+ * three pages; it names them in `looks_like` and the model hands the window
+ * over by calling `web_handover`, which is a step that lands rather than a
+ * step that failed.
  */
 const CAUSES: Readonly<Record<string, string>> = {
   no_signed_intent: "no signed rule to check it against",
-  bot_check: "the shop wants a human check",
   page_unreachable: "the page stopped answering",
   page_moved: "the page moved mid-read",
   no_window_open: "no window was open yet",
   user_is_driving: "paused, the window is yours",
   not_this_product: "a different product, skipped",
-  at_login_step: "stopped, sign-in is yours",
-  at_payment_step: "stopped, the payment step is yours",
   payment_button: "refused, that control pays",
   sensitive_field: "refused, that field is protected",
   restricted_context: "refused, that page is read-only",
