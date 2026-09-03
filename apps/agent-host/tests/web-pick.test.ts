@@ -76,22 +76,26 @@ beforeEach(async () => {
 });
 
 describe("a tapped card drives the window", () => {
-  it("goes to the listing the ref names, and says where it got to", async () => {
+  it("goes to the listing the ref names, and says only what the errand said", async () => {
     const result = await stepOn("It is in the basket.", true).buy("w1", [
       "runners under 3000",
     ]);
     expect(web.page.url()).toBe(PRODUCT);
     expect(result.status).toBe("answered");
-    expect(said()[0]).toBe("It is in the basket.");
-    expect(said().at(-1)).toContain("payment step is yours");
+    expect(said()).toEqual(["It is in the basket."]);
   });
 
-  it("admits an empty basket rather than handing over a payment step", async () => {
+  it("adds no line of its own over an empty basket either", async () => {
     // The errand claims a basket; this host watched no add-to-basket click
-    // land. The closing line reports the host's own record, not the claim.
-    await stepOn("It is in the basket.").buy("w1", ["runners under 3000"]);
-    expect(said().at(-1)).toContain("could not get it into that shop's basket");
-    expect(said().at(-1)).not.toContain("payment step is yours");
+    // land. That fact went to the model before it spoke (see "the errand is
+    // told what this host watched"); the harness does not append a correction.
+    await stepOn("Nothing went in; the button would not take.").buy("w1", [
+      "runners under 3000",
+    ]);
+    expect(said()).toEqual(["Nothing went in; the button would not take."]);
+    expect(
+      hub.snapshot().some((beat) => beat.kind === "message" && beat.variant === "system"),
+    ).toBe(false);
   });
 
   it("signs nothing and drafts nothing on the way", async () => {

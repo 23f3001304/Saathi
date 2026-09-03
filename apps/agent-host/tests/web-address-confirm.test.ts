@@ -92,41 +92,64 @@ beforeEach(async () => {
   await web.call("web_read");
 });
 
+const ASKED = "It is going to Asha Rao in Bengaluru. Is that the right address?";
+
 describe("the address is confirmed before the checkout goes on", () => {
-  it("asks one question, and parks rather than pressing on", async () => {
-    const result = await stepWith(filling("Filled what I had.")).buy("w1", []);
+  it("asks the model's own question, once, and parks rather than pressing on", async () => {
+    const result = await stepWith(filling(ASKED)).buy("w1", []);
     expect(park.parked).toBe(true);
     expect(park.held).toBe("w1");
     // At the composer, not buried in the transcript: a parked checkout is
-    // owed an answer, so the ask is the beat that arms the dock.
-    expect(asked()).toHaveLength(1);
-    expect(asked()[0]).toContain("Is it correct?");
+    // owed an answer, so the ask is the beat that arms the dock. Its words
+    // are the errand's, not a fixed line of the harness's.
+    expect(asked()).toEqual([ASKED]);
+    expect(said()).toEqual([ASKED]);
     expect(result.status).toBe("answered");
   });
 
   /** The park is what keeps the window alive across the turn boundary: the
    *  basket and the filled form are still there when they answer. */
   it("holds the window open while the question is outstanding", async () => {
-    await stepWith(filling("Filled.")).buy("w1", []);
+    await stepWith(filling(ASKED)).buy("w1", []);
     expect(web.service.isOpen).toBe(true);
     expect(web.page.typed.map((entry) => entry.selector)).toContain("#city");
   });
 
   it("carries on from their answer, in the same window, to the payment step", async () => {
-    const step = stepWith(filling("Filled."));
-    await step.buy("w1", []);
+    await stepWith(filling(ASKED)).buy("w1", []);
     const resumed = await stepWith(onward()).resume(["yes that is right"]);
     expect(resumed.status).toBe("answered");
     // The question is answered, so nothing is parked and the window is theirs.
     expect(park.parked).toBe(false);
     expect(web.service.current()?.handoff().current()?.reason).toBe("payment");
-    expect(said().at(-1)).toContain("payment step is yours");
+    // The closing words are the errand's; the harness adds no line under them.
+    expect(said().at(-1)).toBe("At payment.");
+    expect(hub.snapshot().some((beat) => beat.kind === "message" && beat.variant === "system")).toBe(false);
+  });
+});
+
+/** The ask is the errand's sentence whatever the errand had to say, so the
+ *  two shapes worth pinning are a second one and none at all. */
+describe("a checkout that parks a second time", () => {
+  it("asks again rather than proceeding when the form is refilled", async () => {
+    await stepWith(filling(ASKED)).buy("w1", []);
+    await stepWith(filling("Changed it. Is the office address right?")).resume(["no, my office one"]);
+    expect(park.parked).toBe(true);
+    expect(asked().at(-1)).toBe("Changed it. Is the office address right?");
   });
 
-  it("asks again rather than proceeding when the form is refilled", async () => {
-    await stepWith(filling("Filled.")).buy("w1", []);
-    await stepWith(filling("Filled it again.")).resume(["no, my office one"]);
+  it("parks with an empty prompt when the errand said nothing at all", async () => {
+    const mute = {
+      converse: async () => {
+        await web.call("web_open", { url: DELIVERY });
+        await web.call("web_fill_address");
+        return { transcript: [""], blocked: [], turns: 2, completed: true };
+      },
+    };
+    await stepWith(mute).buy("w1", []);
     expect(park.parked).toBe(true);
+    expect(asked()).toEqual([""]);
+    expect(said()).toEqual([""]);
   });
 });
 

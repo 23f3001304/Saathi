@@ -32,13 +32,7 @@ export interface ResumeParts {
   ): Promise<Spoken>;
   /** One sentence and nothing else, for a turn that may not drive. */
   say(prompt: string): Promise<string>;
-  /** `from` is where `WebTrail` stood when the errand began; Task 27 drops it. */
-  close(
-    base: PurchaseResult,
-    ref: string,
-    from: number,
-    said: Spoken,
-  ): PurchaseResult;
+  close(base: PurchaseResult, ref: string, said: Spoken): PurchaseResult;
 }
 
 /** The resumed half of a parked pick: same window, same step, no re-open
@@ -57,6 +51,18 @@ export async function resumePick(
   }
   parts.progress.resumeReset();
   const from = parts.trail.length;
+  // The record, read at the moment the wheel comes back: this leg has driven
+  // nothing yet, the basket is whatever the parked leg actually put there, and
+  // the handover that parked it is over - naming it here would be the one kind
+  // of stale fact the block exists to keep out.
+  const observed = observedBlock(
+    factsFrom(parts.progress, {
+      pages: [],
+      cards: 0,
+      basketHolds: parts.progress.carted ? holds : null,
+      window: "agent",
+    }),
+  );
   const said = await parts.errand(
     resumeErrandFor(
       stated,
@@ -64,10 +70,11 @@ export async function resumePick(
       parts.park.reason,
       replyLanguage,
       holds,
+      observed,
     ),
     { stated, replyLanguage, from, holds },
   );
-  return parts.close(base, ref, from, said);
+  return parts.close(base, ref, said);
 }
 
 /**

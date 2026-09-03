@@ -111,7 +111,7 @@ export class WebBuyStep {
       { stated, replyLanguage, from, holds: listing.title },
     );
     this.logger.info("purchase.web_pick", { ref, url: listing.url });
-    return this.close(base, ref, from, said, listing.url);
+    return this.close(base, ref, said);
   }
 
   /** Picks up where it stopped: no re-open, no re-sign, the same window on
@@ -131,27 +131,15 @@ export class WebBuyStep {
       hub: this.hub,
       errand: (prompt, at) => this.errand(prompt, at),
       say: (prompt) => saidAlone(this.conversation, prompt),
-      close: (base, ref, from, said) => this.close(base, ref, from, said),
+      close: (base, ref, said) => this.close(base, ref, said),
     };
     return resumePick(parts, stated, replyLanguage);
   }
 
-  private close(
-    base: PurchaseResult,
-    ref: string,
-    from: number,
-    spoke: Spoken,
-    fallback = "",
-  ): PurchaseResult {
+  private close(base: PurchaseResult, ref: string, spoke: Spoken): PurchaseResult {
     return closePick(
-      {
-        hub: this.hub,
-        park: this.park,
-        progress: this.progress,
-        trail: this.trail,
-        logger: this.logger,
-      },
-      { base, ref, from, spoke, fallback },
+      { hub: this.hub, park: this.park, progress: this.progress, logger: this.logger },
+      { base, ref, spoke },
     );
   }
 
