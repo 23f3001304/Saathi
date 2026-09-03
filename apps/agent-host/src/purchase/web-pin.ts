@@ -43,6 +43,15 @@ const SHOP_HOSTS: Readonly<Record<string, Readonly<Record<string, string>>>> = {
  * DECISION: one subject at a time. A pick is about a product and a look is
  * about a shop, so `hold` lets a shop go and `toShop` lets a product go; a pin
  * holding both would outlive the errand that meant either.
+ *
+ * DECISION: the two answers are asked for separately, and the shop is not one
+ * of them at the window. `offShop` is what `web_verify` and `web_card` ask,
+ * because research is where a named shop was disobeyed; `allows` is what
+ * `web_open` asks, and it stays about the product. Folding the shop into
+ * `allows` would hold a BUY errand to whatever shop the last look named - the
+ * lane keeps one pin, and nothing in the buy path clears it - so a checkout
+ * hop onto a gateway or a co-branded host would be refused, in a
+ * money-adjacent errand, by a sentence about a listing nobody is holding.
  */
 export class WebPin {
   private held: string | null = null;
@@ -104,10 +113,9 @@ export class WebPin {
     return `the shopper named ${this.host}; this page is ${hostOf(url) || url.slice(0, 60)}`;
   }
 
-  /** Whether the errand may open this. Unpinned, everything; pinned, the
-   *  shop they named, and the product itself or any page that is not one. */
+  /** Whether the errand may open this at the window. Unpinned, everything;
+   *  pinned, the product itself and any page that is not a product. */
   allows(url: string): boolean {
-    if (this.offShop(url) !== null) return false;
     if (this.held === null) return true;
     const asked = productKey(url);
     return asked === null || asked === this.held;

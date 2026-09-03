@@ -26,23 +26,27 @@ function pinFor(named: string): WebPin {
   return pin;
 }
 
+/** The one question the shop pin answers, asked by the two research verbs. */
+function takes(named: string, url: string): boolean {
+  return pinFor(named).offShop(url) === null;
+}
+
 describe("the shop they named, resolved to hosts", () => {
   it("holds a name from the table to that market's storefront", () => {
-    expect(pinFor("Amazon").allows(AMAZON)).toBe(true);
-    expect(pinFor("Amazon").allows(MOGLIX)).toBe(false);
-    expect(pinFor("  AMAZON  ").allows(AMAZON)).toBe(true);
-    expect(pinFor("flipkart").allows("https://www.flipkart.com/p/x")).toBe(true);
-    expect(pinFor("myntra").allows("https://www.myntra.com/p/x")).toBe(true);
-    expect(pinFor("croma").allows("https://www.croma.com/p/x")).toBe(true);
-    const reliance = pinFor("Reliance Digital");
-    expect(reliance.allows("https://www.reliancedigital.in/p/x")).toBe(true);
+    expect(takes("Amazon", AMAZON)).toBe(true);
+    expect(takes("Amazon", MOGLIX)).toBe(false);
+    expect(takes("  AMAZON  ", AMAZON)).toBe(true);
+    expect(takes("flipkart", "https://www.flipkart.com/p/x")).toBe(true);
+    expect(takes("myntra", "https://www.myntra.com/p/x")).toBe(true);
+    expect(takes("croma", "https://www.croma.com/p/x")).toBe(true);
+    expect(takes("Reliance Digital", "https://reliancedigital.in")).toBe(true);
   });
 
   it("takes a literal hostname as given", () => {
-    expect(pinFor("amazon.in").allows(AMAZON)).toBe(true);
-    expect(pinFor("www.amazon.in").allows(AMAZON)).toBe(true);
-    expect(pinFor("primeabgb.com").allows("https://primeabgb.com/x")).toBe(true);
-    expect(pinFor("primeabgb.com").allows(MOGLIX)).toBe(false);
+    expect(takes("amazon.in", AMAZON)).toBe(true);
+    expect(takes("www.amazon.in", AMAZON)).toBe(true);
+    expect(takes("primeabgb.com", "https://primeabgb.com/x")).toBe(true);
+    expect(takes("primeabgb.com", MOGLIX)).toBe(false);
   });
 
   it("pins nothing on a name it cannot resolve, and nothing on none", () => {
@@ -54,19 +58,23 @@ describe("the shop they named, resolved to hosts", () => {
 });
 
 describe("which hosts are that shop", () => {
-  /**
-   * A shop runs more than one hostname: `m.amazon.in` is the shop they named,
-   * and `http` rather than `https` is the same page over a worse transport,
-   * which is not this pin's business. What is refused is a DIFFERENT shop,
-   * which is the whole of the fault this exists for.
-   */
+  /** A shop runs more than one hostname: `m.amazon.in` is the shop they
+   *  named, and `http` is the same page over a worse transport, which is not
+   *  this pin's business. What is refused is a DIFFERENT shop. */
   it("takes a subdomain and http, refuses a lookalike and a non-page", () => {
-    expect(pinFor("Amazon").allows("https://m.amazon.in/dp/B0CK778YL5")).toBe(
-      true,
-    );
-    expect(pinFor("Amazon").allows("http://www.amazon.in/dp/B0")).toBe(true);
-    expect(pinFor("Amazon").allows("https://notamazon.in/dp/B0")).toBe(false);
-    expect(pinFor("Amazon").allows("file:///etc/passwd")).toBe(false);
+    expect(takes("Amazon", "https://m.amazon.in/dp/B0CK778YL5")).toBe(true);
+    expect(takes("Amazon", "http://www.amazon.in/dp/B0")).toBe(true);
+    expect(takes("Amazon", "https://notamazon.in/dp/B0")).toBe(false);
+    expect(takes("Amazon", "file:///etc/passwd")).toBe(false);
+  });
+
+  /** The shop stops at the two research verbs. `allows` is the window's own
+   *  question, asked by `web_open` in a BUY errand off the lane's one pin:
+   *  gating it here would hold a checkout to the shop a previous look named,
+   *  and refuse the hop with a sentence about a product nobody is holding. */
+  it("is not a gate on the window: web_open is left to the product", () => {
+    expect(pinFor("Amazon").allows(MOGLIX)).toBe(true);
+    expect(pinFor("Amazon").allows("https://checkout.example/pay")).toBe(true);
   });
 });
 
@@ -91,7 +99,6 @@ describe("what the errand is told about its pin", () => {
   it("refuses nothing at all where no shop was named", () => {
     const pin = new WebPin();
     pin.toShop(null, "INR");
-    expect(pin.allows(MOGLIX)).toBe(true);
     expect(pin.offShop(MOGLIX)).toBeNull();
   });
 });
