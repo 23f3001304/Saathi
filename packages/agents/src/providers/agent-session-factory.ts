@@ -1,10 +1,7 @@
 import type { PreToolUseHook } from "../buyer/pre-tool-use-hook.js";
 import type { AgentSession, ToolDispatcher } from "../shared/agent-session.js";
 import { GuardedToolDispatcher } from "./guarded-tool-dispatcher.js";
-import type {
-  OpenAiSessionConfig,
-  ReasoningEffort,
-} from "./openai-agent-session.js";
+import type { OpenAiSessionConfig, ReasoningEffort } from "./openai-request.js";
 import { OpenAiAgentSession } from "./openai-agent-session.js";
 import type { AgentProviderId, Env } from "./provider-config.js";
 import {

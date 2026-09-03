@@ -28,7 +28,7 @@ Author: backend architect | Status: build-ready v1 | Date: 2026-08-31 | Repo roo
 | Constructor injection only | — | `new` for collaborators appears **only** in `apps/*/src/composition-root.ts` and `apps/*/src/wiring/*`. Value objects (`Money.fromPaise`) and DTO literals are not collaborators. |
 | TS `strict` + `exactOptionalPropertyTypes` + `noUncheckedIndexedAccess` | on | **DECISION:** domain models use `T \| null` for *known-absent*; `?:` is reserved for genuinely optional **request** fields at HTTP boundaries. Why: mixing the two under `exactOptionalPropertyTypes` is the top source of build friction, and `null` is what SQLite stores anyway. |
 
-**Stack lock (ARCHITECTURE §10 — non-negotiable):** Hono, better-sqlite3, jose, zod, sqlite-vec, pino, OpenTelemetry, Claude Agent SDK, Vitest, ESLint, dependency-cruiser. Native primitives preferred where identical: `fetch` (no axios), `node --env-file` (no dotenv), `crypto.randomUUID`, `node:crypto` for SHA-256/HMAC, ledger-rebuilt `setTimeout` (no cron lib), no mocking framework (inject fakes). Nothing in ARCHITECTURE §10.3 is weakened anywhere below: the memory digest is a signed cart claim (§6), the chain is hash-linked and replayable (§3.2, §11 Wave 0), the AP2 claim set is complete (§6), the attack harness is black-box HTTP (§7), `PreToolUse` interception is a hard block in harness code (§2.7), memory is bi-temporal (§3.4), the flywheel is provenance-filtered (§2.6), and reason codes are machine + human (§4.6).
+**Stack lock (ARCHITECTURE §10 — non-negotiable):** Hono, better-sqlite3, jose, zod, sqlite-vec, pino, OpenTelemetry, OpenAI Responses API, Vitest, ESLint, dependency-cruiser. Native primitives preferred where identical: `fetch` (no axios), `node --env-file` (no dotenv), `crypto.randomUUID`, `node:crypto` for SHA-256/HMAC, ledger-rebuilt `setTimeout` (no cron lib), no mocking framework (inject fakes). Nothing in ARCHITECTURE §10.3 is weakened anywhere below: the memory digest is a signed cart claim (§6), the chain is hash-linked and replayable (§3.2, §11 Wave 0), the AP2 claim set is complete (§6), the attack harness is black-box HTTP (§7), `PreToolUse` interception is a hard block in harness code (§2.7), memory is bi-temporal (§3.4), the flywheel is provenance-filtered (§2.6), and reason codes are machine + human (§4.6).
 
 ---
 
@@ -248,7 +248,7 @@ Legend: **Collaborators** lists *injected ports/interfaces only* — never concr
 | `src/recommendation-service.ts` | `RecommendationService` | `GET /recs` use case: candidates → trust → regret weighting → k-anonymised response. | `CandidateSource`, `RegretWeighter`, `KAnonymizer`, `PriceAnchorAnalyzer`, `Tracer` | 150 |
 | `src/index.ts` | barrel | — | — | 25 |
 
-### 2.7 `packages/agents` — buyer + merchant (Claude Agent SDK). → `domain`, `memory`, `mandates`
+### 2.7 `packages/agents` — buyer + merchant (OpenAI Responses API). → `domain`, `memory`, `mandates`
 
 | File | Class | Responsibility | Collaborators (injected) | Est. LOC |
 |---|---|---|---|---|
@@ -260,12 +260,11 @@ Legend: **Collaborators** lists *injected ports/interfaces only* — never concr
 | `src/buyer/gateway-client.ts` | `GatewayClient` | The single money egress: `fetch` to gateway-svc with the five ACP headers and body signature. | `MandateSigner`, `Clock`, `IdGenerator`, `sha256`, config | 165 |
 | `src/buyer/intent-drafter.ts` | `IntentDrafter` | Turns the conversation into draft `IntentBounds` + `natural_language_description` for user confirmation. | `PromptJudge`, `Clock` | 120 |
 | `src/buyer/cart-assembler.ts` | `CartAssembler` | Builds the W3C PaymentRequest, calls the read gate at `cart-construction`, attaches the digest. | `ReadGate`, `CartMandateIssuer`, `Clock` | 150 |
-| `src/buyer/buyer-agent.ts` | `BuyerAgent` | Owns the Claude Agent SDK session, tool registration, and the negotiate→confirm→pay loop. | `PreToolUseHook`, `GatewayClient`, `IntentDrafter`, `CartAssembler`, `WriteGate`, `Logger` | 145 |
+| `src/buyer/buyer-agent.ts` | `BuyerAgent` | Owns the model session, tool registration, and the negotiate→confirm→pay loop. | `PreToolUseHook`, `GatewayClient`, `IntentDrafter`, `CartAssembler`, `WriteGate`, `Logger` | 145 |
 | `src/buyer/buyer-prompt.ts` | `BUYER_SYSTEM_PROMPT` | Versioned prompt artifact (`v1`), including the fiduciary and neutral-presentation rules (ARCHITECTURE §5.7). | — | 95 |
 | `src/merchant/catalog-tool.ts` | `CatalogTool` | Agent-readable catalog listing; descriptions are returned tagged `untrusted_text`. | catalog fixture, `ToolEnvelopeVerifier` | 120 |
 | `src/merchant/quote-tool.ts` | `QuoteTool` | Issues **P2 merchant-signed** price quotes with `jti`, `exp`, and line-item hashes. | `MandateSigner`, `Clock`, `IdGenerator` | 130 |
 | `src/merchant/merchant-agent.ts` | `MerchantAgent` | Hosts the merchant tools and the negotiation policy; never touches the ledger directly. | `CatalogTool`, `QuoteTool`, `ToolEnvelopeVerifier`, `Logger` | 145 |
-| `src/merchant/rzp-mcp-mount.ts` | `RazorpayMcpMount` | Mounts the Razorpay MCP server on the merchant agent for ops actions only (never checkout). | config, `Logger` | 90 |
 | `src/index.ts` | barrel | — | — | 25 |
 
 **DECISION: `GatewayClient` declares its own response zod schemas instead of importing them from `packages/gateway`.** Why: the gateway is an independent trust context (ARCHITECTURE §5.1); sharing types would smuggle a trust assumption across the boundary, and depcruise already forbids the import. The HTTP contract in §4 is the shared artifact, and a contract test in Wave 4 asserts both sides agree.
@@ -1639,7 +1638,7 @@ Participants are the same across all six diagrams:
 | Alias | Component |
 |---|---|
 | `U` | User (chat UI / signing sheet) |
-| `BA` | Buyer Agent (`packages/agents`, Claude Agent SDK) |
+| `BA` | Buyer Agent (`packages/agents`, OpenAI Responses API) |
 | `HK` | `PreToolUseHook` — the F2 interception point |
 | `MA` | Merchant Agent (catalog + signed quotes) |
 | `PT` | PTLM (`packages/memory`: write gate, read gate, digest) |
@@ -2663,7 +2662,7 @@ Packages are independent by design (ARCHITECTURE §12), so each wave fans out. A
 |---|---|---|
 | 4a | `packages/gateway` | `envelope_reservations` + `stock_reservations` write paths, `SpendWindow`, `CooloffScheduler`, `/cooloff/*` routes, the reservation sweeper. |
 | 4b | `packages/recs` | Three folds, `TrustScore`, `PriceAnchorAnalyzer`, `CandidateSource`, `RegretWeighter`, `KAnonymizer`, `RecommendationService`, `/folds/*` and `/recs`. |
-| 4c | `packages/agents` | `AgentInstance`, tool envelope signer/verifier, `MoneyToolRegistry`, `PreToolUseHook`, `GatewayClient`, `IntentDrafter`, `CartAssembler`, `BuyerAgent`, `CatalogTool`, `QuoteTool`, `MerchantAgent`, `RazorpayMcpMount`. |
+| 4c | `packages/agents` | `AgentInstance`, tool envelope signer/verifier, `MoneyToolRegistry`, `PreToolUseHook`, `GatewayClient`, `IntentDrafter`, `CartAssembler`, `BuyerAgent`, `CatalogTool`, `QuoteTool`, `MerchantAgent`. |
 
 **Exit test** — `pnpm vitest run && pnpm test:e2e:conversation`:
 1. Cool-off: park → mature → execute; park → cancel → nothing reaches Razorpay; park → cancel → restore within 5 s; cancel after maturity ⇒ `TXN_ALREADY_FINALIZED`. All four ledgered.

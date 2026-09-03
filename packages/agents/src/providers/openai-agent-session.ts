@@ -12,29 +12,13 @@ import {
   runGuardedTurn,
 } from "./provider-turn-loop.js";
 import { readOpenAiStream } from "./openai-stream.js";
+import type { OpenAiSessionConfig } from "./openai-request.js";
+import { openAiRequestBody } from "./openai-request.js";
 import type { JsonTransport, ProviderHeaders } from "./provider-transport.js";
-import type { ToolDeclaration } from "./tool-declarations.js";
-import { toolRequestOf, wireNameOf } from "./tool-declarations.js";
+import { toolRequestOf } from "./tool-declarations.js";
 import type { DraftScope, TurnStream } from "./turn-stream.js";
 import type { JsonRecord } from "./wire-json.js";
 import { asRecord, recordsAt, stringAt, textOfBlocks } from "./wire-json.js";
-
-export type ReasoningEffort = "low" | "medium" | "high";
-
-export interface OpenAiSessionConfig {
-  readonly baseUrl: string;
-  readonly apiKey: string;
-  readonly model: string;
-  readonly systemPrompt: string;
-  readonly tools: readonly ToolDeclaration[];
-  readonly maxToolIterations: number;
-  /** Reasoning effort. Absent, the API default applies, which for a
-   *  reasoning model is far below what it can do. */
-  readonly reasoningEffort?: ReasoningEffort;
-  /** Hosted tools sent verbatim beside the function tools; in use:
-   *  `{type: "web_search"}` for research. */
-  readonly hostedTools?: readonly JsonRecord[];
-}
 
 type OpenAiInputItem = JsonRecord;
 
@@ -43,15 +27,7 @@ type OpenAiInputItem = JsonRecord;
  *
  * DECISION: Responses, not Chat Completions. The current function-calling
  * guide documents the flat `{type, name, description, parameters}` form and
- * `function_call_output` items, which is what this adapter speaks.
- *
- * DECISION: `store: false` and the full history resent each turn. Server-side
- * conversation retention is not something a payments harness should opt into
- * silently, and a stateless request is the one whose replay is deterministic.
- *
- * DECISION: `strict: false`. Our schemas come from zod, where a nullable int
- * becomes `anyOf`, which OpenAI's strict subset rejects. Argument validity is
- * already enforced where it matters — each tool verifies its own AM2 envelope.
+ * `function_call_output` items. What goes on the wire is `openai-request.ts`.
  */
 export class OpenAiExchange implements ProviderExchange {
   private items: OpenAiInputItem[] = [];
@@ -119,20 +95,7 @@ export class OpenAiExchange implements ProviderExchange {
   }
 
   requestBody(): JsonRecord {
-    return {
-      model: this.config.model,
-      instructions: this.config.systemPrompt,
-      input: [...this.items],
-      tools: [
-        ...(this.config.hostedTools ?? []),
-        ...this.config.tools.map(declarationPayload),
-      ],
-      tool_choice: "auto",
-      store: false,
-      ...(this.config.reasoningEffort === undefined
-        ? {}
-        : { reasoning: { effort: this.config.reasoningEffort } }),
-    };
+    return openAiRequestBody(this.config, this.items);
   }
 
   /** Echoes the turn into `items`: a stateless request must carry the
@@ -175,16 +138,6 @@ export class OpenAiExchange implements ProviderExchange {
     });
     requests.push(toolRequestOf(name, callId, args));
   }
-}
-
-function declarationPayload(declaration: ToolDeclaration): JsonRecord {
-  return {
-    type: "function",
-    name: wireNameOf(declaration),
-    description: declaration.description,
-    parameters: declaration.parameters,
-    strict: false,
-  };
 }
 
 export class OpenAiAgentSession implements AgentSession {

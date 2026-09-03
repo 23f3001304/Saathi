@@ -1,15 +1,23 @@
 import { describe, expect, it } from "vitest";
 
 import { F2_BLOCK_HUMAN } from "../src/buyer/pre-tool-use-hook.js";
+import { GuardedToolDispatcher } from "../src/providers/guarded-tool-dispatcher.js";
+import { OpenAiAgentSession } from "../src/providers/openai-agent-session.js";
+import { JsonTransport } from "../src/providers/provider-transport.js";
+import { COVENANT_TOOL_DECLARATIONS } from "../src/providers/tool-declarations.js";
+import { capturingFetch, jsonResponse, RecordingDispatcher } from "./doubles.js";
+import { RecordingSink } from "./fakes.js";
 import type { ProviderCase } from "./provider-cases.js";
 import {
   bodyAt,
   firstDeclaration,
   GATEWAY_TOOL,
+  hookOf,
   PROVIDER_CASES,
   runTurn,
   SPOOFED_MONEY_TOOL,
 } from "./provider-cases.js";
+import { sentBody } from "./provider-wire.js";
 
 const cases = PROVIDER_CASES.map(
   (kase) => [kase.id, kase] as readonly [string, ProviderCase],
@@ -100,6 +108,40 @@ describe("openai emits the documented Responses declaration shape", () => {
     expect(declaration["parameters"]).not.toHaveProperty("$schema");
     expect(bodyAt(run, 0)["store"]).toBe(false);
     expect(run.urls).toEqual(["https://api.openai.com/v1/responses"]);
+  });
+});
+
+describe("openai puts hosted tools ahead of the function declarations", () => {
+  it("keeps a configured hosted tool first in the tools array", async () => {
+    const sink = new RecordingSink();
+    const dispatcher = new RecordingDispatcher('{"verdict":"approve"}');
+    const guard = new GuardedToolDispatcher(hookOf(sink), dispatcher, "txn_1");
+    const { fetch: fetchImpl, calls } = capturingFetch([
+      jsonResponse(200, { output: [] }),
+    ]);
+    const session = new OpenAiAgentSession(
+      guard,
+      new JsonTransport(fetchImpl, { provider: "openai", timeoutMs: 1_000 }),
+      {
+        apiKey: "test-key",
+        model: "test-model",
+        systemPrompt: "You are the buyer agent.",
+        tools: COVENANT_TOOL_DECLARATIONS,
+        maxToolIterations: 4,
+        baseUrl: "https://api.openai.com/v1",
+        hostedTools: [{ type: "web_search" }],
+      },
+    );
+
+    await session.turn({ userMessage: "search the web", toolResults: [] });
+    await session.close();
+
+    const tools = sentBody(calls[0])["tools"] as readonly Record<
+      string,
+      unknown
+    >[];
+    expect(tools[0]).toEqual({ type: "web_search" });
+    expect(tools[1]?.["type"]).toBe("function");
   });
 });
 

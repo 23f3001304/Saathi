@@ -44,6 +44,7 @@ export * from "./providers/agent-session-factory.js";
 export * from "./providers/attempt-drafts.js";
 export * from "./providers/guarded-tool-dispatcher.js";
 export * from "./providers/openai-agent-session.js";
+export * from "./providers/openai-request.js";
 export * from "./providers/openai-stream.js";
 export * from "./providers/provider-config.js";
 export * from "./providers/provider-transport.js";

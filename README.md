@@ -78,7 +78,7 @@ started is invisible until it restarts, and their quotes read as
 
 gateway-svc mints a dev trust ring into `keys/` on first boot. Start it before agent-host, which loads that ring rather than minting its own.
 
-Set `COVENANT_AGENT_MODE=live` to drive the agent with a real model. It needs **one** provider key — `OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, `GOOGLE_API_KEY` or `SARVAM_API_KEY` — and routes among whichever are present. Unset, it runs a deterministic scripted session that exercises the same block matrix.
+Set `COVENANT_AGENT_MODE=live` to drive the agent with a real model. It needs `OPENAI_API_KEY`; every sentence the shopper reads comes from OpenAI. `SARVAM_API_KEY` is the audit UI's speech key (saaras listens, bulbul speaks) and does not start live mode. Unset, it runs a deterministic scripted session that exercises the same block matrix.
 
 `pnpm docker:up` brings up the same stack plus Jaeger on <http://localhost:16686>.
 

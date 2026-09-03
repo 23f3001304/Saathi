@@ -70,6 +70,6 @@ EXPOSE 8788
 # The trust ring is read, never minted (see src/wiring/key-wiring.ts), so this
 # container shares gateway-svc's key volume and starts after it.
 ENV COVENANT_GATEWAY_URL=http://gateway-svc:8787
-# No ANTHROPIC_API_KEY: the default `scripted` mode runs the whole demo with zero
-# credentials. Set COVENANT_AGENT_MODE=live plus a key to hand the wheel to Claude.
+# No OPENAI_API_KEY: the default `scripted` mode runs the whole demo with zero
+# credentials. Set COVENANT_AGENT_MODE=live plus the key to hand the wheel to the model.
 CMD ["node", "dist/src/index.js"]
