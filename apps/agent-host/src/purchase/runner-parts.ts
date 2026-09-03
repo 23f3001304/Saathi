@@ -16,6 +16,7 @@ import type { IntentFlow } from "./intent-flow.js";
 import type { RunNarrator } from "./run-narrator.js";
 import type { LastProposal } from "./last-proposal.js";
 import type { PendingDraft } from "./pending-draft.js";
+import type { RefusalVoice } from "./refusal-step.js";
 import type { MerchantToolFallback } from "./tool-fallback.js";
 import type { ToolLog } from "./tool-log.js";
 import type { TraitMemory } from "./trait-memory.js";
@@ -87,6 +88,8 @@ export interface RunnerParts {
   readonly settlement: CheckoutStep;
   readonly hub: BeatHub;
   readonly narrator: RunNarrator;
+  /** Who explains a refused cart: the buyer live, the fixture scripted. */
+  readonly refusals: RefusalVoice;
   readonly cartGate: ConfirmationGate;
   /** Opened once at the top of the run; every read in the turn is off it. */
   readonly shelf: Shelf;

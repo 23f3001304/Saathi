@@ -7,6 +7,7 @@ import type {
 import { announceCart, refuseCart } from "./cart-step.js";
 import type { SignedIntent } from "./intent-flow.js";
 import type { PurchaseResult } from "./purchase-result.js";
+import { explainRefusal } from "./refusal-step.js";
 import type { RunnerConfig, RunnerParts } from "./runner-parts.js";
 import { PurchaseFailed } from "./tool-fallback.js";
 
@@ -46,7 +47,14 @@ export async function proposeCart(
     agentInstanceId: config.agentInstanceId,
   });
   if (!assembly.ok) {
-    return refuseCart(parts.hub, parts.logger, result, assembly.reasonCode);
+    const said = await explainRefusal(parts, assembly.reasonCode);
+    const refused = refuseCart(
+      parts.hub,
+      parts.logger,
+      result,
+      assembly.reasonCode,
+    );
+    return { ...refused, transcript: [...refused.transcript, ...said] };
   }
   announceCart(parts.hub, assembly.cart, result.memoryDigest);
   await parts.cartGate.wait();

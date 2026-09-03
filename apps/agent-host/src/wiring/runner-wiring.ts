@@ -13,7 +13,7 @@ import type { RunnerConfig, SandboxOwner } from "../purchase/runner-parts.js";
 import type { AgentToolDispatcher } from "../purchase/tool-dispatcher.js";
 import { MerchantToolFallback } from "../purchase/tool-fallback.js";
 import type { ToolLog } from "../purchase/tool-log.js";
-import { checkoutOf, loopOn } from "./agent-loop.js";
+import { checkoutOf, loopParts } from "./agent-loop.js";
 import type { BuyerDeps } from "./buyer-parts.js";
 import { draftDefaults, wireJudge } from "./judge-wiring.js";
 import type { MemoryDeps } from "./memory-wiring.js";
@@ -163,7 +163,7 @@ export function wireRunner(
       lastProposal: new LastProposal(),
       pending: shared.pending,
       cartGate: shared.cartGate,
-      buyer: loopOn(deps, deps.session, dispatcher),
+      ...loopParts(deps, dispatcher),
       intents: shared.intents,
       fallback: new MerchantToolFallback(
         deps.gateway.hook,
