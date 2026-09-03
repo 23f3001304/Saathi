@@ -1,9 +1,13 @@
-// A shop asking to check the shopper is human. The agent has never been able
-// to touch one — a challenge is a third-party document, and an unreadable
-// target cannot be protected — so what this proves is that the dead end became
-// a handoff: the read names the check, the model gives the window over by
-// name, the wheel moves, the window survives, and nobody automated a bot check
-// to get past it.
+// A shop asking to check the shopper is human. What this file proves is that
+// the dead end became a handoff without anything automating a bot check to get
+// past it: the read names the check and moves no wheel, the model gives the
+// window over by name, the window survives long enough for a person to work
+// through it — and if the model aims at the check instead, the classifier
+// refuses the control and hands the window over anyway. The floor under all of
+// that is the classifier's `captcha_context` rule, table-tested in
+// `packages/browser-drive/tests/cases-actions.ts`, and `RelayGate`, which
+// cannot describe the widget itself: it is a third-party document, and an
+// unreadable target cannot be protected.
 import { beforeEach, describe, expect, it } from "vitest";
 
 import { CHECKPOINT, HOME, PRODUCT } from "./support/fake-shop.js";
@@ -49,10 +53,21 @@ describe("the agent meets a bot check", () => {
     expect(String(body["human"])).toContain("yours");
   });
 
-  it("attempts nothing at all — no click, no keystroke", async () => {
+  /**
+   * The floor, which this change did not move. A read observes now instead of
+   * stopping, so the thing that stands between the agent and a challenge is no
+   * longer the stop: it is the real `FieldClassifier`, which refuses any
+   * control in a bot-check context and hands the window over on the refusal.
+   * Nothing reaches the window - no click, no keystroke - however the aim was
+   * taken.
+   */
+  it("is refused if the model aims at the check anyway", async () => {
     await web.call("web_open", { url: CHECKPOINT });
     await web.call("web_read");
-    await web.call("web_search", { query: "anything" });
+    const aimed = await web.body("web_add_to_cart", { ref: "c1" });
+    expect(aimed["rule"]).toBe("captcha_context");
+    expect(aimed["handoff_reason"]).toBe("captcha");
+    expect(String(aimed["human"])).toContain("yours to do");
     expect(web.page.clicked).toEqual([]);
     expect(web.page.typed).toEqual([]);
   });

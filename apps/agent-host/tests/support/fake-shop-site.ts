@@ -144,7 +144,10 @@ const PAGES: Readonly<Record<string, ShopPage>> = {
     frames: [
       "https://challenges.cloudflare.com/cdn-cgi/challenge-platform/x/y",
     ],
-    controls: [button("#verify", "Verify")],
+    // The checkbox a real challenge puts in front of you, in its own words.
+    // It is what makes this page refusable by the classifier rather than
+    // merely empty of anything to press.
+    controls: [button("#verify", "I am not a robot")],
   }),
   [DELIVERY]: page(DELIVERY, {
     blocks: [{ tag: "h1", text: "Where should this go?" }],
