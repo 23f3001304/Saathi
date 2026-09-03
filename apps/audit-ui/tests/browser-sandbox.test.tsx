@@ -6,6 +6,7 @@ import { describe, expect, it, vi } from "vitest";
 import { fireEvent, render, screen } from "@testing-library/react";
 
 import { BrowserSessionCard } from "../src/browser/BrowserSessionCard.tsx";
+import { LiveViewport } from "../src/browser/LiveViewport.tsx";
 import { HANDOFF_LOGIN } from "../src/browser/browserFixture.ts";
 import { fixtureBrowser } from "../src/browser/fixtureBrowser.ts";
 import {
@@ -83,6 +84,95 @@ describe("the viewport while the wheel is yours", () => {
       />,
     );
     expect(screen.getByText(/2 fields are blacked out/)).toBeDefined();
+  });
+});
+
+// The wheel over the picture has to move the page in the picture and nothing
+// else. React registers wheel handlers passively, so a `preventDefault()` in
+// `onWheel` is a no-op and the transcript under the card scrolls instead —
+// which is why these dispatch a real DOM event and read `defaultPrevented`
+// off it rather than trusting a synthetic one.
+describe("the wheel over the live surface", () => {
+  const surfaceOf = (): HTMLElement => {
+    const frame = screen.getByAltText(LIVE.title);
+    const surface = frame.parentElement;
+    if (surface === null) throw new Error("the picture has no surface");
+    return surface;
+  };
+
+  const wheel = (node: HTMLElement, init: WheelEventInit): WheelEvent => {
+    const event = new WheelEvent("wheel", {
+      bubbles: true,
+      cancelable: true,
+      ...init,
+    });
+    node.dispatchEvent(event);
+    return event;
+  };
+
+  it("scrolls the sandbox page and swallows the gesture", () => {
+    const sent: RelayInput[] = [];
+    render(
+      <LiveViewport
+        session={LIVE}
+        interactive={true}
+        onRelay={(input) => sent.push(input)}
+      />,
+    );
+    const event = wheel(surfaceOf(), { deltaY: 120 });
+    expect(sent).toEqual([{ kind: "scroll", dy: 120 }]);
+    expect(event.defaultPrevented).toBe(true);
+  });
+
+  it("owns the gesture sideways too, with nothing to relay", () => {
+    const sent: RelayInput[] = [];
+    render(
+      <LiveViewport
+        session={LIVE}
+        interactive={true}
+        onRelay={(input) => sent.push(input)}
+      />,
+    );
+    const event = wheel(surfaceOf(), { deltaX: 240, deltaY: 0 });
+    expect(sent).toEqual([]);
+    expect(event.defaultPrevented).toBe(true);
+  });
+
+  it("leaves the page alone while the window is not yours", () => {
+    const sent: RelayInput[] = [];
+    render(
+      <LiveViewport
+        session={LIVE}
+        interactive={false}
+        onRelay={(input) => sent.push(input)}
+      />,
+    );
+    const event = wheel(surfaceOf(), { deltaY: 120 });
+    expect(sent).toEqual([]);
+    expect(event.defaultPrevented).toBe(false);
+  });
+
+  it("hands the gesture back the moment the wheel stops being yours", () => {
+    const sent: RelayInput[] = [];
+    const relay = (input: RelayInput): void => void sent.push(input);
+    const view = render(
+      <LiveViewport session={LIVE} interactive={true} onRelay={relay} />,
+    );
+    const surface = surfaceOf();
+    view.rerender(
+      <LiveViewport session={LIVE} interactive={false} onRelay={relay} />,
+    );
+    const event = wheel(surface, { deltaY: 120 });
+    expect(sent).toEqual([]);
+    expect(event.defaultPrevented).toBe(false);
+
+    // And an unmounted card cannot be scrolled into either.
+    view.rerender(
+      <LiveViewport session={LIVE} interactive={true} onRelay={relay} />,
+    );
+    view.unmount();
+    expect(wheel(surface, { deltaY: 120 }).defaultPrevented).toBe(false);
+    expect(sent).toEqual([]);
   });
 });
 

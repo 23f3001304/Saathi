@@ -1,4 +1,4 @@
-import { useRef, type JSX, type KeyboardEvent, type WheelEvent } from "react";
+import { useEffect, useState, type JSX, type KeyboardEvent } from "react";
 import type { BrowserSessionView } from "./browserSession.ts";
 import type { RelayInput } from "./browserTransport.ts";
 import { pagePoint } from "./viewportMath.ts";
@@ -54,9 +54,32 @@ export function LiveViewport({
   interactive,
   onRelay,
 }: LiveViewportProps): JSX.Element {
-  const surface = useRef<HTMLDivElement>(null);
+  // Held in state rather than a ref so the wheel listener is attached the
+  // render the surface appears in: the placeholder above renders first, and a
+  // ref read in an effect that never runs again would be null forever.
+  const [surface, setSurface] = useState<HTMLDivElement | null>(null);
   const width = session.frameWidth ?? 0;
   const height = session.frameHeight ?? 0;
+
+  /**
+   * DECISION: a native listener rather than React's `onWheel`. Why: React
+   * registers wheel handlers passively, so `preventDefault()` inside one is a
+   * no-op — the wheel over the picture scrolled the transcript underneath it
+   * while the sandbox page stood still. Only a listener registered with
+   * `{ passive: false }` can take the gesture, so while the window is yours
+   * this surface owns the wheel outright: sideways too, where there is
+   * nothing to relay but the page behind must still not move.
+   */
+  useEffect(() => {
+    if (surface === null || !interactive) return;
+    const wheeled = (event: WheelEvent): void => {
+      event.preventDefault();
+      const dy = Math.round(event.deltaY);
+      if (dy !== 0) onRelay({ kind: "scroll", dy });
+    };
+    surface.addEventListener("wheel", wheeled, { passive: false });
+    return () => surface.removeEventListener("wheel", wheeled);
+  }, [surface, interactive, onRelay]);
 
   /**
    * Not a stale picture under a translucent overlay: there is no picture. The
@@ -87,7 +110,7 @@ export function LiveViewport({
 
   return (
     <div
-      ref={surface}
+      ref={setSurface}
       className={
         interactive ? `${styles.surface} ${styles.yourTurn}` : styles.surface
       }
@@ -114,10 +137,6 @@ export function LiveViewport({
         event.preventDefault();
         onRelay({ kind: "type", text });
       }}
-      onWheel={(event: WheelEvent<HTMLDivElement>) => {
-        if (interactive)
-          onRelay({ kind: "scroll", dy: Math.round(event.deltaY) });
-      }}
     >
       <img
         className={styles.frame}
@@ -126,7 +145,7 @@ export function LiveViewport({
         draggable={false}
         onClick={(event) => {
           if (!interactive) return;
-          surface.current?.focus();
+          surface?.focus();
           const box = event.currentTarget.getBoundingClientRect();
           onRelay({
             kind: "click",

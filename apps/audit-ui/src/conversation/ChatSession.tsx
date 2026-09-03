@@ -397,8 +397,7 @@ export function ChatSession({
             </p>
           )}
           <WindowStrip
-            present={chat.sandbox !== null}
-            busy={chat.running}
+            state={chat.sandbox?.state ?? null}
             launching={launching}
             attention={attention ?? null}
           />
