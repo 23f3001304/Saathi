@@ -1,11 +1,17 @@
 import {
   ContainerLauncher,
+  ContainerReaderBrowser,
   dockerSandboxReady,
+  NativeReaderBrowser,
   PuppeteerLauncher,
   reapOrphans,
   seccompProfilePath,
 } from "@covenant/browser-drive";
-import type { BrowserLauncher, SessionSurface } from "@covenant/browser-drive";
+import type {
+  BrowserLauncher,
+  ReaderBrowser,
+  SessionSurface,
+} from "@covenant/browser-drive";
 import type { Logger } from "@covenant/domain";
 
 export const SANDBOX_IMAGE = "covenant-browser-sandbox:latest";
@@ -26,6 +32,10 @@ export interface SandboxPlan {
   /** Why this surface, in one sentence the UI and the log can both show. */
   readonly why: string;
   readonly launcherFor: (sessionId: string) => BrowserLauncher;
+  /** Where research reads happen. The same surface as the window, always: a
+   *  container window beside a headless Chrome on the host would leave a
+   *  browser on the very machine the container exists to keep clean. */
+  readonly readerBrowser: () => ReaderBrowser;
 }
 
 function modeOf(raw: string | undefined): SandboxMode {
@@ -33,26 +43,29 @@ function modeOf(raw: string | undefined): SandboxMode {
   return "auto";
 }
 
-function containerPlan(why: string): SandboxPlan {
+/** The container half of the two plans, exported so the surface a reader gets
+ *  can be asserted on a machine with no Docker daemon to probe. */
+export function containerPlan(why: string): SandboxPlan {
+  const config = {
+    image: SANDBOX_IMAGE,
+    seccompProfile: seccompProfilePath(),
+    memoryMb: CONTAINER_MEMORY_MB,
+    ttlSeconds: CONTAINER_TTL_SECONDS,
+  };
   return {
     surface: "container",
     why,
-    launcherFor: (sessionId) =>
-      new ContainerLauncher({
-        image: SANDBOX_IMAGE,
-        seccompProfile: seccompProfilePath(),
-        memoryMb: CONTAINER_MEMORY_MB,
-        ttlSeconds: CONTAINER_TTL_SECONDS,
-        sessionId,
-      }),
+    launcherFor: (sessionId) => new ContainerLauncher({ ...config, sessionId }),
+    readerBrowser: () => new ContainerReaderBrowser(config),
   };
 }
 
-function inProcessPlan(why: string): SandboxPlan {
+export function inProcessPlan(why: string): SandboxPlan {
   return {
     surface: "native-window",
     why,
     launcherFor: () => new PuppeteerLauncher(),
+    readerBrowser: () => new NativeReaderBrowser(),
   };
 }
 
@@ -68,6 +81,23 @@ function inProcessPlan(why: string): SandboxPlan {
  * not quietly handed the weaker thing.
  */
 export async function resolvePlan(
+  env: NodeJS.ProcessEnv,
+  logger: Logger,
+): Promise<SandboxPlan> {
+  const chosen = await choosePlan(env, logger);
+  // Both browsers this host opens, in one line: the window the shopper watches
+  // and the reader the research errand batches through. Named separately
+  // because "is there Chrome on this machine?" is a question about the reader
+  // as much as the window, and a log that said only the window left it open.
+  logger.info("browser.surface", {
+    window: chosen.surface,
+    reader: chosen.surface,
+    why: chosen.why,
+  });
+  return chosen;
+}
+
+async function choosePlan(
   env: NodeJS.ProcessEnv,
   logger: Logger,
 ): Promise<SandboxPlan> {

@@ -24,6 +24,16 @@ import {
 } from "./docker-cli.js";
 import { ContainerPipe } from "./pipe-transport.js";
 
+/**
+ * A launched container whose puppeteer connection is reachable. The shopper's
+ * session never uses it — `page()` is the only hand it is given — but the
+ * research reader opens pages of its own on this browser, and it needs no
+ * `DrivenPage` to do it: nothing it holds can click.
+ */
+export interface ConnectedBrowser extends LaunchedBrowser {
+  readonly connection: Browser;
+}
+
 /** Chrome inside a cold container needs a moment before it answers CDP. */
 const HANDSHAKE_TIMEOUT_MS = 45_000;
 /** Enough of docker's own complaint to name the cause, never a whole log. */
@@ -42,7 +52,7 @@ const STDERR_KEPT = 600;
 export class ContainerLauncher implements BrowserLauncher {
   constructor(private readonly config: ContainerLauncherConfig) {}
 
-  async launch(request: LaunchRequest): Promise<LaunchedBrowser> {
+  async launch(request: LaunchRequest): Promise<ConnectedBrowser> {
     assertSurface(request.surface, "container");
     const spec = specOf(this.config);
     // A leftover from a session that died badly is destroyed, never joined: a
@@ -62,8 +72,11 @@ export class ContainerLauncher implements BrowserLauncher {
   private async start(
     spec: ContainerSpec,
     request: LaunchRequest,
-  ): Promise<LaunchedBrowser> {
-    const args = containerRunArgs(spec, containerChromeArgs(request));
+  ): Promise<ConnectedBrowser> {
+    const args = containerRunArgs(
+      spec,
+      containerChromeArgs(request, this.config.chromeArgs ?? []),
+    );
     const child = spawn("docker", [...args], {
       stdio: ["pipe", "pipe", "pipe"],
       windowsHide: true,
@@ -145,13 +158,13 @@ async function firstPage(
   return page;
 }
 
-class ContainerBrowser implements LaunchedBrowser {
+class ContainerBrowser implements ConnectedBrowser {
   readonly surface: SessionSurface = "container";
 
   constructor(
     private readonly spec: ContainerSpec,
     private readonly child: ChildProcess,
-    private readonly browser: Browser,
+    readonly connection: Browser,
     private readonly driven: DrivenPage,
   ) {}
 
@@ -170,7 +183,7 @@ class ContainerBrowser implements LaunchedBrowser {
    * having worked. A container that survives its session is the whole failure.
    */
   async close(): Promise<void> {
-    await this.browser.close().catch(() => undefined);
+    await this.connection.close().catch(() => undefined);
     this.child.kill();
     await removeContainer(this.spec.containerName);
     await removeNetwork(this.spec.networkName);

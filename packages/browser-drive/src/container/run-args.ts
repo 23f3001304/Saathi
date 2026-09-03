@@ -1,4 +1,4 @@
-import { sandboxArgs } from "../chrome/launch-args.js";
+import { assertSandboxIntact, sandboxArgs } from "../chrome/launch-args.js";
 import type { LaunchRequest } from "../ports.js";
 import {
   assertContainerLocked,
@@ -129,8 +129,17 @@ export function containerRunArgs(
  * `--user-data-dir` — forbidden on the native surface precisely so nobody can
  * aim Chrome at the user's real profile — is permitted here at exactly one
  * value, a path inside an image that contains no user profile to aim at.
+ *
+ * `caller` flags are whatever this particular container is for — the research
+ * reader's images-off, and nothing else so far. They go through the same
+ * assertion as every other launch, so a caller cannot smuggle `--no-sandbox`
+ * in by the back door the fixed three are exempt from.
  */
-export function containerChromeArgs(request: LaunchRequest): readonly string[] {
+export function containerChromeArgs(
+  request: LaunchRequest,
+  caller: readonly string[] = [],
+): readonly string[] {
+  assertSandboxIntact(caller);
   const extra = [
     "--headless=new",
     `--user-data-dir=${CONTAINER_PROFILE_DIR}`,
@@ -140,5 +149,5 @@ export function containerChromeArgs(request: LaunchRequest): readonly string[] {
   if (profile !== `--user-data-dir=${CONTAINER_PROFILE_DIR}`) {
     throw new ContainerFlagError(String(profile));
   }
-  return [...sandboxArgs(request), ...extra];
+  return [...sandboxArgs(request), ...extra, ...caller];
 }

@@ -1,7 +1,7 @@
 import type { Browser, Page } from "puppeteer";
-import { launch } from "puppeteer";
 
 import type { NavigationPolicy } from "../drive/navigation-policy.js";
+import { NativeReaderBrowser, type ReaderBrowser } from "./reader-browser.js";
 import type { PageDom, PageListing } from "../read/page-dom.js";
 import { mergeListings } from "../read/listing-merge.js";
 import { readPageDom } from "./read-script.js";
@@ -50,18 +50,47 @@ const SOLD_OUT = /out of stock|currently unavailable|sold out|अभी उप�
  * watches. The launcher's "no headless" decision is about purchase
  * sessions; this reads, which is what a search engine does.
  *
- * Images, media, fonts and stylesheets are blocked per request: the reader
- * wants the DOM, and a product page is megabytes of pictures it will never
- * look at. That block is most of why a batch of five reads lands in a few
- * seconds.
+ * Images, media and fonts are blocked per request: the reader wants the DOM,
+ * and a product page is megabytes of pictures it will never look at. That
+ * block is most of why a batch of five reads lands in a few seconds.
  */
 export class HeadlessReader {
-  private browser: Browser | null = null;
+  constructor(
+    private readonly policy: NavigationPolicy,
+    private readonly surface: ReaderBrowser = new NativeReaderBrowser(),
+  ) {}
 
-  constructor(private readonly policy: NavigationPolicy) {}
-
+  /**
+   * DECISION: a browser per batch, opened and closed here however the batch
+   * ends. The container surface must not outlive the read it was started for -
+   * a throwaway profile is only throwaway if it goes - and one lifetime rule
+   * beats one rule per surface. A browser that will not start is this batch's
+   * answer rather than this process's: the errand hears that the read did not
+   * happen and carries on.
+   */
   async readMany(urls: readonly string[]): Promise<readonly BatchRead[]> {
-    const held = await this.open();
+    let held: Browser;
+    try {
+      held = await this.surface.open();
+    } catch (cause) {
+      const why = cause instanceof Error ? cause.message : "unknown";
+      return urls.map((url) => refused(url, why));
+    }
+    try {
+      return await this.drain(held, urls);
+    } finally {
+      await this.surface.close();
+    }
+  }
+
+  async close(): Promise<void> {
+    await this.surface.close();
+  }
+
+  private async drain(
+    held: Browser,
+    urls: readonly string[],
+  ): Promise<readonly BatchRead[]> {
     const queue = [...urls];
     const out: BatchRead[] = [];
     const workers = Array.from(
@@ -79,12 +108,6 @@ export class HeadlessReader {
     return out.sort(
       (a, b) => (order.get(a.requested) ?? 0) - (order.get(b.requested) ?? 0),
     );
-  }
-
-  async close(): Promise<void> {
-    const held = this.browser;
-    this.browser = null;
-    await held?.close().catch(() => undefined);
   }
 
   private async readOne(browser: Browser, url: string): Promise<BatchRead> {
@@ -124,17 +147,6 @@ export class HeadlessReader {
     } finally {
       await page?.close().catch(() => undefined);
     }
-  }
-
-  private async open(): Promise<Browser> {
-    if (this.browser !== null && this.browser.connected) {
-      return this.browser;
-    }
-    this.browser = await launch({
-      headless: true,
-      args: ["--disable-gpu", "--blink-settings=imagesEnabled=false"],
-    });
-    return this.browser;
   }
 }
 

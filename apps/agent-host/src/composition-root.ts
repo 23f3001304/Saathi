@@ -1,5 +1,5 @@
 import type { AgentSession } from "@covenant/agents";
-import type { Clock, IdGenerator } from "@covenant/domain";
+import type { Clock, IdGenerator, Logger } from "@covenant/domain";
 
 import { RandomIds, SystemClock } from "./adapters/system-ports.js";
 
@@ -15,7 +15,12 @@ import { ChatLanes } from "./http/chat-lanes.js";
 import type { ChatService } from "./http/chat-service.js";
 import type { AmendFlow } from "./covenant/amend-flow.js";
 import { CredentialVault } from "./session/credential-vault.js";
-import { HeadlessReader, NavigationPolicy } from "@covenant/browser-drive";
+import {
+  DeferredReaderBrowser,
+  HeadlessReader,
+  NavigationPolicy,
+} from "@covenant/browser-drive";
+import { sandboxPlan } from "./browser/sandbox-factory.js";
 import type { BuyerParts } from "./wiring/buyer-wiring.js";
 import type { DispatchParts } from "./wiring/dispatch-wiring.js";
 import { type GatewayParts, wireGateway } from "./wiring/gateway-wiring.js";
@@ -129,15 +134,28 @@ function sharedOf(
   };
 }
 
+/**
+ * One read-only browser for the whole host: research batches from every lane
+ * share it, and it holds no state a lane could leak through. Where its Chrome
+ * runs is the sandbox plan's answer rather than this file's, and the plan is
+ * resolved here, once, at boot — a probe of Docker, so a promise, which is why
+ * the reader is handed the question instead of the answer. A plan that cannot
+ * be honoured is the first window's complaint to make, not this line's.
+ */
+function readerFor(logger: Logger): HeadlessReader {
+  const chosen = sandboxPlan(logger);
+  void chosen.catch(() => undefined);
+  return new HeadlessReader(
+    new NavigationPolicy({ fileRoots: [], allowHosts: [], denyHosts: [] }),
+    new DeferredReaderBrowser(async () => (await chosen).readerBrowser()),
+  );
+}
+
 export function buildRoot(config: AgentHostConfig): CompositionRoot {
   const parts = baseOf(config);
   const sandbox = sandboxOf(config, parts);
   const vault = new CredentialVault(config.vaultFile);
-  // One headless read-only browser for the whole host: research batches from
-  // every lane share it, and it holds no state a lane could leak through.
-  const reader = new HeadlessReader(
-    new NavigationPolicy({ fileRoots: [], allowHosts: [], denyHosts: [] }),
-  );
+  const reader = readerFor(parts.obs.logger);
   const shared = { ...sharedOf(parts, sandbox), vault, reader };
   // Built eagerly and pinned into the factory: the CLI and the shutdown path
   // hold this lane's parts directly, so it must be the same object the

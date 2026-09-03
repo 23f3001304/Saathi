@@ -17,6 +17,7 @@ export * from "./drive/relay-gate.js";
 export * from "./drive/user-input.js";
 export * from "./drive/point-actions.js";
 export * from "./drive/sign-in.js";
+export * from "./chrome/reader-browser.js";
 export * from "./chrome/headless-reader.js";
 export * from "./drive/final-review.js";
 
@@ -61,5 +62,6 @@ export * from "./container/run-args.js";
 export * from "./container/docker-cli.js";
 export * from "./container/container-spec.js";
 export * from "./container/container-launcher.js";
+export * from "./container/container-reader.js";
 export * from "./container/pipe-transport.js";
 export * from "./container/profile-path.js";

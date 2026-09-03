@@ -11,6 +11,9 @@ export interface ContainerLauncherConfig {
   /** The hard ceiling, enforced inside the container by `timeout`. */
   readonly ttlSeconds: number;
   readonly sessionId: string;
+  /** Chrome flags on top of the container's own, checked by the same guard.
+   *  The research reader turns images off here; the window adds nothing. */
+  readonly chromeArgs?: readonly string[];
 }
 
 export class ContainerBindingError extends Error {
