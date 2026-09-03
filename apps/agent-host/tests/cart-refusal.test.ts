@@ -2,7 +2,7 @@
 // model's. The harness used to print "I will not propose this cart: it is not
 // refundable, and you asked that it be" from a fixed table, in English,
 // whatever the conversation was in.
-import type { CatalogSku, IssuedQuote } from "@covenant/agents";
+import type { CatalogSku, IssuedQuote, ToolCallDecision } from "@covenant/agents";
 import { REASON_HUMAN } from "@covenant/domain";
 import { describe, expect, it } from "vitest";
 
@@ -45,6 +45,15 @@ const INTENT = {
   mandate: { jti: "urn:uuid:1", jwtHash: "sha256:" + "0".repeat(64), payload: { sub: "usr_1" } },
 } as unknown as SignedIntent;
 
+/** One call the hook refused while the model was writing its sentence. */
+const REFUSED_CALL: ToolCallDecision = {
+  allowed: false,
+  moneyAffecting: true,
+  reason: "money_affecting_before_confirmation",
+  human: "That call moves money before you confirmed it.",
+  eventId: "evt_1",
+};
+
 function proposal() {
   return {
     result: emptyResult("r1", "a stole"),
@@ -55,22 +64,44 @@ function proposal() {
 }
 
 /** A buyer conversation that records what it was asked and answers in kind. */
-function buyerSaying(sentence: string) {
+function buyerSaying(
+  lines: readonly string[],
+  blocked: readonly ToolCallDecision[] = [],
+) {
   const prompts: string[] = [];
   return {
     prompts,
     converse: async (prompt: string) => {
       prompts.push(prompt);
-      return { transcript: [sentence], blocked: [], turns: 1, completed: true };
+      return { transcript: lines, blocked, turns: 1, completed: true };
     },
   };
 }
 
-function partsWith(hub: BeatHub, refusals: RunnerParts["refusals"]): RunnerParts {
+/** A conversation that cannot answer at all: the provider is down. */
+function buyerFailing(failure: string) {
+  return { converse: () => Promise.reject(new Error(failure)) };
+}
+
+/** What the pane was told: the bubbles, the verdicts, the refused calls. */
+function paneOf(hub: BeatHub) {
+  const beats = hub.snapshot();
+  return {
+    messages: beats.flatMap((b) => (b.kind === "message" ? [b.text] : [])),
+    outcomes: beats.flatMap((b) => (b.kind === "outcome" ? [b.state] : [])),
+    blocked: beats.flatMap((b) => (b.kind === "blocked" ? [b] : [])),
+  };
+}
+
+function partsWith(
+  hub: BeatHub,
+  refusals: RunnerParts["refusals"],
+  logger = new RecordingLogger(),
+): RunnerParts {
   return {
     hub,
     refusals,
-    logger: new RecordingLogger(),
+    logger,
     carts: {
       assemble: async () => ({ ok: false as const, reasonCode: "REFUNDABILITY_REQUIRED" as const }),
     },
@@ -92,9 +123,9 @@ describe("what the model is told", () => {
 describe("a cart the covenant refuses", () => {
   it("is explained by the model, in its own words, and by nobody else", async () => {
     const hub = new BeatHub(new StepClock(), new RecordingLogger());
-    const buyer = buyerSaying(
+    const buyer = buyerSaying([
       "Yeh stole refundable nahi hai, aur aapne refundable maanga tha, isliye main yeh cart nahi rakh raha.",
-    );
+    ]);
 
     const result = await proposeCart(partsWith(hub, liveRefusals(buyer)), CONFIG, proposal());
 
@@ -112,11 +143,48 @@ describe("a cart the covenant refuses", () => {
 
   it("says nothing when the model said nothing", async () => {
     const hub = new BeatHub(new StepClock(), new RecordingLogger());
-    const buyer = buyerSaying("");
+    const buyer = buyerSaying([""]);
 
     await proposeCart(partsWith(hub, liveRefusals(buyer)), CONFIG, proposal());
 
     expect(hub.snapshot().some((beat) => beat.kind === "message")).toBe(false);
+  });
+});
+
+describe("what the pane gets when the model is writing it", () => {
+  it("closes the run bounded even when the voice cannot answer", async () => {
+    const hub = new BeatHub(new StepClock(), new RecordingLogger());
+    const logger = new RecordingLogger();
+    const voice = liveRefusals(buyerFailing("the provider is down"));
+
+    const result = await proposeCart(partsWith(hub, voice, logger), CONFIG, proposal());
+
+    expect(result.status).toBe("bounded");
+    expect(result.cartRefusal).toBe("REFUNDABILITY_REQUIRED");
+    expect(paneOf(hub).messages).toEqual([]);
+    expect(paneOf(hub).outcomes).toEqual(["bounded"]);
+    const warn = logger.lines.find((l) => l.evt === "cart.refusal.unexplained");
+    expect(warn?.fields["failure"]).toBe("the provider is down");
+  });
+
+  it("shows the last turn as the sentence, not every turn the model took", async () => {
+    const hub = new BeatHub(new StepClock(), new RecordingLogger());
+    const buyer = buyerSaying(["Let me read the covenant.", "Refundable nahi."]);
+
+    await proposeCart(partsWith(hub, liveRefusals(buyer)), CONFIG, proposal());
+
+    expect(paneOf(hub).messages).toEqual(["Refundable nahi."]);
+  });
+
+  it("shows a call the hook refused while the model wrote it", async () => {
+    const hub = new BeatHub(new StepClock(), new RecordingLogger());
+    const buyer = buyerSaying(["Refundable nahi."], [REFUSED_CALL]);
+
+    await proposeCart(partsWith(hub, liveRefusals(buyer)), CONFIG, proposal());
+
+    const [blocked] = paneOf(hub).blocked;
+    expect(blocked?.reason).toBe("money_affecting_before_confirmation");
+    expect(blocked?.human).toBe("That call moves money before you confirmed it.");
   });
 });
 
