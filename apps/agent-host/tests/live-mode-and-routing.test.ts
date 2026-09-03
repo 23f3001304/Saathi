@@ -19,13 +19,15 @@ function live(extra: Env = {}): Env {
   return { ...BASE, COVENANT_AGENT_MODE: "live", ...extra };
 }
 
-describe("live mode needs one provider key, not a particular one", () => {
+describe("live mode needs the OpenAI key", () => {
   it("starts on an OpenAI key alone", () => {
     expect(loadConfig(live({ OPENAI_API_KEY: "sk-x" })).mode).toBe("live");
   });
 
-  it("starts on a Sarvam key alone", () => {
-    expect(loadConfig(live({ SARVAM_API_KEY: "sk-y" })).mode).toBe("live");
+  it("refuses a Sarvam key alone: that is the audit UI's speech key, not a chat provider", () => {
+    expect(() => loadConfig(live({ SARVAM_API_KEY: "sk-y" }))).toThrow(
+      /at least one provider API key/,
+    );
   });
 
   it("refuses with no key at all, naming every key it looked for", () => {
@@ -49,7 +51,7 @@ describe("live mode needs one provider key, not a particular one", () => {
   it("reports only the providers that are actually keyed", () => {
     expect(
       keyedProviders({ OPENAI_API_KEY: "a", SARVAM_API_KEY: "b" }),
-    ).toEqual(["openai", "sarvam"]);
+    ).toEqual(["openai"]);
   });
 });
 
@@ -61,7 +63,6 @@ function decisionOf(chosen: string): RoutingDecision {
       toolDepth: 1,
       structuredOutput: false,
       touchesMoney: false,
-      script: "latin",
     },
     candidates: ["openai:gpt-5.6-luna", chosen],
     chosen,

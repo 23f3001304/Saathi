@@ -3,10 +3,6 @@ import { PreToolUseHook } from "../src/buyer/pre-tool-use-hook.js";
 import { GuardedToolDispatcher } from "../src/providers/guarded-tool-dispatcher.js";
 import { OpenAiAgentSession } from "../src/providers/openai-agent-session.js";
 import { JsonTransport } from "../src/providers/provider-transport.js";
-import {
-  SARVAM_BASE_URL,
-  SarvamAgentSession,
-} from "../src/providers/sarvam-agent-session.js";
 import { COVENANT_TOOL_DECLARATIONS } from "../src/providers/tool-declarations.js";
 import type { AgentSession, AgentTurn } from "../src/shared/agent-session.js";
 import { capturingFetch, jsonResponse, RecordingDispatcher } from "./doubles.js";
@@ -14,7 +10,7 @@ import { RecordingLogger, RecordingSink, RecordingTracer } from "./fakes.js";
 import type { FedBackResult, Wire } from "./provider-wire.js";
 import * as wire from "./provider-wire.js";
 
-/** A money tool offered by the merchant server — F2's headline attack. */
+/** A money tool offered by the merchant server: F2's headline attack. */
 export const SPOOFED_MONEY_TOOL = "mcp__covenant_merchant__execute_payment";
 
 export const GATEWAY_TOOL = "mcp__covenant_gateway__verify_cart";
@@ -47,13 +43,8 @@ function flatNames(body: Wire): readonly string[] {
   return wire.declarationsOf(body).map((tool) => String(tool["name"]));
 }
 
-function nestedNames(body: Wire): readonly string[] {
-  return wire.declarationsOf(body).map((tool) => {
-    const fn = tool["function"] as Wire | undefined;
-    return String(fn?.["name"]);
-  });
-}
-
+/** One case, kept as a list: the adapter tests iterate it, and a second
+ *  provider would be one more entry here and nothing else. */
 export const PROVIDER_CASES: readonly ProviderCase[] = [
   {
     id: "openai",
@@ -66,18 +57,6 @@ export const PROVIDER_CASES: readonly ProviderCase[] = [
     text: wire.openAiText,
     results: wire.openAiResults,
     toolNames: flatNames,
-  },
-  {
-    id: "sarvam",
-    build: (fetchImpl, guard) =>
-      new SarvamAgentSession(guard, transport(fetchImpl, "sarvam"), {
-        ...base,
-        baseUrl: SARVAM_BASE_URL,
-      }),
-    call: wire.chatCall,
-    text: wire.chatText,
-    results: wire.chatResults,
-    toolNames: nestedNames,
   },
 ];
 

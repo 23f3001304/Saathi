@@ -6,8 +6,10 @@ export const MODEL_ENV_KEY = "COVENANT_AGENT_MODEL";
  *  cheaper tier. Read off OpenAI's live model page, never from memory. */
 export const DEFAULT_AGENT_MODEL = "gpt-5.6";
 
-/** The providers a Covenant agent can run on. `openai` is the default. */
-export const AGENT_PROVIDERS = ["openai", "sarvam"] as const;
+/** The providers a Covenant agent can run on. `openai` is the default, and at
+ *  present the only one: the registry is what makes a second one an entry
+ *  rather than an edit. */
+export const AGENT_PROVIDERS = ["openai"] as const;
 
 export type AgentProviderId = (typeof AGENT_PROVIDERS)[number];
 
@@ -19,7 +21,8 @@ export interface ProviderSpec {
   readonly id: AgentProviderId;
   /** Read off the provider's live docs, never from memory — see the tests. */
   readonly defaultModel: string;
-  /** Checked in order; the first non-empty one wins. */
+  /** A list of one today. Kept plural because a vendor that renames its
+   *  variable should be a second entry here and nothing else. */
   readonly apiKeyEnvKeys: readonly string[];
   readonly baseUrl: string;
 }
@@ -30,12 +33,6 @@ export const PROVIDER_SPECS: Readonly<Record<AgentProviderId, ProviderSpec>> = {
     defaultModel: DEFAULT_AGENT_MODEL,
     apiKeyEnvKeys: ["OPENAI_API_KEY"],
     baseUrl: "https://api.openai.com/v1",
-  },
-  sarvam: {
-    id: "sarvam",
-    defaultModel: "sarvam-105b",
-    apiKeyEnvKeys: ["SARVAM_API_KEY"],
-    baseUrl: "https://api.sarvam.ai/v1",
   },
 };
 

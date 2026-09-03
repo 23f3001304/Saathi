@@ -40,11 +40,6 @@ describe("capability table", () => {
     expect(CONSERVATIVE_CAPABILITIES.toolCalling).toBe(false);
     expect(CONSERVATIVE_CAPABILITIES.costTier).toBe("premium");
   });
-
-  it("marks only Sarvam's own families as Indic-trained", () => {
-    expect(capabilitiesFor("sarvam", "sarvam-105b").indic).toBe(true);
-    expect(capabilitiesFor("openai", "gpt-5.6-luna").indic).toBe(false);
-  });
 });
 
 describe("catalog building", () => {
@@ -86,10 +81,10 @@ describe("catalog building", () => {
 });
 
 describe("keyed providers only", () => {
-  it("skips a provider with no key rather than erroring on it", async () => {
-    const { logger, env } = loggerAnd({ SARVAM_API_KEY: "k" });
+  it("asks only the keyed provider, and asks it once", async () => {
+    const { logger, env } = loggerAnd({ OPENAI_API_KEY: "k" });
     const { fetch: fetchImpl, calls } = capturingFetch([
-      jsonResponse(200, { data: [{ id: "sarvam-105b" }] }),
+      jsonResponse(200, OPENAI_LIST),
     ]);
     const catalog = await buildModelCatalog({
       env,
@@ -98,7 +93,7 @@ describe("keyed providers only", () => {
     });
     expect(calls).toHaveLength(1);
     expect(new Set(catalog.map((model) => model.provider))).toEqual(
-      new Set(["sarvam"]),
+      new Set(["openai"]),
     );
   });
 

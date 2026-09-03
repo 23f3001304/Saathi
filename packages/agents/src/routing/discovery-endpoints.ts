@@ -8,7 +8,7 @@ export interface DiscoveryEndpoint {
   readonly read: (body: unknown) => readonly string[];
 }
 
-/** OpenAI and Sarvam both answer `{ data: [{ id }] }`. */
+/** OpenAI answers `{ data: [{ id }] }`. */
 function idsAt(key: string): (body: unknown) => readonly string[] {
   return (body) =>
     recordsAt(asRecord(body) ?? {}, key)
@@ -17,21 +17,10 @@ function idsAt(key: string): (body: unknown) => readonly string[] {
 }
 
 /**
- * Every one of these was read off the vendor's current reference before it was
- * written, not recalled:
+ * Read off the vendor's current reference before it was written, not recalled:
  *
  * - OpenAI     GET https://api.openai.com/v1/models
  *              `Authorization: Bearer <key>` → `{object:"list", data:[{id,…}]}`
- * - Sarvam     GET https://api.sarvam.ai/v2/models
- *              Documented as **unauthenticated**, listing only what the caller's
- *              account can reach. The response body is not shown in the docs, so
- *              the reader takes the OpenAI-compatible `{data:[{id}]}` shape —
- *              the same shape Sarvam's chat surface follows — and anything else
- *              reads as zero ids, which drops the provider to the manifest.
- *
- * The header is still sent for Sarvam when a key exists: an unauthenticated
- * endpoint that later starts scoping by key should keep working, and sending a
- * credential to the vendor that issued it costs nothing.
  */
 export const DISCOVERY_ENDPOINTS: Readonly<
   Record<AgentProviderId, DiscoveryEndpoint>
@@ -39,11 +28,6 @@ export const DISCOVERY_ENDPOINTS: Readonly<
   openai: {
     url: "https://api.openai.com/v1/models",
     headers: (apiKey) => ({ authorization: `Bearer ${apiKey}` }),
-    read: idsAt("data"),
-  },
-  sarvam: {
-    url: "https://api.sarvam.ai/v2/models",
-    headers: (apiKey) => ({ "api-subscription-key": apiKey }),
     read: idsAt("data"),
   },
 };

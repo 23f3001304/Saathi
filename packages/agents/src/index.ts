@@ -43,15 +43,12 @@ export * from "./merchant/turn-shelf.js";
 
 export * from "./providers/agent-session-factory.js";
 export * from "./providers/attempt-drafts.js";
-export * from "./providers/chat-completions-session.js";
-export * from "./providers/chat-completions-stream.js";
 export * from "./providers/guarded-tool-dispatcher.js";
 export * from "./providers/openai-agent-session.js";
 export * from "./providers/openai-stream.js";
 export * from "./providers/provider-config.js";
 export * from "./providers/provider-transport.js";
 export * from "./providers/provider-turn-loop.js";
-export * from "./providers/sarvam-agent-session.js";
 export * from "./providers/spoken-arguments.js";
 export * from "./providers/sse-stream.js";
 export * from "./providers/tool-declarations.js";

@@ -19,6 +19,8 @@ import type { DraftScope, TurnStream } from "./turn-stream.js";
 import type { JsonRecord } from "./wire-json.js";
 import { asRecord, recordsAt, stringAt, textOfBlocks } from "./wire-json.js";
 
+export type ReasoningEffort = "low" | "medium" | "high";
+
 export interface OpenAiSessionConfig {
   readonly baseUrl: string;
   readonly apiKey: string;
@@ -28,7 +30,7 @@ export interface OpenAiSessionConfig {
   readonly maxToolIterations: number;
   /** Reasoning effort. Absent, the API default applies, which for a
    *  reasoning model is far below what it can do. */
-  readonly reasoningEffort?: "low" | "medium" | "high";
+  readonly reasoningEffort?: ReasoningEffort;
   /** Hosted tools sent verbatim beside the function tools; in use:
    *  `{type: "web_search"}` for research. */
   readonly hostedTools?: readonly JsonRecord[];
@@ -41,8 +43,7 @@ type OpenAiInputItem = JsonRecord;
  *
  * DECISION: Responses, not Chat Completions. The current function-calling
  * guide documents the flat `{type, name, description, parameters}` form and
- * `function_call_output` items; the older nested Chat Completions shape is
- * not wasted — it lives in `chat-completions-session.ts` and Sarvam uses it.
+ * `function_call_output` items, which is what this adapter speaks.
  *
  * DECISION: `store: false` and the full history resent each turn. Server-side
  * conversation retention is not something a payments harness should opt into

@@ -43,8 +43,6 @@ interface WireBody {
   /** OpenAI Responses. */
   readonly input?: unknown;
   readonly instructions?: unknown;
-  /** Chat Completions (Sarvam), where the system prompt is message zero. */
-  readonly messages?: unknown;
   readonly tools?: unknown;
 }
 
@@ -82,7 +80,7 @@ function logRequest(
     model: String(body.model ?? ""),
     tools: toolNamesOf(body),
     system: clip(body.instructions ?? ""),
-    messages: clip(body.messages ?? body.input ?? []),
+    messages: clip(body.input ?? []),
   });
 }
 

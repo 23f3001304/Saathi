@@ -3,7 +3,6 @@ import { costRankOf, modelKeyOf } from "./model-catalog.js";
 import type { ModelOutcomeStat } from "./outcome-stats.js";
 import { statFor, successRateOf } from "./outcome-stats.js";
 import type { ClassRequirements } from "./task-classifier.js";
-import type { TaskFeatures } from "./task-features.js";
 
 /** At most three models see one turn. A pathological request cannot walk the
  *  whole ladder and bill the operator for every rung of it. */
@@ -13,9 +12,6 @@ export const DEFAULT_MAX_ESCALATIONS = 2;
 export const DEMOTION_FLOOR = 0.4;
 
 export const MIN_OBSERVATIONS = 3;
-
-/** A tie inside a tier goes to the model trained for the script in front of it. */
-export const INDIC_BONUS = 0.1;
 
 /**
  * Capabilities are facts and are never waived. The cost floor is not a fact —
@@ -33,8 +29,7 @@ function capable(
   return (
     caps.contextWindow >= requirements.minContextWindow &&
     (!requirements.toolCalling || caps.toolCalling) &&
-    (!requirements.structuredOutput || caps.structuredOutput) &&
-    (!requirements.indic || caps.indic)
+    (!requirements.structuredOutput || caps.structuredOutput)
   );
 }
 
@@ -53,7 +48,6 @@ export function admissible(
 export interface LadderRequest {
   readonly catalog: readonly CatalogModel[];
   readonly requirements: ClassRequirements;
-  readonly features: TaskFeatures;
   readonly stats: readonly ModelOutcomeStat[];
   readonly maxEscalations: number;
   /**
@@ -82,12 +76,10 @@ function rankOf(model: CatalogModel, request: LadderRequest): Ranked {
   const rate = successRateOf(stat);
   const demoted =
     (stat?.attempts ?? 0) >= MIN_OBSERVATIONS && rate < DEMOTION_FLOOR;
-  const indicWanted = request.features.script !== "latin";
-  const bonus = indicWanted && model.capabilities.indic ? INDIC_BONUS : 0;
   return {
     model,
     rank: costRankOf(model.capabilities.costTier) + (demoted ? 1 : 0),
-    priority: rate + bonus,
+    priority: rate,
   };
 }
 

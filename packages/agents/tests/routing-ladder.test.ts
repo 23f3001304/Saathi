@@ -9,7 +9,14 @@ import {
 } from "../src/routing/outcome-stats.js";
 import { requirementsFor } from "../src/routing/task-classifier.js";
 import { extractFeatures } from "../src/routing/task-features.js";
-import { ladderFor, LUNA, MIXED, RETRIEVAL } from "./routing-fixtures.js";
+import {
+  FOUR,
+  ladderFor,
+  LUNA,
+  OPENAI_ONLY,
+  PROSE_ONLY,
+  RETRIEVAL,
+} from "./routing-fixtures.js";
 
 async function statsAfter(accepted: boolean, times: number) {
   const stats = new InMemoryRouterStats();
@@ -38,7 +45,7 @@ describe("cold start", () => {
   });
 
   it("caps the ladder at one start plus two escalations", () => {
-    expect(ladderFor("search the catalog", [], MIXED)).toHaveLength(3);
+    expect(ladderFor("search the catalog", [], FOUR)).toHaveLength(3);
   });
 });
 
@@ -46,30 +53,13 @@ describe("admissibility", () => {
   it("drops a model that cannot meet the class requirements", () => {
     const features = extractFeatures(RETRIEVAL);
     const rungs = buildLadder({
-      catalog: MIXED,
-      // sarvam-105b-conversations declares no structured output.
+      catalog: [...OPENAI_ONLY, PROSE_ONLY],
+      // The prose-only rung declares no structured output.
       requirements: requirementsFor("negotiation", features),
-      features,
       stats: [],
       maxEscalations: 5,
     });
-    expect(rungs.map(modelKeyOf)).not.toContain(
-      "sarvam:sarvam-105b-conversations",
-    );
-  });
-});
-
-describe("script preference", () => {
-  it("puts the Indic-trained model first when the script is Indic", () => {
-    expect(modelKeyOf(ladderFor("दीपक दिखाओ", [], MIXED)[0]!)).toBe(
-      "sarvam:sarvam-105b-conversations",
-    );
-  });
-
-  it("leaves the ordering alone for a Latin prompt", () => {
-    expect(modelKeyOf(ladderFor("show me a lamp", [], MIXED)[0]!)).toBe(
-      "openai:gpt-5.6-luna",
-    );
+    expect(rungs.map(modelKeyOf)).not.toContain("openai:gpt-5-nano-prose");
   });
 });
 

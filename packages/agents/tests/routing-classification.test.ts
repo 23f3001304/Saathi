@@ -10,7 +10,7 @@ import {
   requirementsFor,
 } from "../src/routing/task-classifier.js";
 import type { TaskInput } from "../src/routing/task-features.js";
-import { extractFeatures, scriptOf } from "../src/routing/task-features.js";
+import { extractFeatures } from "../src/routing/task-features.js";
 
 const TOOLS = COVENANT_TOOL_DECLARATIONS.map(wireNameOf);
 
@@ -26,22 +26,6 @@ function input(prompt: string, overrides: Partial<TaskInput> = {}): TaskInput {
 function classOf(prompt: string, overrides: Partial<TaskInput> = {}) {
   return classifyTask(extractFeatures(input(prompt, overrides)));
 }
-
-describe("script detection", () => {
-  it("reads pure Devanagari as indic", () => {
-    expect(scriptOf("मुझे एक पीतल का दीपक चाहिए")).toBe("indic");
-  });
-
-  it("reads Tamil as indic and English as latin", () => {
-    expect(scriptOf("எனக்கு ஒரு விளக்கு வேண்டும்")).toBe("indic");
-    expect(scriptOf("show me a brass lamp")).toBe("latin");
-  });
-
-  it("reads romanised Hindi as mixed even with no Indic code point", () => {
-    expect(scriptOf("lamp kitna hai")).toBe("mixed");
-    expect(scriptOf("यह lamp kitna hai")).toBe("mixed");
-  });
-});
 
 describe("feature extraction", () => {
   it("reports no tool depth when the turn has no tools mounted", () => {
@@ -78,10 +62,8 @@ describe("task classification", () => {
     expect(classOf("show me what is in the catalog")).toBe("retrieval");
   });
 
-  it("routes toolless Indic conversation to indic_chat, English to chat", () => {
-    expect(classOf("नमस्ते, आप कैसे हैं", { availableTools: [] })).toBe(
-      "indic_chat",
-    );
+  it("routes toolless conversation to chat, whatever script it is in", () => {
+    expect(classOf("नमस्ते, आप कैसे हैं", { availableTools: [] })).toBe("chat");
     expect(classOf("hello there", { availableTools: [] })).toBe("chat");
   });
 });
@@ -90,11 +72,6 @@ describe("class requirements", () => {
   it("never lets a money turn start on the cheapest tier", () => {
     expect(CLASS_REQUIREMENTS.money.minCostTier).toBe("standard");
     expect(CLASS_REQUIREMENTS.chat.minCostTier).toBe("economy");
-  });
-
-  it("demands an Indic-trained model only for the Indic chat class", () => {
-    expect(CLASS_REQUIREMENTS.indic_chat.indic).toBe(true);
-    expect(CLASS_REQUIREMENTS.money.indic).toBe(false);
   });
 
   it("raises the context floor with the prompt, never lowers it", () => {

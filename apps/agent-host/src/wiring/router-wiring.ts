@@ -1,5 +1,4 @@
 import type {
-  AgentProviderId,
   CatalogModel,
   DraftScope,
   ModelRouter as ModelRouterType,
@@ -26,19 +25,6 @@ import { wireFetch } from "../obs/wire-trace.js";
 import type { ObsParts } from "./obs-wiring.js";
 
 export type Env = Readonly<Record<string, string | undefined>>;
-
-/**
- * Who may answer a turn in this deployment.
- *
- * DECISION: Sarvam is a speech provider here and nothing else — saaras listens,
- * bulbul speaks, and both live in `apps/audit-ui/src/voice`. Its chat models
- * stay out of the candidate pool rather than being merely out-ranked by the
- * pinned model: a pin takes the opening rung and nothing more, so one
- * low-confidence turn would escalate a shopper's conversation onto a model
- * chosen for a different job. A key that exists for one purpose does not
- * thereby volunteer for every purpose.
- */
-export const CHAT_PROVIDERS: readonly AgentProviderId[] = ["openai"];
 
 export interface RouterDeps {
   readonly config: AgentHostConfig;
@@ -94,7 +80,6 @@ export function wireModelRouter(deps: RouterDeps): ModelRouterType {
     env: deps.env,
     discovery,
     logger: deps.obs.logger,
-    providers: CHAT_PROVIDERS,
   });
   // `COVENANT_AGENT_MODEL` names the model an operator wants to see. The
   // router still routes: the pin takes the opening rung, and a low-confidence

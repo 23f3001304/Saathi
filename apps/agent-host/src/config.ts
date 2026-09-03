@@ -171,11 +171,10 @@ export function loadConfig(env: Env): AgentHostConfig {
 }
 
 /**
- * Live mode needs **one** provider key, and the registry decides which. The
- * router discovers what each key can reach and chooses among the providers
- * that are actually configured, so naming a vendor here would only contradict
- * `AGENT_PROVIDERS`: whichever providers it still lists are the ones a key can
- * start the host on.
+ * Live mode needs the OpenAI key. The list is still read off the provider
+ * registry rather than spelled here, so a second provider is one entry in one
+ * place; a key the registry does not name (Sarvam's, which the audit UI uses
+ * for speech) does not qualify.
  */
 export function keyedProviders(env: Env): readonly string[] {
   return AGENT_PROVIDERS.filter((id) => hasProviderApiKey(env, id));

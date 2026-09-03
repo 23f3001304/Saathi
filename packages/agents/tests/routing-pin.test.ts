@@ -7,7 +7,6 @@ import { describe, expect, it } from "vitest";
 import { buildLadder } from "../src/routing/escalation-ladder.js";
 import type { CatalogModel } from "../src/routing/model-catalog.js";
 import type { ClassRequirements } from "../src/routing/task-classifier.js";
-import type { TaskFeatures } from "../src/routing/task-features.js";
 
 function model(
   id: string,
@@ -21,7 +20,6 @@ function model(
       toolCalling: true,
       structuredOutput: true,
       vision: false,
-      indic: false,
       costTier,
       latencyTier: "fast",
     },
@@ -38,17 +36,13 @@ const REQUIREMENTS = {
   minContextWindow: 8_000,
   toolCalling: true,
   structuredOutput: true,
-  indic: false,
   minCostTier: "economy",
 } as ClassRequirements;
-
-const FEATURES = { script: "latin" } as TaskFeatures;
 
 function ladder(pinned?: string): readonly string[] {
   return buildLadder({
     catalog: CATALOG,
     requirements: REQUIREMENTS,
-    features: FEATURES,
     stats: [],
     maxEscalations: 2,
     pinned: pinned ?? null,
@@ -63,7 +57,6 @@ function ladderWith(
   return buildLadder({
     catalog,
     requirements,
-    features: FEATURES,
     stats: [],
     maxEscalations: 2,
     pinned,

@@ -16,15 +16,10 @@ export interface CatalogBuilderDeps {
   readonly discovery: ModelDiscovery;
   readonly logger: Logger;
   /**
-   * Which providers this catalogue may draw on. Absent means all of them.
-   *
-   * DECISION: a filter on the candidate pool rather than a preference in the
-   * ladder. A pinned model only takes the *opening* rung — a low-confidence
-   * answer still escalates past it — so "this deployment answers on OpenAI"
-   * cannot be expressed as a pin: one unconfident turn and the cascade climbs
-   * onto whatever else the key set can reach. A provider that is here for one
-   * job (Sarvam, for speech) is excluded from the pool for every other, which
-   * is a statement the router cannot climb around.
+   * Which providers this catalogue may draw on. Absent means every provider
+   * in the registry. A deployment that answers on a subset names it here, as
+   * a filter on the pool rather than a pin: a pinned model only takes the
+   * opening rung, and one unconfident turn would climb past it.
    */
   readonly providers?: readonly AgentProviderId[];
 }

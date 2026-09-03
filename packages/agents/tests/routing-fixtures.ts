@@ -16,23 +16,28 @@ import type { RoutingDecision } from "../src/routing/router-audit.js";
 import { requirementsFor } from "../src/routing/task-classifier.js";
 import { extractFeatures } from "../src/routing/task-features.js";
 
-type Provider = "openai" | "sarvam";
-
-export function modelOf(provider: Provider, id: string): CatalogModel {
+export function modelOf(id: string): CatalogModel {
   return {
-    provider,
+    provider: "openai",
     id,
-    capabilities: capabilitiesFor(provider, id),
+    capabilities: capabilitiesFor("openai", id),
     source: "manifest",
   };
 }
 
-export const LUNA = modelOf("openai", "gpt-5.6-luna");
-export const TERRA = modelOf("openai", "gpt-5.6-terra");
-export const SOL = modelOf("openai", "gpt-5.6-sol");
-export const SARVAM = modelOf("sarvam", "sarvam-105b-conversations");
+export const LUNA = modelOf("gpt-5.6-luna");
+export const TERRA = modelOf("gpt-5.6-terra");
+export const SOL = modelOf("gpt-5.6-sol");
+export const NANO = modelOf("gpt-5-nano");
 export const OPENAI_ONLY = [SOL, TERRA, LUNA];
-export const MIXED = [...OPENAI_ONLY, SARVAM];
+/** Four rungs, so a ladder capped at three has one to leave off. */
+export const FOUR = [...OPENAI_ONLY, NANO];
+/** A rung that declares no structured output: the admissibility case. */
+export const PROSE_ONLY: CatalogModel = {
+  ...NANO,
+  id: "gpt-5-nano-prose",
+  capabilities: { ...NANO.capabilities, structuredOutput: false },
+};
 
 export const RETRIEVAL = {
   prompt: "search the catalog for a brass lamp",
@@ -51,7 +56,6 @@ export function ladderFor(
   return buildLadder({
     catalog,
     requirements: requirementsFor("retrieval", features),
-    features,
     stats,
     maxEscalations: 2,
   });

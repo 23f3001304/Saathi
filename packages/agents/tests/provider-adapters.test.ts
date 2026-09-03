@@ -17,10 +17,7 @@ const cases = PROVIDER_CASES.map(
 
 const CATALOG_TOOL = "mcp__covenant_merchant__catalog_search";
 
-const [openAiCase, sarvamCase] = PROVIDER_CASES as readonly [
-  ProviderCase,
-  ProviderCase,
-];
+const [openAiCase] = PROVIDER_CASES as readonly [ProviderCase];
 
 describe.each(cases)("%s adapter tool declarations", (_id, kase) => {
   it("names every covenant tool as mcp__server__tool", async () => {
@@ -106,17 +103,3 @@ describe("openai emits the documented Responses declaration shape", () => {
   });
 });
 
-describe("sarvam emits the documented Chat Completions shape", () => {
-  it("nests the declaration under function, OpenAI-compatible", async () => {
-    const run = await runTurn(sarvamCase, [{ choices: [] }]);
-
-    const declaration = firstDeclaration(run);
-    expect(Object.keys(declaration).sort()).toEqual(["function", "type"]);
-    expect(Object.keys(declaration["function"] as object).sort()).toEqual([
-      "description",
-      "name",
-      "parameters",
-    ]);
-    expect(run.urls).toEqual(["https://api.sarvam.ai/v1/chat/completions"]);
-  });
-});

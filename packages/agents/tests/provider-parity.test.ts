@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
 
+import { F2_BLOCK_REASON } from "../src/buyer/pre-tool-use-hook.js";
 import { GuardedToolDispatcher } from "../src/providers/guarded-tool-dispatcher.js";
-import type { AgentSession, AgentTurn } from "../src/shared/agent-session.js";
+import type { AgentSession } from "../src/shared/agent-session.js";
 import {
   capturingFetch,
   jsonResponse,
@@ -11,7 +12,6 @@ import { ScriptedSession } from "./doubles.js";
 import { RecordingSink } from "./fakes.js";
 import type { ProviderCase } from "./provider-cases.js";
 import {
-  GATEWAY_TOOL,
   hookOf,
   PROVIDER_CASES,
   runTurn,
@@ -26,17 +26,13 @@ function implementsPort(session: AgentSession): boolean {
   );
 }
 
-function distinct(values: readonly unknown[]): number {
-  return new Set(values.map((value) => JSON.stringify(value))).size;
-}
-
 /**
- * Parity is the claim the whole provider layer rests on: swapping
- * `COVENANT_AGENT_PROVIDER` must change who answers, and nothing else. These
- * tests assert sameness across adapters rather than re-asserting each
- * adapter's own behaviour, which `provider-adapters.test.ts` already covers.
+ * The port is the contract the harness rests on: the scripted session (the
+ * zero-credential default) and the live adapter answer the same `turn()` and
+ * `close()`, and every tool call on the live adapter passes the F2 gate. What
+ * the adapter does on its own wire is `provider-adapters.test.ts`'s claim.
  */
-describe("every adapter satisfies the AgentSession port", () => {
+describe("every session satisfies the AgentSession port", () => {
   it.each(PROVIDER_CASES.map((kase) => [kase.id, kase] as const))(
     "%s exposes turn() and close()",
     (_id, kase: ProviderCase) => {
@@ -57,58 +53,18 @@ describe("every adapter satisfies the AgentSession port", () => {
   });
 });
 
-describe("providers agree on the answer", () => {
-  it("returns the identical AgentTurn for the same conversation", async () => {
-    const turns: AgentTurn[] = [];
-    for (const kase of PROVIDER_CASES) {
-      const run = await runTurn(kase, [
-        kase.call("c1", GATEWAY_TOOL, { cart_mandate_jwt: "jwt" }),
-        kase.text("Cart approved."),
-      ]);
-      turns.push(run.turn);
-    }
-
-    expect(distinct(turns)).toBe(1);
-    expect(turns[0]).toEqual({
-      text: "Cart approved.",
-      toolRequests: [],
-      done: true,
-    });
-  });
-});
-
-describe("providers agree on the F2 refusal", () => {
-  it("produces the identical decision and ledger trail", async () => {
-    const refusals: unknown[] = [];
-    const kinds: unknown[] = [];
+describe("the F2 refusal on the live adapter", () => {
+  it("lands in the ledger and never reaches the dispatcher", async () => {
     for (const kase of PROVIDER_CASES) {
       const run = await runTurn(kase, [
         kase.call("c1", SPOOFED_MONEY_TOOL, { amount_paise: 1 }),
         kase.text("I cannot."),
       ]);
-      refusals.push(
-        run.guard.blocked.map((decision) => ({
-          allowed: decision.allowed,
-          moneyAffecting: decision.moneyAffecting,
-          reason: decision.reason,
-          human: decision.human,
-        })),
-      );
-      kinds.push(run.sink.kinds());
-    }
 
-    expect(distinct(refusals)).toBe(1);
-    expect(distinct(kinds)).toBe(1);
-    expect(kinds[0]).toEqual(["tool.call.blocked"]);
-  });
-
-  it("never reaches the dispatcher without the gate, on any provider", async () => {
-    for (const kase of PROVIDER_CASES) {
-      const run = await runTurn(kase, [
-        kase.call("c1", SPOOFED_MONEY_TOOL, {}),
-        kase.text("I cannot."),
+      expect(run.sink.kinds()).toEqual(["tool.call.blocked"]);
+      expect(run.guard.blocked.map((decision) => decision.reason)).toEqual([
+        F2_BLOCK_REASON,
       ]);
-
       expect(run.dispatcher.calls).toEqual([]);
     }
   });
@@ -148,12 +104,8 @@ describe("conversation state survives across turns", () => {
   );
 });
 
-/** `input` on OpenAI, `messages` on Chat Completions. */
+/** The Responses API resends history as `input`. */
 function historyLength(body: Wire): number {
   const input = body["input"];
-  const messages = body["messages"];
-  if (Array.isArray(input)) {
-    return input.length;
-  }
-  return Array.isArray(messages) ? messages.length : 0;
+  return Array.isArray(input) ? input.length : 0;
 }

@@ -12,7 +12,7 @@ export type LatencyTier = (typeof LATENCY_TIERS)[number];
 /**
  * What a model can do, as the router needs to know it. Deliberately coarse:
  * the router picks between families, and a field it cannot fill honestly for
- * all four vendors is a field that would make the comparison a fiction.
+ * every family it lists is a field that would make the comparison a fiction.
  */
 export interface ModelCapabilities {
   readonly contextWindow: number;
@@ -21,8 +21,6 @@ export interface ModelCapabilities {
   readonly vision: boolean;
   readonly costTier: CostTier;
   readonly latencyTier: LatencyTier;
-  /** Trained on Indic scripts, not merely able to echo them back. */
-  readonly indic: boolean;
 }
 
 /** Where the id came from: the provider's own list, or the offline manifest. */

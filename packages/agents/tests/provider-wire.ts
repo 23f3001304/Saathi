@@ -53,45 +53,7 @@ export function openAiResults(body: Wire): readonly FedBackResult[] {
   }));
 }
 
-// --- OpenAI-compatible Chat Completions (Sarvam) --------------------------
-
-export function chatCall(callId: string, name: string, args: Wire): Wire {
-  return {
-    choices: [
-      {
-        finish_reason: "tool_calls",
-        message: {
-          role: "assistant",
-          content: null,
-          tool_calls: [
-            {
-              id: callId,
-              type: "function",
-              function: { name, arguments: JSON.stringify(args) },
-            },
-          ],
-        },
-      },
-    ],
-  };
-}
-
-export function chatText(text: string): Wire {
-  return {
-    choices: [{ finish_reason: "stop", message: { role: "assistant", content: text } }],
-  };
-}
-
-export function chatResults(body: Wire): readonly FedBackResult[] {
-  return items(body, "messages")
-    .filter((message) => message["role"] === "tool")
-    .map((message) => ({
-      id: String(message["tool_call_id"]),
-      content: String(message["content"]),
-    }));
-}
-
-/** Declarations as sent, for the per-provider schema-shape assertions. */
+/** Declarations as sent, for the schema-shape assertions. */
 export function declarationsOf(body: Wire): readonly Wire[] {
   return items(body, "tools");
 }

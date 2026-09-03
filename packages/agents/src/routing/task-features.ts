@@ -1,12 +1,9 @@
-export type ScriptClass = "latin" | "indic" | "mixed";
-
 export interface TaskFeatures {
   readonly promptChars: number;
   /** 0 no tools, 1 a read, 2 a negotiation or a settlement. */
   readonly toolDepth: number;
   readonly structuredOutput: boolean;
   readonly touchesMoney: boolean;
-  readonly script: ScriptClass;
 }
 
 export interface TaskInput {
@@ -15,33 +12,6 @@ export interface TaskInput {
   readonly availableTools: readonly string[];
   readonly requiresStructuredOutput: boolean;
 }
-
-/** Unicode blocks for the nine scripts Sarvam's Indic training covers. */
-const INDIC_BLOCKS: ReadonlyArray<readonly [number, number]> = [
-  [0x0900, 0x097f],
-  [0x0980, 0x09ff],
-  [0x0a00, 0x0a7f],
-  [0x0a80, 0x0aff],
-  [0x0b00, 0x0b7f],
-  [0x0b80, 0x0bff],
-  [0x0c00, 0x0c7f],
-  [0x0c80, 0x0cff],
-  [0x0d00, 0x0d7f],
-];
-
-/** Latin letters carrying an Indic language — the common case in Indian chat. */
-const ROMANISED_MARKERS: readonly string[] = [
-  "kitna",
-  "kitne",
-  "chahiye",
-  "mujhe",
-  "sasta",
-  "kharidna",
-  "dikhao",
-  "batao",
-  "paisa",
-  "rupaye",
-];
 
 /**
  * Stems, not words, and Devanagari alongside the romanisation of the same verb.
@@ -90,28 +60,12 @@ function hasAny(haystack: string, needles: readonly string[]): boolean {
   return needles.some((needle) => haystack.includes(needle));
 }
 
-function isIndicCodePoint(code: number): boolean {
-  return INDIC_BLOCKS.some(([low, high]) => code >= low && code <= high);
-}
-
-export function scriptOf(prompt: string): ScriptClass {
-  let indic = 0;
-  let latin = 0;
-  for (const char of prompt) {
-    const code = char.codePointAt(0) ?? 0;
-    indic += isIndicCodePoint(code) ? 1 : 0;
-    latin += /[a-z]/i.test(char) ? 1 : 0;
-  }
-  if (indic === 0) {
-    return hasAny(prompt.toLowerCase(), ROMANISED_MARKERS) ? "mixed" : "latin";
-  }
-  return latin === 0 ? "indic" : "mixed";
-}
-
 /**
  * Deterministic and free. Classifying the job with a model call would put a
  * model in front of the decision about which model to use, which is both a
  * cost the cascade exists to avoid and a loop the audit trail cannot explain.
+ * These words size the job (does it read, haggle or settle); nothing here
+ * decides what the model may say.
  */
 export function extractFeatures(input: TaskInput): TaskFeatures {
   const text = input.prompt.toLowerCase();
@@ -124,7 +78,6 @@ export function extractFeatures(input: TaskInput): TaskFeatures {
     toolDepth: depthOf(hasTools, deep, shallow),
     structuredOutput: input.requiresStructuredOutput,
     touchesMoney: settlement,
-    script: scriptOf(input.prompt),
   };
 }
 

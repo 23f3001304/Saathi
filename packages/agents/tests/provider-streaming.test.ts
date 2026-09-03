@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
 
-import { readChatCompletionsStream } from "../src/providers/chat-completions-stream.js";
 import { readOpenAiStream } from "../src/providers/openai-stream.js";
 import { collector, sse } from "./stream-fixtures.js";
 
@@ -67,35 +66,3 @@ describe("a partial openai stream is not a decision", () => {
   });
 });
 
-const CHUNKS = [
-  'data: {"choices":[{"delta":{"content":"One"}}]}',
-  'data: {"choices":[{"delta":{"tool_calls":[{"index":0,"id":"c1","function":{"name":"t","arguments":"{\\"reply\\":\\"two"}}]}}]}',
-  'data: {"choices":[{"delta":{"tool_calls":[{"index":0,"function":{"arguments":"\\"}"}}]}}]}',
-  "data: [DONE]",
-].join("\n\n");
-
-describe("chat completions stream", () => {
-  it("reassembles tool calls by index and streams both kinds of prose", async () => {
-    const stream = collector();
-    const body = await readChatCompletionsStream(sse(`${CHUNKS}\n\n`), stream);
-
-    expect(stream.seen.join("")).toBe("Onetwo");
-    expect(body).toEqual({
-      choices: [
-        {
-          message: {
-            role: "assistant",
-            content: "One",
-            tool_calls: [
-              {
-                id: "c1",
-                type: "function",
-                function: { name: "t", arguments: '{"reply":"two"}' },
-              },
-            ],
-          },
-        },
-      ],
-    });
-  });
-});

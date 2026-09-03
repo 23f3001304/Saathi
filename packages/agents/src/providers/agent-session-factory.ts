@@ -1,6 +1,10 @@
 import type { PreToolUseHook } from "../buyer/pre-tool-use-hook.js";
 import type { AgentSession, ToolDispatcher } from "../shared/agent-session.js";
 import { GuardedToolDispatcher } from "./guarded-tool-dispatcher.js";
+import type {
+  OpenAiSessionConfig,
+  ReasoningEffort,
+} from "./openai-agent-session.js";
 import { OpenAiAgentSession } from "./openai-agent-session.js";
 import type { AgentProviderId, Env } from "./provider-config.js";
 import {
@@ -14,7 +18,6 @@ import {
   DEFAULT_PROVIDER_TIMEOUT_MS,
   JsonTransport,
 } from "./provider-transport.js";
-import { SARVAM_BASE_URL, SarvamAgentSession } from "./sarvam-agent-session.js";
 import type { ToolDeclaration } from "./tool-declarations.js";
 import { COVENANT_TOOL_DECLARATIONS } from "./tool-declarations.js";
 import type { DraftScope } from "./turn-stream.js";
@@ -31,17 +34,16 @@ export interface AgentSessionRequest {
   readonly tools?: readonly ToolDeclaration[];
   readonly fetchImpl?: typeof fetch;
   readonly maxToolIterations?: number;
-  /** Reasoning effort for reasoning models (OpenAI path). Absent falls back
-   *  to COVENANT_OPENAI_REASONING in env, then "medium": a reasoning model
+  /** Reasoning effort for reasoning models. Absent falls back to
+   *  COVENANT_OPENAI_REASONING in env, then "medium": a reasoning model
    *  left at the API default is a reasoning model switched off. */
-  readonly reasoningEffort?: "low" | "medium" | "high";
+  readonly reasoningEffort?: ReasoningEffort;
   readonly timeoutMs?: number;
-  /** Research on the provider's own web search (OpenAI hosted tool). Only the
-   *  OpenAI path can honour it; other providers ignore it and the errand
-   *  falls back to whatever tools it was declared. */
+  /** Research on the provider's own web search: the Responses API's hosted
+   *  `web_search` tool rides beside the declared function tools. */
   readonly hostedWebSearch?: boolean;
   /** Where the adapter opens a draft per model round trip. Absent means the
-   *  blocking path: every adapter answers the same way with nobody watching. */
+   *  blocking path: the adapter answers the same way with nobody watching. */
   readonly drafts?: DraftScope | null;
 }
 
@@ -59,73 +61,59 @@ export interface CreatedAgentSession {
   readonly guard: GuardedToolDispatcher;
 }
 
-interface Resolved {
-  readonly id: AgentProviderId;
-  readonly model: string;
-  readonly apiKey: string;
-  readonly tools: readonly ToolDeclaration[];
-  readonly maxToolIterations: number;
-}
+const EFFORTS: ReadonlySet<string> = new Set(["low", "medium", "high"]);
 
-const EFFORTS = new Set(["low", "medium", "high"]);
-
-function effortOf(
-  request: AgentSessionRequest,
-): "low" | "medium" | "high" {
+function effortOf(request: AgentSessionRequest): ReasoningEffort {
   if (request.reasoningEffort !== undefined) return request.reasoningEffort;
   const env = request.env["COVENANT_OPENAI_REASONING"] ?? "";
-  return EFFORTS.has(env) ? (env as "low" | "medium" | "high") : "medium";
+  return EFFORTS.has(env) ? (env as ReasoningEffort) : "medium";
 }
 
+function configOf(
+  request: AgentSessionRequest,
+  id: AgentProviderId,
+  model: string,
+): OpenAiSessionConfig {
+  return {
+    baseUrl: PROVIDER_SPECS[id].baseUrl,
+    apiKey: resolveProviderApiKey(request.env, id),
+    model,
+    systemPrompt: request.systemPrompt,
+    tools: request.tools ?? COVENANT_TOOL_DECLARATIONS,
+    maxToolIterations:
+      request.maxToolIterations ?? DEFAULT_MAX_TOOL_ITERATIONS,
+    reasoningEffort: effortOf(request),
+    ...(request.hostedWebSearch === true
+      ? { hostedTools: [{ type: "web_search" }] }
+      : {}),
+  };
+}
+
+/**
+ * One adapter, one gate. The session is built around a `GuardedToolDispatcher`
+ * and nothing else can dispatch for it, so a missing key is the only way this
+ * fails, and it fails as a typed error naming the variable rather than as a
+ * 401 later on.
+ */
 export function createAgentSession(
   request: AgentSessionRequest,
 ): CreatedAgentSession {
   const id = request.provider ?? resolveProviderId(request.env);
-  const resolved: Resolved = {
-    id,
-    model: request.model ?? resolveProviderModel(request.env, id),
-    apiKey: resolveProviderApiKey(request.env, id),
-    tools: request.tools ?? COVENANT_TOOL_DECLARATIONS,
-    maxToolIterations: request.maxToolIterations ?? DEFAULT_MAX_TOOL_ITERATIONS,
-  };
+  const model = request.model ?? resolveProviderModel(request.env, id);
   const guard = new GuardedToolDispatcher(
     request.hook,
     request.dispatcher,
     request.txnId,
   );
-  const session = httpSession(request, resolved, guard);
-  return { provider: id, model: resolved.model, session, guard };
-}
-
-function httpSession(
-  request: AgentSessionRequest,
-  resolved: Resolved,
-  guard: GuardedToolDispatcher,
-): AgentSession {
   const transport = new JsonTransport(request.fetchImpl ?? fetch, {
-    provider: resolved.id,
+    provider: id,
     timeoutMs: request.timeoutMs ?? DEFAULT_PROVIDER_TIMEOUT_MS,
   });
-  const config = {
-    baseUrl: PROVIDER_SPECS[resolved.id].baseUrl,
-    apiKey: resolved.apiKey,
-    model: resolved.model,
-    systemPrompt: request.systemPrompt,
-    tools: resolved.tools,
-    maxToolIterations: resolved.maxToolIterations,
-    reasoningEffort: effortOf(request),
-    ...(request.hostedWebSearch === true && resolved.id === "openai"
-      ? { hostedTools: [{ type: "web_search" }] }
-      : {}),
-  };
-  const drafts = request.drafts ?? null;
-  if (resolved.id === "sarvam") {
-    return new SarvamAgentSession(
-      guard,
-      transport,
-      { ...config, baseUrl: SARVAM_BASE_URL },
-      drafts,
-    );
-  }
-  return new OpenAiAgentSession(guard, transport, config, drafts);
+  const session = new OpenAiAgentSession(
+    guard,
+    transport,
+    configOf(request, id, model),
+    request.drafts ?? null,
+  );
+  return { provider: id, model, session, guard };
 }

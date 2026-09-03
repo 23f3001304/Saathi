@@ -103,7 +103,6 @@ export class ModelRouter {
     const ladder = buildLadder({
       catalog: await this.source.catalog(),
       requirements: requirementsFor(taskClass, features),
-      features,
       stats: await this.stats.snapshot(taskClass),
       maxEscalations: this.config.maxEscalations,
       pinned: this.config.pinnedModel ?? null,
