@@ -2,7 +2,7 @@ import { pageName } from "../browser/browser-view.js";
 
 // What a picked errand says when it stops, and why it stopped. Kept beside
 // the step rather than inside it so the sentences a shopper reads are
-// reviewable as a list — the same split `web-look-copy.ts` makes.
+// reviewable as a list.
 
 export const NOT_OPENED =
   "I could not get that listing open, so nothing was put in a basket. Nothing " +

@@ -1,23 +1,22 @@
-// Looking on the open web, as a terminal outcome of a turn. The failure this
-// path exists to kill: "I'll look for SSDs on Amazon" followed by the local
-// fixture catalog — cushioned socks and three navy kurtas — five turns running.
+// Looking on the open web, as a terminal outcome of a turn. What the shopper
+// reads is the model's one sentence, written after the looking with this
+// host's own record of the errand in front of it. The harness adds no line of
+// its own: the failure this path once fixed with a fixed English closer ("I
+// could not get a page open") is now a fact in a data block, in whatever
+// language the model answers in.
 import type { ConversationResult, TurnPlan } from "@covenant/agents";
 import { beforeEach, describe, expect, it } from "vitest";
 
 import { WebFindings } from "../src/browser/web-listing.js";
 import { WebTrail } from "../src/browser/web-trail.js";
 import { BeatHub } from "../src/http/beat-hub.js";
+import { OBSERVED_MARK } from "../src/purchase/observed-block.js";
 import { emptyResult } from "../src/purchase/purchase-result.js";
 import type { WebErrand } from "../src/purchase/web-look-step.js";
 import { WebLookStep } from "../src/purchase/web-look-step.js";
 import { RecordingLogger, StepClock } from "./support/fakes.js";
 
 const AMAZON = "https://www.amazon.in/s?k=1tb+ssd";
-
-/** How the page is named to a person: host and path, never the query. */
-// The provenance line names the shop and counts the pages; the full slugs
-// live on the window card's journal, where they can be read.
-const AMAZON_NAMED = "1 page on amazon.in";
 
 function planOf(over: Partial<TurnPlan> = {}): TurnPlan {
   return {
@@ -35,8 +34,9 @@ function answered(text: string): ConversationResult {
   return { transcript: ["", text], blocked: [], turns: 2, completed: true };
 }
 
-/** An errand that walks the sandbox, writing the trail `WebShopper` writes. */
-function errandVisiting(trail: WebTrail, ...urls: string[]) {
+/** An errand that walks the sandbox, writing the trail `WebShopper` writes,
+ *  and answers the same sentence on both legs. */
+function errandVisiting(trail: WebTrail, ...urls: string[]): WebErrand {
   return {
     converse: (prompt: string) => {
       asked.push(prompt);
@@ -65,8 +65,12 @@ function lookStep(errand: WebErrand): WebLookStep {
 function bubbles() {
   return hub
     .snapshot()
-    .filter((beat) => beat.kind === "message")
-    .map((beat) => (beat.kind === "message" ? beat : null));
+    .flatMap((beat) => (beat.kind === "message" ? [beat] : []));
+}
+
+/** The second leg's prompt: the one the sentence is written from. */
+function summaryPrompt(): string {
+  return asked[1] ?? "";
 }
 
 beforeEach(() => {
@@ -89,101 +93,105 @@ describe("the web is reachable from a look", () => {
     expect(result.cart).toBeNull();
   });
 
-  it("reports the page it actually landed on, with its provenance", async () => {
+  it("says its opening line, then the model's sentence, and nothing else", async () => {
     const step = lookStep(errandVisiting(trail, AMAZON));
     await step.look(emptyResult("r2", "ssd"), planOf());
-    const said = bubbles();
-    expect(said[0]?.text).toBe("Opening Amazon now.");
-    expect(said[1]?.text).toContain("Samsung 990 Pro");
-    expect(said[2]?.text).toContain(AMAZON_NAMED);
-    expect(said[2]?.text).not.toContain("?k=");
-    expect(said[2]?.text).toContain("never a signed quote");
+    expect(bubbles().map((beat) => beat.text)).toEqual([
+      "Opening Amazon now.",
+      "Samsung 990 Pro, ₹9,499 on the page.",
+    ]);
+    // No grey line of the harness's own: every bubble is the agent's.
+    expect(bubbles().every((beat) => beat.variant === undefined)).toBe(true);
   });
 });
 
-describe("what the harness says and what the agent says", () => {
-  /**
-   * The closing line is the harness speaking, not the agent, so it goes out as
-   * a system statement — the same channel the cart refusals use — rather than
-   * welded onto the end of a sentence the model wrote.
-   */
-  it("marks the harness's own sentence as the harness's", async () => {
-    const step = lookStep(errandVisiting(trail, AMAZON));
-    await step.look(emptyResult("r3", "ssd"), planOf());
-    const said = bubbles();
-    expect(said[1]?.variant).toBeUndefined();
-    expect(said[2]?.variant).toBe("system");
-  });
-
-  it("says plainly that no signed price means no settlement here", async () => {
-    const step = lookStep(errandVisiting(trail, AMAZON));
-    await step.look(emptyResult("r4", "ssd"), planOf());
-    const last = bubbles().at(-1)?.text ?? "";
-    expect(last).toContain("payment step");
-    // Nothing was read that could become a card, so nothing is promised as
-    // one: see `web-options.test.ts` for the line a turn with cards closes on.
-    expect(last).not.toContain("Tap one");
-  });
-});
-
-/** The invariant, enforced from the record of the act rather than the model's
- *  account of it: a claim with no navigation behind it is never shown. */
-describe("the agent never claims a page it did not open", () => {
-  const inventing = {
-    converse: () =>
-      Promise.resolve(answered("I found a 1TB SSD on Amazon for ₹4,499.")),
-  };
-
-  it("drops the findings and says so when nothing was opened", async () => {
-    const step = lookStep(inventing);
-    await step.look(emptyResult("r5", "ssd"), planOf());
-    const said = bubbles().map((beat) => beat?.text ?? "");
-    expect(said.some((text) => text.includes("₹4,499"))).toBe(false);
-    expect(said.at(-1)).toContain("could not get a page open");
+describe("what the model is told before it speaks", () => {
+  it("is handed this host's record of the errand, as data", async () => {
+    await lookStep(errandVisiting(trail, AMAZON)).look(
+      emptyResult("r3", "ssd"),
+      planOf(),
+    );
+    expect(summaryPrompt()).toContain(OBSERVED_MARK);
+    expect(summaryPrompt()).toContain("- pages opened: 1 (amazon.in)");
+    expect(summaryPrompt()).not.toContain("?k=");
   });
 
   it("counts only the pages this turn reached, never an earlier turn's", async () => {
     trail.record("https://example.test/earlier");
-    const step = lookStep(inventing);
-    await step.look(emptyResult("r6", "ssd"), planOf());
-    expect(bubbles().at(-1)?.text).toContain("could not get a page open");
+    await lookStep(errandVisiting(trail, AMAZON)).look(
+      emptyResult("r4", "ssd"),
+      planOf(),
+    );
+    expect(summaryPrompt()).toContain("- pages opened: 1 (amazon.in)");
+  });
+
+  it("says nothing was opened rather than dropping the sentence", async () => {
+    const step = lookStep({
+      converse: (prompt: string) => {
+        asked.push(prompt);
+        return Promise.resolve(answered("I could not reach a page for that."));
+      },
+    });
+    await step.look(emptyResult("r5", "ssd"), planOf());
+    expect(summaryPrompt()).toContain("- pages opened: none");
+    expect(bubbles().at(-1)?.text).toBe("I could not reach a page for that.");
+  });
+});
+
+describe("a silent errand is a silent turn", () => {
+  it("emits no sentence and no cards when the model said nothing and found nothing", async () => {
+    const mute: WebErrand = {
+      converse: () =>
+        Promise.resolve({
+          transcript: [""],
+          blocked: [],
+          turns: 1,
+          completed: true,
+        }),
+    };
+    await lookStep(mute).look(emptyResult("r6", "ssd"), planOf({ reply: "" }));
+    expect(hub.snapshot().some((beat) => beat.kind === "message")).toBe(false);
+    expect(hub.snapshot().some((beat) => beat.kind === "options")).toBe(false);
   });
 });
 
 /**
  * A real Amazon search navigated under the read that followed it, puppeteer
  * threw "Execution context was destroyed", and the whole turn came back
- * `failed` — a stack-trace-shaped outcome where a sentence should have been.
+ * `failed`: a stack-trace-shaped outcome where a sentence should have been.
  */
 describe("a look that goes wrong is still a turn that answers", () => {
-  const broken = {
-    converse: () =>
-      Promise.reject(
-        new Error(
-          "Execution context was destroyed, most likely because of a navigation.",
-        ),
-      ),
-  };
-
   it("answers rather than failing the run", async () => {
-    const step = lookStep(broken);
-    const result = await step.look(emptyResult("r7", "ssd"), planOf());
+    const broken: WebErrand = {
+      converse: () =>
+        Promise.reject(new Error("Execution context was destroyed")),
+    };
+    const result = await lookStep(broken).look(
+      emptyResult("r7", "ssd"),
+      planOf(),
+    );
     expect(result.status).toBe("answered");
     expect(result.failure).toBeNull();
   });
 
-  it("still names the page it reached, and does not invent what was on it", async () => {
+  it("asks the model for the closing line with the pages reached and the break named", async () => {
+    let calls = 0;
     const step = lookStep({
-      converse: async () => {
-        trail.record(AMAZON);
-        throw new Error("Execution context was destroyed");
+      converse: async (prompt: string) => {
+        calls += 1;
+        asked.push(prompt);
+        if (calls === 1) {
+          trail.record(AMAZON);
+          throw new Error("Execution context was destroyed");
+        }
+        return answered(
+          "The page moved under me; ask again and I will pick it up.",
+        );
       },
     });
     await step.look(emptyResult("r8", "ssd"), planOf());
-    const said = bubbles().map((beat) => beat?.text ?? "");
-    expect(said.some((text) => text.includes("page moved under me"))).toBe(
-      true,
-    );
-    expect(said.at(-1)).toContain(AMAZON_NAMED);
+    expect(asked[1]).toContain("- pages opened: 1 (amazon.in)");
+    expect(asked[1]).toContain("- clock: this errand stopped early");
+    expect(bubbles().at(-1)?.text).toContain("page moved under me");
   });
 });

@@ -94,10 +94,16 @@ function foundBlock(found: readonly WebListingView[]): string {
   );
 }
 
+/** `observed` is the host's own record of the errand (`observedBlock`),
+ *  placed after what was found and before the language rule: the last thing
+ *  read before the sentence is written is still the line it answers. */
 export function summariseFor(
   stated: readonly string[],
   replyLanguage: string | null = null,
   found: readonly WebListingView[] = [],
+  observed = "",
 ): string {
-  return SUMMARISE + foundBlock(found) + speakFor(stated, replyLanguage);
+  return (
+    SUMMARISE + foundBlock(found) + observed + speakFor(stated, replyLanguage)
+  );
 }

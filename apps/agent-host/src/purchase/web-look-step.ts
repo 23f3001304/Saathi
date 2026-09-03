@@ -1,4 +1,4 @@
-import type { ConversationResult, TurnPlan } from "@covenant/agents";
+import type { TurnPlan } from "@covenant/agents";
 import type { Logger } from "@covenant/domain";
 
 import type { WebFindings } from "../browser/web-listing.js";
@@ -7,8 +7,14 @@ import type { BeatHub } from "../http/beat-hub.js";
 import type { ContextView } from "./context-record.js";
 import { knownBlock } from "./context-digest.js";
 import { errandFor } from "./web-errand.js";
+import type {
+  ErrandEnd,
+  ObservedFacts,
+  ProgressView,
+} from "./observed-block.js";
+import { factsFrom, observedBlock, windowOwnerOf } from "./observed-block.js";
 import type { PurchaseResult } from "./purchase-result.js";
-import { reportFindings } from "./web-look-report.js";
+import { reportFindings, settleLook } from "./web-look-report.js";
 import type { WebOffered } from "./web-offered.js";
 import type { WebPin } from "./web-pin.js";
 import { cardedListings } from "./web-options.js";
@@ -34,6 +40,13 @@ export interface WebLook {
     stated?: readonly string[],
     replyLanguage?: string | null,
   ): Promise<PurchaseResult>;
+}
+
+/** What a look may read about the window it does not drive: a checkout parked
+ *  from an earlier turn is still a fact about their screen. */
+export interface LookWatch {
+  readonly progress: ProgressView;
+  readonly window: { current(): { currentState(): string } | null };
 }
 
 /**
@@ -74,6 +87,9 @@ export class WebLookStep implements WebLook {
      *  about a page already found starts at its URL rather than on a
      *  storefront's front door. `null` on a host that keeps no record. */
     private readonly context: ContextView | null = null,
+    /** The host's record of the window, for the observed block. `null` on a
+     *  harness with no window at all. */
+    private readonly watch: LookWatch | null = null,
   ) {}
 
   async look(
@@ -91,23 +107,20 @@ export class WebLookStep implements WebLook {
     const seen = this.findings.length;
     const said = this.say(plan.reply.trim());
     const wrote = stated.length > 0 ? stated : [base.request];
-    const errand = await this.attempt(query, wrote, replyLanguage, seen);
-    const opened = this.trail.since(from);
+    const errand = await this.attempt(query, wrote, replyLanguage, seen, from);
     this.offered?.offer(cardedListings(this.findings.since(seen)));
     const found = reportFindings(this.hub, {
       errand,
-      opened,
       found: this.findings.since(seen),
-      query,
     });
     this.logger.info("purchase.web_look", {
       run_id: base.runId,
       query,
-      pages: opened.length,
+      pages: this.trail.since(from).length,
       blocked: errand.result.blocked.length,
       failed: errand.failure,
     });
-    return this.settle(base, [...said, ...found], errand.result);
+    return settleLook(this.hub, base, [...said, ...found], errand.result);
   }
 
   /**
@@ -120,9 +133,10 @@ export class WebLookStep implements WebLook {
     query: string,
     asked: readonly string[],
     replyLanguage: string | null,
-    /** Where `WebFindings` stood before this errand: what it collects past
-     *  that point is what the summary is grounded on. */
+    /** Where `WebFindings` stood: rows past this ground the summary. */
     seen: number,
+    /** Where `WebTrail` stood: the pages this errand reached, and no others. */
+    from: number,
   ): Promise<ErrandRun> {
     const look = errandFor(query, asked, this.currency, replyLanguage, this.known());
     this.logger.debug("chat.reply_language", {
@@ -141,11 +155,12 @@ export class WebLookStep implements WebLook {
           look,
           // Exactly the rows that will be carded, so the prose and the grid
           // under it are about the same things.
-          summarise: () =>
+          summarise: (ended: ErrandEnd) =>
             summariseFor(
               asked,
               replyLanguage,
               cardedListings(this.findings.since(seen)),
+              observedBlock(this.facts(from, seen, ended)),
             ),
         },
         this.logger,
@@ -160,30 +175,25 @@ export class WebLookStep implements WebLook {
     return knownBlock(this.context?.current() ?? null);
   }
 
+  /** The host's own record of this errand, for the model to speak from.
+   *  Every read here is optional-chained: this runs on a window that may
+   *  have just gone, and gathering facts must not be what ends the errand. */
+  private facts(from: number, seen: number, ended: ErrandEnd): ObservedFacts {
+    const state = this.watch?.window.current()?.currentState() ?? null;
+    return factsFrom(this.watch?.progress ?? null, {
+      pages: this.trail.since(from),
+      cards: cardedListings(this.findings.since(seen)).length,
+      window: windowOwnerOf(state),
+      expired: ended.expired,
+      failure: ended.failure,
+    });
+  }
+
   private say(reply: string): readonly string[] {
     if (reply.length === 0) {
       return [];
     }
     this.hub.emit({ kind: "message", text: reply });
     return [reply];
-  }
-
-  private settle(
-    base: PurchaseResult,
-    transcript: readonly string[],
-    conversation: ConversationResult,
-  ): PurchaseResult {
-    this.hub.emit({
-      kind: "outcome",
-      state: "answered",
-      txnId: null,
-      detail: "look_on_web",
-    });
-    return {
-      ...base,
-      status: "answered",
-      transcript,
-      blocked: conversation.blocked,
-    };
   }
 }

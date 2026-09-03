@@ -162,21 +162,6 @@ describe("every verified tile is offered, whatever the query was", () => {
   });
 });
 
-describe("what the harness promises under the cards", () => {
-  it("points at the cards only on a turn that has some", async () => {
-    await offered();
-    const closing = hub
-      .snapshot()
-      .flatMap((beat) => (beat.kind === "message" ? [beat.text] : []))
-      .at(-1);
-    // It says what the cards are and stops. The instruction to tap one lives
-    // at the composer, which is the only place a shopper can act on it, and
-    // saying it here as well put the same sentence on screen twice.
-    expect(closing).toContain("basket");
-    expect(closing).not.toContain("Tap one");
-  });
-});
-
 describe("nothing is offered that was not read", () => {
   it("shows no cards on a turn that opened no page", async () => {
     const step = new WebLookStep(
