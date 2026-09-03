@@ -65,7 +65,9 @@ function onward() {
   };
 }
 
-function stepWith(errand: { converse: () => Promise<unknown> }): WebBuyStep {
+function stepWith(errand: {
+  converse: (prompt: string) => Promise<unknown>;
+}): WebBuyStep {
   return new WebBuyStep(
     hub,
     errand as never,
@@ -130,20 +132,24 @@ describe("the address is confirmed before the checkout goes on", () => {
 
 /**
  * "Carry on" is not the same as having signed in. A resume while the wheel is
- * still theirs keeps the park rather than spending a turn being refused and
- * then releasing it — which would throw away the basket over a sentence that
- * was only slightly early.
+ * still theirs keeps the park rather than spending an errand being refused at
+ * every tool: the model is told the window is theirs and says so, in its own
+ * words, and the basket survives a sentence that was only slightly early.
  */
 describe("a resume that arrives before the shopper is through", () => {
-  it("keeps the park and says the window is still theirs", async () => {
+  it("keeps the park, tells the model whose the window is, and says only what the model said", async () => {
+    const prompts: string[] = [];
     const wall = {
-      converse: async () => {
-        await web.call("web_open", { url: SIGNIN });
-        await web.call("web_read");
+      converse: async (prompt: string) => {
+        prompts.push(prompt);
+        if (prompts.length <= 2) {
+          await web.call("web_open", { url: SIGNIN });
+          await web.call("web_read");
+        }
         return {
-          transcript: ["Signed out."],
+          transcript: ["The shop is still waiting on you at the sign-in."],
           blocked: [],
-          turns: 2,
+          turns: 1,
           completed: true,
         };
       },
@@ -154,7 +160,10 @@ describe("a resume that arrives before the shopper is through", () => {
 
     const early = await stepWith(wall).resume(["ok carry on"]);
     expect(park.parked).toBe(true);
-    expect(said().at(-1)).toContain("still yours");
+    expect(prompts.at(-1)).toContain(
+      "- window: the shopper has the wheel; the shop is waiting on them",
+    );
+    expect(said().at(-1)).toBe("The shop is still waiting on you at the sign-in.");
     expect(early.status).toBe("answered");
   });
 });

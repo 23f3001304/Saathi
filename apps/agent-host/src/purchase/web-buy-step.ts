@@ -14,9 +14,11 @@ import type { PurchaseResult } from "./purchase-result.js";
 import { emptyResult } from "./purchase-result.js";
 import { buyErrandFor, pickSummaryFor } from "./web-buy-errand.js";
 import { runErrand } from "./errand-run.js";
-import { FORGOTTEN, NOT_OPENED } from "./web-buy-copy.js";
+import type { ErrandEnd } from "./observed-block.js";
+import { observedBlock } from "./observed-block.js";
+import { pickAfterword, pickFacts, saidAlone, spokenBy } from "./pick-facts.js";
 import type { Spoken } from "./web-pick-close.js";
-import { closePick, emitLine, settleAs } from "./web-pick-close.js";
+import { closePick, settleAs } from "./web-pick-close.js";
 import type { WebPickPark } from "./web-pick-park.js";
 import type { WebErrand } from "./errand-run.js";
 import type { WebPin } from "./web-pin.js";
@@ -85,27 +87,28 @@ export class WebBuyStep {
     const listing = this.findings.find(ref);
     if (listing === null) {
       // Refused, not approximated: picking a nearest match would be the host
-      // inventing the shop it is about to drive. It still answers.
+      // inventing the shop it is about to drive. Nothing is said in anybody's
+      // voice; the outcome beat closes the turn.
       this.logger.warn("purchase.web_pick.unresolved", { ref });
-      return this.refuseAs(base, FORGOTTEN, "web_pick_unknown");
+      return settleAs(this.hub, base, [], "web_pick_unknown");
     }
     await covenantFirst(this.intents, listing);
     const from = this.trail.length;
     const landed = await this.sandbox.open(listing.url);
     if (landed.isError) {
-      return this.refuseAs(base, NOT_OPENED, "web_pick_shut");
+      // The one fact is that the page did not open; the model says so.
+      const told = await pickAfterword(
+        this.conversation,
+        { stated, replyLanguage },
+        { failure: "the listing page could not be opened" },
+      );
+      return settleAs(this.hub, base, spokenBy(this.hub, told), "web_pick_shut");
     }
     this.progress.reset();
+    const home = await profileOf(this.address);
     const said = await this.errand(
-      buyErrandFor(
-        listing,
-        stated,
-        this.currency,
-        replyLanguage,
-        await profileOf(this.address),
-      ),
-      stated,
-      replyLanguage,
+      buyErrandFor(listing, stated, this.currency, replyLanguage, home),
+      { stated, replyLanguage, from, holds: listing.title },
     );
     this.logger.info("purchase.web_pick", { ref, url: listing.url });
     return this.close(base, ref, from, said, listing.url);
@@ -126,19 +129,11 @@ export class WebBuyStep {
       findings: this.findings,
       currency: this.currency,
       hub: this.hub,
-      errand: (prompt, asked, language) => this.errand(prompt, asked, language),
+      errand: (prompt, at) => this.errand(prompt, at),
+      say: (prompt) => saidAlone(this.conversation, prompt),
       close: (base, ref, from, said) => this.close(base, ref, from, said),
-      refuse: (base, line, why) => this.refuseAs(base, line, why),
     };
     return resumePick(parts, stated, replyLanguage);
-  }
-
-  private refuseAs(
-    base: PurchaseResult,
-    line: string,
-    why: string,
-  ): PurchaseResult {
-    return settleAs(this.hub, base, [emitLine(this.hub, line, true)], why);
   }
 
   private close(
@@ -160,16 +155,33 @@ export class WebBuyStep {
     );
   }
 
+  /** The errand's two legs, the second told what this host watched. */
   private async errand(
     prompt: string,
-    stated: readonly string[],
-    replyLanguage: string | null,
+    at: {
+      readonly stated: readonly string[];
+      readonly replyLanguage: string | null;
+      readonly from: number;
+      readonly holds: string | null;
+    },
   ): Promise<Spoken> {
     const release = this.stage.hold();
     try {
+      // Optional-called: gathering facts must not be what ends an errand, and
+      // an opener that cannot answer whose the window is has not made it ours.
+      const watch = {
+        trail: this.trail,
+        progress: this.progress,
+        theirs: () => this.sandbox.theirs?.() === true,
+      };
       const prompts = {
         look: prompt,
-        summarise: () => pickSummaryFor(stated, replyLanguage),
+        summarise: (ended: ErrandEnd) =>
+          pickSummaryFor(
+            at.stated,
+            at.replyLanguage,
+            observedBlock(pickFacts(watch, at, ended)),
+          ),
       };
       const run = await runErrand(this.conversation, prompts, this.logger);
       return { told: run.told, expired: run.expired };

@@ -20,11 +20,14 @@ let web: WebHarness;
 let hub: BeatHub;
 let park: WebPickPark;
 
+const prompts: string[] = [];
+
 function stepOn(said = "It is in the basket.", carts = false): WebBuyStep {
   return new WebBuyStep(
     hub,
     {
-      converse: () => {
+      converse: (prompt: string) => {
+        prompts.push(prompt);
         // Stands in for the add-to-basket click the real errand makes; the
         // recording itself is `WebShopper`'s and is covered where the tools
         // are driven for real.
@@ -60,6 +63,7 @@ async function shown(): Promise<void> {
 }
 
 beforeEach(async () => {
+  prompts.length = 0;
   web = webHarness(TRAITS);
   hub = new BeatHub(new StepClock(), new RecordingLogger());
   park = new WebPickPark();
@@ -93,18 +97,36 @@ describe("a tapped card drives the window", () => {
 });
 
 /**
- * The identity rule, one layer out from `intent-listing.ts`: the person
- * chooses which card, the host resolves which page. A ref with no page behind
- * it has no nearest match, so nothing is navigated.
+ * The identity rule, one layer out from the SKU lookup: the person chooses
+ * which card, the host resolves which page. A ref with no page behind it has
+ * no nearest match, so nothing is navigated and nothing is said in anybody's
+ * voice: the turn closes on its outcome beat alone.
  */
 describe("a pick the host cannot resolve", () => {
-  it("is refused rather than approximated, and says so in the thread", async () => {
+  it("is refused rather than approximated, silently, and still closes the turn", async () => {
     const result = await stepOn().buy("w99", []);
     expect(web.page.url()).toBe(RESULTS);
-    expect(said()[0]).toContain("no longer have that listing");
-    // Still a turn that answers: a silent refusal leaves the shopper looking
-    // at a card they tapped and nothing happening.
+    expect(said()).toEqual([]);
+    expect(prompts).toEqual([]);
+    const closing = hub.snapshot().find((beat) => beat.kind === "outcome");
+    expect(closing).toMatchObject({ state: "answered", detail: "web_pick_unknown" });
     expect(result.status).toBe("answered");
+  });
+});
+
+describe("the errand is told what this host watched", () => {
+  it("names the basket as empty when no add-to-basket click landed", async () => {
+    await stepOn("It is in the basket.").buy("w1", ["runners under 3000"]);
+    // The second leg is the one the sentence is written from.
+    expect(prompts[1]).toContain("- basket: nothing was put in a basket");
+    expect(prompts[1]).toContain("- pages opened: 1 (shop.example)");
+  });
+
+  it("names the basket as holding the listing when the click landed", async () => {
+    await stepOn("It is in the basket.", true).buy("w1", ["runners under 3000"]);
+    expect(prompts[1]).toContain(
+      '- basket: the shop\'s basket holds "Red Runners"',
+    );
   });
 });
 
