@@ -49,20 +49,13 @@ export async function resumePick(
   if (parts.sandbox.theirs()) {
     return await stillTheirs(parts, base, { stated, replyLanguage, holds });
   }
+  // Read before the reset: `resumeReset` clears the slots so one filled form
+  // cannot park the same checkout forever, not because the fill stopped being
+  // true, and the record has to keep saying this host typed it.
+  const filled = parts.progress.filled;
   parts.progress.resumeReset();
   const from = parts.trail.length;
-  // The record, read at the moment the wheel comes back: this leg has driven
-  // nothing yet, the basket is whatever the parked leg actually put there, and
-  // the handover that parked it is over - naming it here would be the one kind
-  // of stale fact the block exists to keep out.
-  const observed = observedBlock(
-    factsFrom(parts.progress, {
-      pages: [],
-      cards: 0,
-      basketHolds: parts.progress.carted ? holds : null,
-      window: "agent",
-    }),
-  );
+  const observed = resumedRecord(parts.progress, holds, filled);
   const said = await parts.errand(
     resumeErrandFor(
       stated,
@@ -75,6 +68,28 @@ export async function resumePick(
     { stated, replyLanguage, from, holds },
   );
   return parts.close(base, ref, said);
+}
+
+/**
+ * What this host watched, as the errand picking the checkout up is told it.
+ * The pages and the cards are this leg's and it has driven nothing yet; the
+ * window is read after the reset, because the wheel really has come back; the
+ * filled form is read before it, because it is a thing this host did.
+ */
+function resumedRecord(
+  progress: WebProgress,
+  holds: string | null,
+  filled: readonly string[],
+): string {
+  return observedBlock(
+    factsFrom(progress, {
+      pages: [],
+      cards: 0,
+      basketHolds: progress.carted ? holds : null,
+      window: "agent",
+      filled,
+    }),
+  );
 }
 
 /**
