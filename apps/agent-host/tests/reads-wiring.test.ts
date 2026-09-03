@@ -9,8 +9,6 @@ import {
   DEMO_CATALOG,
   PROPOSE_TOOL,
   SEE_SHELF_TOOL,
-  SEE_STATE_TOOL,
-  TURN_PLAN_TOOLS,
 } from "@covenant/agents";
 import { afterAll, describe, expect, it } from "vitest";
 
@@ -130,19 +128,16 @@ describe("wiring the reads", () => {
 });
 
 describe("wiring the planner's eyes", () => {
-  // The declared reads and the collector that answers them are wired at the
-  // same seam. A planner given no reads refuses with `no_reads`, so a shelf
-  // that comes back named is proof this lane's eyes reached the model's side.
-  it("declares both reads on the planner and answers them from the lane", async () => {
+  // A planner given no reads refuses with `no_reads`, so a shelf that comes
+  // back named is proof this lane's eyes reached the model's side. What the
+  // planner declares is `planner-reads.test.ts`'s to check.
+  it("answers a shelf read from this lane's own catalog", async () => {
     const reads = plannerReadsOf(laneDeps(), fetchRecording([]));
     const { planner } = wireTurnPlanner(plannerDeps(), reads);
     const { collector } = planner as unknown as {
       collector: TurnPlanCollector;
     };
 
-    expect(TURN_PLAN_TOOLS.map((tool) => tool.tool)).toEqual(
-      expect.arrayContaining([SEE_SHELF_TOOL, SEE_STATE_TOOL]),
-    );
     const seen = await collector.dispatch({
       tool: SEE_SHELF_TOOL,
       server: "buyer",
@@ -151,7 +146,6 @@ describe("wiring the planner's eyes", () => {
     expect(seen.isError).toBe(false);
     expect(JSON.parse(seen.content)).toMatchObject({ merchant: "kolam-run" });
   });
-
 });
 
 // The bounds ride the same seam as the eyes, and only they make the cap and

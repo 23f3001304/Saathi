@@ -55,28 +55,52 @@ export async function pickTurn(
   return unresolved(parts, base, plan);
 }
 
-/** The model named something that is on no card. Its own sentence stands, at
- *  the composer when it asked, in the transcript when it did not; the shell
- *  adds no sentence of its own. */
+/**
+ * The model named something that is on no card. Its own sentence stands, in
+ * the transcript, and a question it wrote beside it arms the composer under
+ * it; the shell adds no sentence of its own.
+ *
+ * Report first, ask second, as a browse settles: a turn that filled both
+ * `reply` and `question` used to lose the reply, because the question was
+ * read first and it is the only thing a park carries.
+ */
 function unresolved(
   parts: PickParts,
   base: PurchaseResult,
   plan: TurnPlan,
 ): PurchaseResult {
   const asked = askedBy(plan);
-  if (asked !== null) {
-    return askTurn(
-      parts,
-      base,
-      asked,
-      plan.replies ?? [],
-      plan.choiceGroups ?? [],
-    );
-  }
-  const said = plan.reply.trim();
+  const said = asked === null ? plan.reply.trim() : reportBeside(plan);
   if (said.length > 0) {
     parts.hub.emit({ kind: "message", text: said });
   }
+  if (asked === null) {
+    return settled(parts, base, said);
+  }
+  const parked = askTurn(
+    parts,
+    base,
+    asked,
+    plan.replies ?? [],
+    plan.choiceGroups ?? [],
+  );
+  return { ...parked, transcript: said.length > 0 ? [said, asked] : [asked] };
+}
+
+/** The reply as a report standing beside a question, which it only is when the
+ *  model wrote a `question` of its own: without one `askedBy` has already
+ *  taken the reply as the question, and saying it twice is two utterances. */
+function reportBeside(plan: TurnPlan): string {
+  const question = plan.question?.trim() ?? "";
+  return question.length === 0 ? "" : plan.reply.trim();
+}
+
+/** Nothing was asked, so the model's sentence is the whole of the turn. */
+function settled(
+  parts: PickParts,
+  base: PurchaseResult,
+  said: string,
+): PurchaseResult {
   parts.hub.emit({
     kind: "outcome",
     state: "answered",

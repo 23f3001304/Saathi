@@ -80,3 +80,34 @@ describe("a shape the tool boundary cannot read", () => {
     expect(parsed.ok).toBe(true);
   });
 });
+
+// Spaces used to pass the bound and empty out afterwards, so the drafter's own
+// min(1) threw where the model should have read `bad_arguments` and proposed
+// again: the run ended failed, with no bubble and nothing to retry from.
+describe("a field the model filled with nothing but spaces", () => {
+  it("refuses a description that is only spaces", () => {
+    expect(draftOf({ ...ARGS, description: "   " }, BOUNDS)).toEqual({
+      ok: false,
+      failure: "bad_arguments",
+    });
+  });
+
+  it("refuses a sku that is only spaces", () => {
+    expect(draftOf({ ...ARGS, sku: "   " }, BOUNDS)).toEqual({
+      ok: false,
+      failure: "bad_arguments",
+    });
+  });
+
+  it("takes the padding off what it does accept", () => {
+    expect(draftOf({ ...ARGS, description: "  a kurta  " }, BOUNDS)).toEqual({
+      ok: true,
+      draft: {
+        sku: "ST-KURTA-NAVY-M",
+        maxAmountPaise: 200_000,
+        requiresRefundability: true,
+        description: "a kurta",
+      },
+    });
+  });
+});

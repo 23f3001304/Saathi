@@ -152,12 +152,3 @@ export const HAPPY_CHAT_SCRIPT: ChatBeat[] = [
     quoteOk: true,
   },
 ];
-
-export const T1_CHAT_SCRIPT: ChatBeat[] = [
-  {
-    offsetMs: 0,
-    kind: "message",
-    text: "A merchant claim conflicted with your ₹2,000 limit: I ignored it.",
-    variant: "system",
-  },
-];

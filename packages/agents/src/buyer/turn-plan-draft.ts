@@ -19,10 +19,14 @@ export type DraftParse =
 /** The `propose_purchase` arguments beyond `reply`, as every provider is
  *  told about them. `description` is what the sheet prints. */
 export const DRAFT_ARGS_SHAPE = {
-  sku: z.string().min(1).max(120),
+  sku: z.string().trim().min(1).max(120),
   max_amount_paise: z.number().int().positive(),
   requires_refundability: z.boolean(),
-  description: z.string().min(1).max(400),
+  // Trimmed before the bound, not after: a description of spaces used to pass
+  // as 400 characters and then reach the drafter's own min(1) as an empty
+  // string, where the throw ended the run instead of coming back to the model
+  // as a `bad_arguments` it could answer.
+  description: z.string().trim().min(1).max(400),
 };
 
 const ARGS = z.object(DRAFT_ARGS_SHAPE);
@@ -58,7 +62,7 @@ export function draftOf(
       sku,
       maxAmountPaise: max_amount_paise,
       requiresRefundability: requires_refundability,
-      description: description.trim(),
+      description,
     },
   };
 }

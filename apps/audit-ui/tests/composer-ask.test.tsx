@@ -101,3 +101,33 @@ describe("the dock carries the ask", () => {
     ).toBeTruthy();
   });
 });
+
+// A park with nothing to ask is a designed shape (§6.2): the run stops, the
+// composer waits, and the agent has no sentence for it. Rendered anyway, the
+// empty prompt was an empty bubble in the transcript and an empty line at the
+// dock.
+describe("a question with nothing written on it", () => {
+  it("writes no bubble when the answer comes in", () => {
+    const state = reduceSignals([
+      { kind: "ask", id: "urn:covenant:ask:2", prompt: "", replies: [] },
+      { kind: "buyer", text: "the crucial" },
+    ]);
+
+    expect(state.entries).toEqual([{ kind: "buyer", text: "the crucial" }]);
+  });
+
+  it("leaves the dock to its placeholder", () => {
+    const { container } = render(
+      <Composer
+        blocked={false}
+        onSend={vi.fn()}
+        prompt=""
+        placeholder="Answer here…"
+        stage="ask"
+      />,
+    );
+
+    expect(container.querySelector("[class*=prompt]")).toBeNull();
+    expect(screen.getByPlaceholderText("Answer here…")).toBeTruthy();
+  });
+});

@@ -135,8 +135,10 @@ function applyEntrySignal(
       // The answered question becomes history: it was never a transcript
       // entry while live, so it is written in now, above the answer it got.
       const past = closeDrafts(state.entries);
+      // A parked turn with nothing to ask is a real shape (§6.2): the composer
+      // simply waits. Written in as history it was an empty bubble.
       const asked: ChatEntry[] =
-        state.question === null
+        state.question === null || state.question.prompt.trim() === ""
           ? []
           : [{ kind: "agent", text: state.question.prompt }];
       return {

@@ -93,12 +93,10 @@ describe("how an errand ended", () => {
     );
   });
 
-  it("names a break when the window or a page stopped answering", () => {
+  it("names the break without guessing at its cause", () => {
     expect(
       observedBlock(emptyFacts({ failure: "Execution context was destroyed" })),
-    ).toContain(
-      "- clock: this errand stopped early because the window or a page stopped answering",
-    );
+    ).toContain("- clock: this errand stopped early before it finished");
   });
 
   it("names a handover and whose the window is", () => {

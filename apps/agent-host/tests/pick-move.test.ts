@@ -114,7 +114,39 @@ describe("a ref on no card", () => {
     expect(result.status).toBe("answered");
     expect(result.transcript).toEqual([NO_SANDISK]);
   });
+});
 
+// Both fields filled, and the question used to be read first and alone: the
+// sentence that said what happened never reached the transcript at all.
+describe("a ref on no card, answered and asked about at once", () => {
+  it("says the reply and still puts the question at the composer", async () => {
+    const { hub, parts } = rig([CARD]);
+    const result = await pickTurn(
+      parts,
+      emptyResult("r5", "the sandisk"),
+      planOf({
+        ref: "w9",
+        reply: "That card is gone.",
+        question: "Which one did you mean?",
+      }),
+      ["the sandisk"],
+      null,
+    );
+    const beats = hub.snapshot();
+    expect(beats.find((beat) => beat.kind === "message")).toMatchObject({
+      text: "That card is gone.",
+    });
+    expect(beats.find((beat) => beat.kind === "question")).toMatchObject({
+      prompt: "Which one did you mean?",
+    });
+    expect(result.transcript).toEqual([
+      "That card is gone.",
+      "Which one did you mean?",
+    ]);
+  });
+});
+
+describe("a ref on no card, where the sentence is the question", () => {
   it("puts the model's question at the composer when it asked which", async () => {
     const { hub, parts } = rig([CARD]);
     await pickTurn(

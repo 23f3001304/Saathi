@@ -135,7 +135,9 @@ export function Composer({
   return (
     <div className={styles.dock}>
       <div ref={askRef} className={styles.ask}>
-        {prompt !== undefined && <p className={styles.prompt}>{prompt}</p>}
+        {prompt !== undefined && prompt.trim() !== "" && (
+          <p className={styles.prompt}>{prompt}</p>
+        )}
         {picker}
       </div>
       {grouped &&

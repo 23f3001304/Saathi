@@ -137,9 +137,11 @@ function clockLine(facts: ObservedFacts): string {
   if (facts.expired) {
     return "clock: this errand ran out of time before it finished";
   }
+  // No cause named: every throw that is not the clock lands here, a provider
+  // refusal as readily as a dead page, and the model must not be told which.
   return facts.failure === null
     ? "clock: this errand finished within its time"
-    : "clock: this errand stopped early because the window or a page stopped answering";
+    : "clock: this errand stopped early before it finished";
 }
 
 function formLine(facts: ObservedFacts): string {

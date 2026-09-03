@@ -178,7 +178,7 @@ describe("money still leaves only through the covenant gateway", () => {
 
 // No tool that walks like a browser tool gets to move money either: the
 // classifier's boundary is the surface, not the label on the call.
-describe("money still leaves only through the covenant gateway", () => {
+describe("the money gate reads the surface, not the tool's name", () => {
   it("blocks a payment tool that arrives dressed as a browser tool", async () => {
     const result = await web.call("execute_payment", { amount: 1 });
     expect(result.isError).toBe(true);

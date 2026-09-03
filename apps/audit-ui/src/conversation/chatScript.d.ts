@@ -69,5 +69,4 @@ export type ChatBeat = {
 };
 export declare const HAPPY_OPTIONS: OptionRowData[];
 export declare const HAPPY_CHAT_SCRIPT: ChatBeat[];
-export declare const T1_CHAT_SCRIPT: ChatBeat[];
 //# sourceMappingURL=chatScript.d.ts.map

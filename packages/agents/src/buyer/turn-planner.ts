@@ -58,8 +58,15 @@ export class SessionTurnPlanner implements TurnPlanner {
   ): Promise<TurnPlan> {
     const spoken = await this.speak(stated, replyLanguage, context);
     const chosen = this.collector.take();
+    // Decided on the budget, not on the move. A cut-off turn that had recorded
+    // only a trait still comes back with a plan, and reading the move first
+    // sent the fragment the model was mid-sentence in out as the reply.
+    if (!spoken.finished) {
+      return await this.cutOff(spoken, chosen);
+    }
     if (chosen === null) {
-      return await this.unchosen(spoken);
+      this.logger.info("buyer.turn.no_tool", { fallback: "answer" });
+      return { ...NEUTRAL_PLAN, reply: spoken.text };
     }
     this.logger.info("buyer.turn.planned", {
       action: chosen.action,
@@ -69,20 +76,21 @@ export class SessionTurnPlanner implements TurnPlanner {
     return { ...chosen, reply: replyOf(chosen, spoken.text) };
   }
 
-  /** No move recorded. Answering is still the only safe default; what differs
-   *  is whether the prose beside it is an answer or an unfinished draft. */
-  private async unchosen(spoken: Spoken): Promise<TurnPlan> {
-    if (spoken.finished) {
-      this.logger.info("buyer.turn.no_tool", { fallback: "answer" });
-      return { ...NEUTRAL_PLAN, reply: spoken.text };
-    }
+  /** The budget ran out mid-sentence. Answering is the only safe default, in
+   *  the model's own closing words; a move it half-made is dropped, and what
+   *  it heard about the shopper is kept, because a trait is true whether or
+   *  not the turn that heard it got to finish. */
+  private async cutOff(
+    spoken: Spoken,
+    chosen: TurnPlan | null,
+  ): Promise<TurnPlan> {
     this.logger.warn("buyer.turn.unfinished", { drafted: spoken.text.length });
     const reply = await wrapUpReply(this.session, this.logger);
     // The wrap-up was asked for prose, but a model that reaches for a tool
     // anyway has recorded a move nobody asked for. Dropped here, or it would
     // still be sitting in the collector when the next turn reads it.
     this.collector.take();
-    return { ...NEUTRAL_PLAN, reply };
+    return { ...NEUTRAL_PLAN, reply, traits: chosen?.traits ?? [] };
   }
 
   private async speak(
