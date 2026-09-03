@@ -3,7 +3,7 @@ import type { WebFindings } from "../browser/web-listing.js";
 import type { WebProgress } from "../browser/web-progress.js";
 import type { WebTrail } from "../browser/web-trail.js";
 import { pickSummaryFor, resumeErrandFor } from "./web-buy-errand.js";
-import { emptyFacts, observedBlock } from "./observed-block.js";
+import { factsFrom, observedBlock } from "./observed-block.js";
 import { spokenBy } from "./pick-facts.js";
 import type { WebPickPark } from "./web-pick-park.js";
 import type { Spoken } from "./web-pick-close.js";
@@ -85,10 +85,15 @@ async function stillTheirs(
     readonly holds: string | null;
   },
 ): Promise<PurchaseResult> {
-  const facts = emptyFacts({
-    window: "shopper",
-    carted: parts.progress.carted,
+  // From the record, not from defaults. This turn drove nothing, so it has no
+  // pages and no cards of its own; everything else - the form this host filled,
+  // the sign-in it typed, the reason the wheel went over - is what the parked
+  // leg actually observed, and saying otherwise would be a guess.
+  const facts = factsFrom(parts.progress, {
+    pages: [],
+    cards: 0,
     basketHolds: parts.progress.carted ? at.holds : null,
+    window: "shopper",
   });
   const told = await parts.say(
     pickSummaryFor(at.stated, at.replyLanguage, observedBlock(facts)),

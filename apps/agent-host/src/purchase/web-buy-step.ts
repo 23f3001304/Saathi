@@ -167,12 +167,10 @@ export class WebBuyStep {
   ): Promise<Spoken> {
     const release = this.stage.hold();
     try {
-      // Optional-called: gathering facts must not be what ends an errand, and
-      // an opener that cannot answer whose the window is has not made it ours.
       const watch = {
         trail: this.trail,
         progress: this.progress,
-        theirs: () => this.sandbox.theirs?.() === true,
+        theirs: () => this.sandbox.theirs(),
       };
       const prompts = {
         look: prompt,

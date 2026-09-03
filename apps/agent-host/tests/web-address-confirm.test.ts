@@ -133,8 +133,8 @@ describe("the address is confirmed before the checkout goes on", () => {
 /**
  * "Carry on" is not the same as having signed in. A resume while the wheel is
  * still theirs keeps the park rather than spending an errand being refused at
- * every tool: the model is told the window is theirs and says so, in its own
- * words, and the basket survives a sentence that was only slightly early.
+ * every tool: the model is told what the parked leg actually observed and says
+ * so in its own words, and the basket survives a sentence that was early.
  */
 describe("a resume that arrives before the shopper is through", () => {
   it("keeps the park, tells the model whose the window is, and says only what the model said", async () => {
@@ -160,9 +160,9 @@ describe("a resume that arrives before the shopper is through", () => {
 
     const early = await stepWith(wall).resume(["ok carry on"]);
     expect(park.parked).toBe(true);
-    expect(prompts.at(-1)).toContain(
-      "- window: the shopper has the wheel; the shop is waiting on them",
-    );
+    // The parked leg's own record, not a default: it names the reason the
+    // wheel went over, which is the thing a guessed block cannot know.
+    expect(prompts.at(-1)).toContain("- window: handed to them because login");
     expect(said().at(-1)).toBe("The shop is still waiting on you at the sign-in.");
     expect(early.status).toBe("answered");
   });
