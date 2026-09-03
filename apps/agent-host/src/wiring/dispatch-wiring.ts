@@ -45,7 +45,8 @@ export interface DispatchDeps {
   readonly findings: WebFindings;
   /** What the host watched itself do at the window, shared with the pick. */
   readonly progress: WebProgress;
-  /** The one product a buy errand may open. */
+  /** The one product a buy errand may open, and the one shop a research
+   *  errand may read. */
   readonly pin: WebPin;
   /** What the shopper stated about themselves — the only source a delivery
    *  form is ever filled from. */
@@ -97,6 +98,11 @@ function webRunner(deps: DispatchDeps, shopper: WebShopper): WebToolRunner {
   // One table of reads for the errand: `web_verify` fills it, `web_card`
   // is checked against it, and a URL in neither was never opened here.
   const reads = new VerifiedReads();
+  // DECISION: the pin reaches the verbs as a constructor argument rather than
+  // through a setter of their own. It is the lane's one pin, built in
+  // `laneWindowParts` and already shared with the steps that aim it, so its
+  // lifetime is the verbs' lifetime; a second way in would let the wiring say
+  // one pin while an errand held another.
   return new WebToolRunner(
     shopper,
     new HandoverMove(() => deps.browser.current(), deps.progress),
@@ -112,8 +118,8 @@ function webRunner(deps: DispatchDeps, shopper: WebShopper): WebToolRunner {
       deps.progress,
     ),
     {
-      verify: new VerifyVerbs(deps.reader, reads, deps.trail, steps),
-      card: new CardVerbs(deps.findings, reads),
+      verify: new VerifyVerbs(deps.reader, reads, deps.trail, steps, deps.pin),
+      card: new CardVerbs(deps.findings, reads, deps.pin),
     },
     new GlanceVerbs(deps.browser),
   );

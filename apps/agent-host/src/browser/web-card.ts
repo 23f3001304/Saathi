@@ -1,5 +1,6 @@
 import { parsePaise } from "@covenant/browser-drive";
 
+import type { WebPin } from "../purchase/web-pin.js";
 import { pictureFor } from "./web-card-image.js";
 import type { WebFindings } from "./web-listing.js";
 import type { WebResult } from "./web-result.js";
@@ -8,14 +9,22 @@ import { webOk } from "./web-result.js";
 
 /** Why a named row did not become a card: a fact about the page this host
  *  itself opened, checked here rather than argued about in a prompt - no word
- *  list, no shape rule, nothing that guesses what a listing looks like.
- *  `off_shop` is declared and not yet raised; the shop pin fills it next. */
+ *  list, no shape rule, nothing that guesses what a listing looks like. */
 export type CardRefusal =
   | "url_not_verified"
   | "off_shop"
   | "price_not_positive"
   | "price_not_on_page"
   | "title_not_on_page";
+
+/** A refused row as the model reads it back. `because` carries the sentence
+ *  only where the reason is not itself the whole of it: a shop refusal names
+ *  the two hosts, and nothing else needs a second line. */
+interface Refusal {
+  readonly url: string;
+  readonly reason: CardRefusal;
+  readonly because: string | null;
+}
 
 /** What the model names off a page it has just been handed. Untrusted text,
  *  all of it: the URL must be one this host read, and both strings must be
@@ -47,21 +56,32 @@ export class CardVerbs {
   constructor(
     private readonly findings: WebFindings,
     private readonly reads: VerifiedReads,
+    /** The shop this errand was told to shop in. A row off it is refused by
+     *  name, ahead of every other check: "we never opened that" is true but
+     *  useless where the reason is that it is a different shop. */
+    private readonly pin: WebPin | null = null,
   ) {}
 
   card(rows: readonly CardRow[]): WebResult {
     const carded: CardedRow[] = [];
-    const refused: { url: string; reason: CardRefusal }[] = [];
+    const refused: Refusal[] = [];
     for (const row of rows) {
       const stated = trimmed(row);
       const read = this.reads.find(row.url);
-      const reason = refusalFor(stated, read);
+      const off = this.pin?.offShop(row.url) ?? null;
+      const reason = off === null ? refusalFor(stated, read) : "off_shop";
       const view = reason === null ? this.mint(stated, read) : null;
       if (view !== null) carded.push(view);
       // The findings table has the last word and can still refuse a row all
       // four checks passed - a `file:` URL, say. It will not put that on a
       // card, so neither will this.
-      else refused.push({ url: row.url, reason: reason ?? "url_not_verified" });
+      else {
+        refused.push({
+          url: row.url,
+          reason: reason ?? "url_not_verified",
+          because: off,
+        });
+      }
     }
     return webOk({ carded, refused });
   }

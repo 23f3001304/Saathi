@@ -1,6 +1,7 @@
 import type { BatchRead, PriceCandidate } from "@covenant/browser-drive";
 
 import type { StepSink } from "../purchase/web-steps.js";
+import type { WebPin } from "../purchase/web-pin.js";
 import type { WebResult } from "./web-result.js";
 import type { WebTrail } from "./web-trail.js";
 import { webOk } from "./web-result.js";
@@ -82,9 +83,43 @@ export class VerifyVerbs {
     /** One pill per page read: research off the window still shows its
      *  work, or a seventy-second search reads as a hang. */
     private readonly steps: StepSink | null = null,
+    /** The shop this errand was told to shop in, aimed by the look step from
+     *  the model's own declaration. `null` on a harness with no pin. */
+    private readonly pin: WebPin | null = null,
   ) {}
 
+  /**
+   * DECISION: an off-shop URL is refused before it is opened, not scored
+   * after. Told "Amazon", an errand verified primeabgb and moglix, and every
+   * page it read there became a candidate the shopper had to be talked out
+   * of. Refusing it by name costs the model one call and tells it exactly
+   * which of its six URLs the errand would not stand behind.
+   */
   async verify(urls: readonly string[]): Promise<WebResult> {
+    const asked = urls.map((url) => ({
+      url,
+      off: this.pin?.offShop(url) ?? null,
+    }));
+    const wanted = asked.filter((one) => one.off === null);
+    const pages =
+      wanted.length === 0
+        ? []
+        : await this.read(wanted.map((one) => one.url));
+    this.reads.remember(pages);
+    return webOk({
+      pages,
+      refused: asked.flatMap((one) =>
+        one.off === null
+          ? []
+          : [{ url: one.url, reason: "off_shop", because: one.off }],
+      ),
+      shop_pin: this.pin?.shopNote() ?? null,
+    });
+  }
+
+  private async read(
+    urls: readonly string[],
+  ): Promise<readonly VerifiedPage[]> {
     this.steps?.step(
       urls.length === 1 ? "Checking 1 page" : `Checking ${urls.length} pages`,
     );
@@ -94,8 +129,7 @@ export class VerifyVerbs {
       if (page.ok) this.trail.record(page.url);
       this.steps?.step(pillFor(page));
     }
-    this.reads.remember(pages);
-    return webOk({ pages });
+    return pages;
   }
 }
 

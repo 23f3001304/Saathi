@@ -124,6 +124,7 @@ export class TurnPlanCollector implements ToolDispatcher {
       reply: textAt(args, "reply"),
       question: null,
       query: null,
+      shop: null,
       amendment: parsed.value,
       traits: [],
     };

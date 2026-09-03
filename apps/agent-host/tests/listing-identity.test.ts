@@ -46,6 +46,19 @@ describe("a buy errand cannot open a different product", () => {
     );
   });
 
+  /** A look is about a category, never about one product: the pick's pin is
+   *  let go by the same call that aims the errand at the shop they named. */
+  it("lets the tapped product go when the errand is aimed at a shop", () => {
+    const pin = new WebPin();
+    pin.hold(OFFERED[3]!);
+    pin.toShop("Amazon", "INR");
+
+    expect(pin.product).toBeNull();
+    expect(pin.allows("https://www.amazon.in/WD-SN3000/dp/B0ZZZZZZZZ")).toBe(
+      true,
+    );
+  });
+
   it("holds nothing once released", () => {
     const pin = new WebPin();
     pin.hold(OFFERED[0]!);

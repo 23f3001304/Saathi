@@ -97,6 +97,10 @@ export interface TurnPlan {
   readonly choiceGroups?: readonly ChoiceGroup[];
   /** What to look for, when the move is `browse` or `look_on_web`. */
   readonly query?: string | null;
+  /** `look_on_web`: the shop they named, in their own characters. The model
+   *  decides that a shop was named; the host resolves the name to hosts and
+   *  holds the errand to them. `null` where they named none. */
+  readonly shop?: string | null;
   /** `browse`: the skus the model chose to show, read off `see_shelf`. The
    *  cards are built from the shelf rows for exactly these, in this order. */
   readonly skus?: readonly string[];
@@ -121,6 +125,7 @@ export const NEUTRAL_PLAN: TurnPlan = {
   question: null,
   replies: [],
   query: null,
+  shop: null,
   amendment: null,
   traits: [],
 };

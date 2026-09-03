@@ -103,8 +103,9 @@ describe("what the closing rules say", () => {
   });
 
   it("caps a runaway quoted line rather than growing the prompt with it", () => {
+    // The rules' own length plus the quoted line's cap, v11's sentence in it.
     const long = turnPlanClosing("x".repeat(2000));
-    expect(long.length).toBeLessThan(3300);
+    expect(long.length).toBeLessThan(3500);
   });
 
   it("names the pick and the reads beside the moves", () => {
@@ -133,6 +134,16 @@ describe("what the closing rules say about a web errand", () => {
     expect(webClosing).toContain("the most they will spend");
     expect(webClosing).toContain("anything it must be");
   });
+
+  // The live fault: told "around 60k", the planner asked for the ceiling
+  // again, and then a second time. A figure they gave loosely is still the
+  // figure they gave.
+  it("takes a rough figure as the ceiling and stops asking for an exact one", () => {
+    expect(webClosing).toContain(
+      "A rough figure is a figure: '₹50,000+' or 'around 60k' is the ceiling, " +
+        "and you never ask for an exact amount once any amount has been given.",
+    );
+  });
 });
 
 describe("what the closing rules no longer say", () => {
@@ -144,8 +155,8 @@ describe("what the closing rules no longer say", () => {
 });
 
 describe("what the prompt says about looking", () => {
-  it("is sealed as v10 and names both reads as looks, not moves", () => {
-    expect(TURN_PLAN_PROMPT_ID).toBe("buyer.turn-plan@v10");
+  it("is sealed as v11 and names both reads as looks, not moves", () => {
+    expect(TURN_PLAN_PROMPT_ID).toBe("buyer.turn-plan@v11");
     expect(TURN_PLAN_PROMPT).toContain(SEE_SHELF_TOOL);
     expect(TURN_PLAN_PROMPT).toContain(SEE_STATE_TOOL);
     expect(TURN_PLAN_PROMPT).toContain("A look is not a move");

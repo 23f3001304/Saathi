@@ -45,14 +45,14 @@ export function refused(
 function planOf(action: TurnAction, args: ToolArgs): TurnPlan {
   const reply = textAt(args, "reply");
   const question = textAt(args, "question");
-  const query = textAt(args, "query");
   return {
     action,
     reply,
     question: question.length > 0 && !reply.endsWith("?") ? question : null,
     replies: repliesAt(args, "replies"),
     choiceGroups: groupsAt(args),
-    query: query.length > 0 ? query : null,
+    query: textAt(args, "query") || null,
+    shop: textAt(args, "shop") || null,
     amendment: null,
     traits: [],
   };

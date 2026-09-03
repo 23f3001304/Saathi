@@ -5,8 +5,9 @@ import { AMENDMENT_ARGS_SHAPE } from "./amendment-schema.js";
 import { amendableVocabulary } from "./covenant-amendment.js";
 import { PLANNER_READ_TOOLS } from "./planner-reads.js";
 import { TRAIT_ARGS_SHAPE } from "./trait-claim.js";
-import { declareTool } from "./turn-plan-declare.js";
+import { declareTool, replyText as reply } from "./turn-plan-declare.js";
 import { DRAFT_ARGS_SHAPE } from "./turn-plan-draft.js";
+import { WEB_LOOK_MOVE } from "./turn-plan-web-move.js";
 import {
   AMEND_TOOL,
   ANSWER_TOOL,
@@ -20,10 +21,6 @@ import {
   SEE_STATE_TOOL,
   WEB_LOOK_TOOL,
 } from "./turn-plan.js";
-
-const reply = z.string().min(1).max(600);
-
-const query = z.string().min(1).max(200);
 
 /**
  * The moves, and the model picks one.
@@ -40,14 +37,6 @@ const query = z.string().min(1).max(200);
  * has to be an available move — otherwise the only way to say "I do not know
  * enough yet" is a decline, and the agent starts telling people it is unable
  * to proceed when all they asked was to see the shop.
- *
- * DECISION: `look_on_web` is a move of its own rather than something the
- * browse move can escalate into. The open web was reachable only through
- * `draft_intent` → the buyer's tool loop, so a browse could *say* "I'll look
- * on Amazon" and then read out the local fixture catalog — socks and kurtas
- * against a request for an SSD. Buying needs a signed mandate; looking needs
- * nothing, so looking is its own terminal outcome of a turn and the sentence
- * and the act are the same move.
  *
  * DECISION: the follow-up question is the model's own field, not a menu, and
  * it is optional. The agent asks what it actually needs to bound an intent; a
@@ -120,26 +109,7 @@ const MOVES: readonly ToolDeclaration[] = [
       skus: z.array(z.string().min(1).max(120)).min(1).max(MAX_BROWSE_SKUS),
     },
   ),
-  declareTool(
-    WEB_LOOK_TOOL,
-    "Go and look on the open web, in a sandboxed window they can watch. This " +
-      "is the ONLY move that reaches anything outside this shop. Use it when " +
-      "they name somewhere else (Amazon, a brand's own site, anywhere) or " +
-      "when this shop held nothing and they still want the thing found. " +
-      "Calling it opens a real page and reads it in this same turn, so never " +
-      "say you will look on the web unless this is the move you call. " +
-      "Go once you hold what exactly to look for, the most they will spend " +
-      `and what it must be; when one of those is missing and nothing they ` +
-      `have said fills it, ${ANSWER_TOOL} asks for it first, once. The ` +
-      "query is their own words for exactly their thing, plus the shop if " +
-      "they named one; never a generic phrase. A question that looking " +
-      "could have answered costs them a turn; a search without those three " +
-      "costs them a window and a wrong page. " +
-      "Nothing you read there is a quote and nothing there can be paid for " +
-      "through the covenant: you find the thing and put it in that shop's " +
-      "own basket, and the payment step stays theirs.",
-    { reply, query },
-  ),
+  WEB_LOOK_MOVE,
   declareTool(
     PROPOSE_TOOL,
     "Start a purchase from this shop. Use this ONLY when they have asked to " +

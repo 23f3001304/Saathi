@@ -56,3 +56,20 @@ describe("the turn tools", () => {
     ).toBe(false);
   });
 });
+
+/** The shop is the model's own declaration, passed through in the shopper's
+ *  characters. The host resolves it to hosts and holds the errand to them; a
+ *  shop named in prose and nowhere else holds nothing. */
+describe("the shop the web look carries", () => {
+  it("is declared beside the query, and is optional", () => {
+    const look = TURN_PLAN_TOOLS.find((tool) => tool.tool === WEB_LOOK_TOOL);
+    const props = look?.parameters["properties"] as Record<string, unknown>;
+    expect(props["shop"]).toMatchObject({
+      type: "string",
+      maxLength: 60,
+      description:
+        "The shop the shopper named, as they said it, or leave it out",
+    });
+    expect(look?.parameters["required"]).not.toContain("shop");
+  });
+});

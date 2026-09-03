@@ -1,3 +1,4 @@
+import { moveRule } from "./turn-plan-move-rule.js";
 import {
   AMEND_TOOL,
   ANSWER_TOOL,
@@ -24,8 +25,9 @@ import {
  *  v9 (Stage 3): the pick is a move, the reads are not, and the browse
  *  names skus.
  *  v10: a web look is an errand; the planner holds what/ceiling/must-haves
- *  first and asks once for the rest. */
-export const TURN_PLAN_PROMPT_ID = "buyer.turn-plan@v10";
+ *  first and asks once for the rest.
+ *  v11: the web look carries the named shop; a rough figure is a figure. */
+export const TURN_PLAN_PROMPT_ID = "buyer.turn-plan@v11";
 
 /**
  * What stands over the harness's working-context digest when a turn has one.
@@ -123,47 +125,6 @@ function languageSetting(replyLanguage: string | null): string {
     `In the app they set the reply language to: ${replyLanguage}. ` +
     "That setting is their standing instruction and outranks matching " +
     "the quoted line, until they change it. "
-  );
-}
-
-/** The half of the closing that decides which move this turn is. */
-function moveRule(): string {
-  return (
-    `Second, the move. A read (${SEE_SHELF_TOOL}, ${SEE_STATE_TOOL}) is not ` +
-    "a move: look first when the answer depends on what is there, then call " +
-    "exactly one move, and pick it by what that quoted line names.\n" +
-    `A shop outside this one - a marketplace, a brand's own site - is ${WEB_LOOK_TOOL}. ` +
-    "A web look is an errand: it opens a window they watch and costs them a wait, " +
-    "so it is worth spending only on a thing you could recognise on a page. " +
-    "Before you go, hold three things: what exactly (the thing, with the details " +
-    "that change which one is right: size, capacity, internal or external, colour, " +
-    "model), the most they will spend, and anything it must be (returnable, a " +
-    "particular shop, a delivery they need). Take each from what they wrote, from " +
-    "the key: value facts about them and from what they said earlier in this " +
-    "conversation; what you still cannot fill, ask for once, all of it in one " +
-    "question, with the likely answers in replies. When you hold those three, go " +
-    `this turn, and the query you hand ${WEB_LOOK_TOOL} is what you would type ` +
-    "yourself for exactly their thing: their own product words, the detail that " +
-    "narrows it, and the shop if they named one. Never a generic phrase.\n" +
-    "Their words choosing one of the cards on their screen (" +
-    `${SEE_STATE_TOOL} lists them with their refs) is ${PICK_TOOL}: name the ` +
-    "ref, and the host takes the same path a tap on that card takes. If " +
-    "more than one card fits what they said, ask which.\n" +
-    `What they can see in THIS shop is ${BROWSE_TOOL}: read the shelf with ` +
-    `${SEE_SHELF_TOOL}, then name the skus you would put in front of them; ` +
-    "the cards are built from the shelf, not from your words.\n" +
-    `A thing to buy from this shop and a ceiling to spend is ${PROPOSE_TOOL}: ` +
-    "name the sku off the shelf and the most they should spend, from what " +
-    "they said; the sheet they sign shows exactly those numbers. Draft it, " +
-    "rather than checking whether they meant it. The hold-to-sign is the " +
-    "only consent this turn collects, and the signature is their answer - " +
-    "so a reply whose move already acts never ends by asking permission to " +
-    "act. If something genuinely needs their say-so first, the move was " +
-    `${ANSWER_TOOL}, not a question stapled to an action.\n` +
-    `${ANSWER_TOOL} is for the one thing no amount of looking could have ` +
-    "told you. Ask for it once. If your last [you] line already asked and " +
-    "that quoted line answers it, you have it: act on it, and never put the " +
-    "same question a second time in different words."
   );
 }
 

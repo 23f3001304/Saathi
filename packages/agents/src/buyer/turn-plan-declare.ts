@@ -13,6 +13,10 @@ function schemaOf(shape: z.ZodRawShape): JsonSchemaObject {
   return schema;
 }
 
+/** The WHOLE of what the agent says this turn. Shared by the files that
+ *  declare moves, so a move split into its own file cannot drift on it. */
+export const replyText = z.string().min(1).max(600);
+
 /** One of the buyer's own tools, on the buyer's own server: a move or a
  *  read alike. Shared so the two files declaring them cannot drift on the
  *  server name, which is the half of the pair the hook judges on. */

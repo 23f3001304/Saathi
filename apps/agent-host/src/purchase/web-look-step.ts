@@ -80,8 +80,8 @@ export class WebLookStep implements WebLook {
     /** Where the cards this turn put on the table are recorded, so a later
      *  sentence naming one of them is understood as the pick it is. */
     private readonly offered: WebOffered | null = null,
-    /** Released here: a look is about a category, never about one product,
-     *  and the errand sessions share one tool runner. */
+    /** Aimed here: a look is about a category, never about one product, and
+     *  about the shop they named when they named one. */
     private readonly pin: WebPin | null = null,
     /** The conversation's working context, read-only: a follow-up errand
      *  about a page already found starts at its URL rather than on a
@@ -101,7 +101,7 @@ export class WebLookStep implements WebLook {
     // The plan's own query when it named one, else what they asked for. The
     // model wrote it; nothing here rewrites it.
     const query = (plan.query ?? base.request).trim();
-    this.pin?.release();
+    this.pin?.toShop(plan.shop ?? null, this.currency);
     this.stage.conceal();
     const from = this.trail.length;
     const seen = this.findings.length;

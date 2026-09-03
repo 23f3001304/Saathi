@@ -47,6 +47,7 @@ describe("recording the choice", () => {
       replies: [],
       choiceGroups: [],
       query: null,
+      shop: null,
       amendment: null,
       traits: [],
     });
@@ -93,6 +94,22 @@ describe("the open-web move", () => {
       args: { reply: "Nothing here, going to Amazon.", query: "1TB SSD" },
     });
     expect(collector.take()?.action).toBe("look_on_web");
+  });
+});
+
+// Told "Amazon", the errand verified primeabgb and moglix. The shop they
+// named travels with the move, in their own characters; nothing here reads
+// it back out of the query.
+describe("the shop they named", () => {
+  const args = { reply: "Opening Amazon now.", query: "1TB SSD" };
+
+  it("travels with the move as they said it, or not at all", async () => {
+    const named = collectorAfter(WEB_LOOK_TOOL, { ...args, shop: " Amazon " });
+    await named.done;
+    expect(named.collector.take()?.shop).toBe("Amazon");
+    const bare = collectorAfter(WEB_LOOK_TOOL, args);
+    await bare.done;
+    expect(bare.collector.take()?.shop).toBeNull();
   });
 });
 
