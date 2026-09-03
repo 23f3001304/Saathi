@@ -42,6 +42,20 @@ export async function lookFrame(
 }
 
 /**
+ * How many documents this window has committed, and `0` where there is no
+ * window: a feed with nothing to compare against must serve what it captured,
+ * not discard it.
+ */
+export function lookNavigations(session: BrowserSession | null): number {
+  if (session === null) return 0;
+  try {
+    return session.navigations();
+  } catch {
+    return 0;
+  }
+}
+
+/**
  * The push half of watching, or `null` where the surface has none and the
  * polled shutter is the only way to see the window. Ungated like the rest.
  */

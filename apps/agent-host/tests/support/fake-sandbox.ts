@@ -1,33 +1,14 @@
-import {
-  BrowserSession,
-  CartCovenant,
-  CartInspector,
-  DEFAULT_HANDOFF_CONFIG,
-  EMPTY_PAGE,
-  encodePng,
-  FieldClassifier,
-  Journal,
-  NavigationPolicy,
-  TimerWaiter,
-} from "@covenant/browser-drive";
+import { EMPTY_PAGE, encodePng } from "@covenant/browser-drive";
 import type {
-  BrowserLauncher,
   CartDom,
+  Caster,
   DrivenPage,
   ElementDescriptor,
   FieldSnapshot,
-  JournalSink,
-  LaunchedBrowser,
   PageDom,
-  Sandbox,
-  SandboxFactory,
-  SessionSurface,
 } from "@covenant/browser-drive";
-import type { Caster } from "@covenant/browser-drive";
-import type { Clock } from "@covenant/domain";
 
 import { FakeCaster } from "./fake-caster.js";
-
 import {
   LOGIN,
   PASSWORD,
@@ -35,6 +16,7 @@ import {
   SEARCH,
 } from "./fake-sandbox-fields.js";
 
+export { fakeSession } from "./fake-sandbox-session.js";
 export {
   LOGIN,
   PASSWORD,
@@ -53,10 +35,22 @@ export class FakeSandboxPage implements DrivenPage {
   ];
   /** `null` stands in for a surface whose Chrome will not screencast at all. */
   castable: Caster | null = this.cast;
+  /**
+   * Documents this window has committed. Public because the interesting case
+   * is a test bumping it from `underTheShutter` — a navigation that lands
+   * between the stamp `FrameCapture` takes and the pixels it comes back with,
+   * which is the only way a polled frame of the wrong page is ever served.
+   */
+  navigated = 0;
+  underTheShutter: () => void = () => undefined;
   private at = LOGIN;
 
   caster(): Caster | null {
     return this.castable;
+  }
+
+  navigations(): number {
+    return this.navigated;
   }
 
   url(): string {
@@ -64,6 +58,7 @@ export class FakeSandboxPage implements DrivenPage {
   }
   goto(url: string): Promise<void> {
     this.at = url;
+    this.navigated += 1;
     return Promise.resolve();
   }
   describe(selector: string): Promise<ElementDescriptor | null> {
@@ -104,6 +99,7 @@ export class FakeSandboxPage implements DrivenPage {
     return Promise.resolve();
   }
   screenshot(): Promise<Uint8Array> {
+    this.underTheShutter();
     return Promise.resolve(
       encodePng({
         width: 320,
@@ -132,67 +128,4 @@ export class FakeSandboxPage implements DrivenPage {
     this.relayed.push(`scroll ${dy}`);
     return Promise.resolve();
   }
-}
-
-class FakeLauncher implements BrowserLauncher {
-  constructor(
-    private readonly page: DrivenPage,
-    private readonly surface: SessionSurface,
-  ) {}
-  launch(): Promise<LaunchedBrowser> {
-    return Promise.resolve({
-      page: () => this.page,
-      surface: this.surface,
-      sandboxId:
-        this.surface === "container" ? "covenant-browse-fake" : "in-process",
-      close: () => Promise.resolve(),
-    });
-  }
-}
-
-const SANDBOX: Sandbox = {
-  path: "/tmp/fake",
-  downloadDir: "/tmp/fake/downloads",
-  dispose: () => undefined,
-};
-
-class FakeSandboxes implements SandboxFactory {
-  create(): Sandbox {
-    return SANDBOX;
-  }
-}
-
-class SilentSink implements JournalSink {
-  write(): void {
-    return;
-  }
-}
-
-export function fakeSession(
-  page: DrivenPage,
-  clock: Clock,
-  surface: SessionSurface = "native-window",
-): BrowserSession {
-  return new BrowserSession({
-    launcher: new FakeLauncher(page, surface),
-    sandboxes: new FakeSandboxes(),
-    classifier: new FieldClassifier(),
-    policy: new NavigationPolicy({
-      fileRoots: [],
-      allowHosts: [],
-      denyHosts: [],
-    }),
-    inspector: new CartInspector(),
-    covenant: new CartCovenant({ capPaise: 200_000, currency: "INR" }),
-    journal: new Journal(new SilentSink(), clock, "sess_fake"),
-    waiter: new TimerWaiter(),
-    clock,
-    config: {
-      sessionId: "fake",
-      surface,
-      windowWidth: 320,
-      windowHeight: 200,
-      handoff: DEFAULT_HANDOFF_CONFIG,
-    },
-  });
 }

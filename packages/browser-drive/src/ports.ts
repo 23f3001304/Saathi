@@ -23,6 +23,9 @@ export interface CastFrame {
   readonly mediaType: "image/jpeg" | "image/png";
   /** Chrome's frame number. Acknowledging it is what unblocks the next one. */
   readonly ack: number;
+  /** `ObservablePage.navigations()` as it stood when these pixels were taken.
+   *  Below the count that is current now, they are of a page we have left. */
+  readonly navigation: number;
   /** The viewport these pixels are of, so a relayed click still maps back. */
   readonly width: number;
   readonly height: number;
@@ -69,6 +72,13 @@ export interface Caster {
 export interface ObservablePage {
   /** The push half, where this surface has one. `null` means poll instead. */
   caster(): Caster | null;
+  /**
+   * How many documents this window's main frame has committed. Monotonic, and
+   * the only thing that can tell a picture of *this* page from a picture of
+   * the one before it: the URL has already changed by the time the old page's
+   * last frames arrive, and the two clocks involved are too close to separate.
+   */
+  navigations(): number;
   /** PNG bytes of the current viewport, unredacted. `FrameCapture` redacts. */
   screenshot(): Promise<Uint8Array>;
   /** Every candidate field with its on-screen box, for frame redaction. */

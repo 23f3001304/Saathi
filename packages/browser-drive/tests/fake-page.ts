@@ -57,6 +57,10 @@ export class FakePage implements DrivenPage {
     return this.options.noCaster === true ? null : this.cast;
   }
 
+  navigations(): number {
+    return this.visited.length;
+  }
+
   describeAt(x: number, y: number): Promise<ElementDescriptor | null> {
     return Promise.resolve(this.options.points?.[`${x},${y}`] ?? null);
   }

@@ -39,6 +39,7 @@ export class FakeShopPage implements DrivenPage {
   readonly clicked: string[] = [];
   fronted = 0;
   private at = HOME;
+  private navigated = 0;
   private failReads = 0;
   private readFailure = "";
 
@@ -51,8 +52,12 @@ export class FakeShopPage implements DrivenPage {
   url(): string {
     return this.at;
   }
+  navigations(): number {
+    return this.navigated;
+  }
   goto(url: string): Promise<void> {
     this.at = url;
+    this.navigated += 1;
     return Promise.resolve();
   }
   private here(): ShopPage {

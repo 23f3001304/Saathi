@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Bazaar Fixture — Cast page A</title>
+    <style>
+      /* Full-bleed and one colour on purpose. The cast tests classify a frame
+         by the dominant colour of its top-left corner, so "which page is this
+         a picture of?" is answerable from pixels alone — no text, no layout,
+         and nothing white that a half-painted document could imitate. */
+      html, body { margin: 0; padding: 0; height: 100%; background: #c81e1e; }
+      /* Kept out of the corner the classifier samples, and kept moving: a
+         screencast only produces a frame when the page produces one, so a
+         still page delivers exactly one frame and proves nothing about what
+         arrives during a navigation. */
+      #beat {
+        position: fixed;
+        bottom: 0;
+        width: 60px;
+        height: 60px;
+        background: #ffffff;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="beat"></div>
+    <script>
+      var beat = document.getElementById("beat");
+      function step() {
+        beat.style.left = ((Date.now() / 4) % 400) + "px";
+        requestAnimationFrame(step);
+      }
+      requestAnimationFrame(step);
+    </script>
+  </body>
+</html>

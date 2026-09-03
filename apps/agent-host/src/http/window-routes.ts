@@ -34,13 +34,28 @@ function boundedFrame(
   ]);
 }
 
+/** A shutter that opened on the page before this one. The poll takes a fresh
+ *  picture every time, but "fresh" is when it opened, not when it resolved:
+ *  mid-navigation the pixels that come back are the page the window has left,
+ *  and the answer to "what does it look like right now?" is not those. */
+function leftBehind(
+  handle: SessionHandle,
+  captured: Awaited<ReturnType<SessionHandle["service"]["frame"]>>,
+): boolean {
+  return (
+    captured !== null &&
+    captured.kind === "frame" &&
+    captured.frame.navigation < handle.service.navigations()
+  );
+}
+
 async function frame(
   context: AppContext,
   handle: SessionHandle,
 ): Promise<Response> {
   const captured = await boundedFrame(handle);
   const view = handle.service.view();
-  if (captured === null || view === null) {
+  if (captured === null || view === null || leftBehind(handle, captured)) {
     // Not an error: a window with no picture ready yet is the ordinary
     // state between casts. A 404 here painted every such moment red in
     // the browser console and read to the shopper as a broken card.

@@ -1,7 +1,8 @@
-// Recovering a Chrome page handle that Chrome has retired under us. Kept beside
-// PuppeteerPage rather than inside it so that file stays a straight
-// implementation of `DrivenPage`, and so the one piece of guesswork in the
-// package — which page the errand is on now — is readable on its own.
+// Getting a Chrome page to answer again: a handle Chrome has retired under us,
+// or a load that is never going to finish. Kept beside PuppeteerPage rather
+// than inside it so that file stays a straight implementation of `DrivenPage`,
+// and so the one piece of guesswork in the package — which page the errand is
+// on now — is readable on its own.
 import type { Page } from "puppeteer";
 
 /** Matched on the message because puppeteer throws a plain `Error` for all of
@@ -51,6 +52,31 @@ function urlOf(page: Page): string {
     return page.url();
   } catch {
     return "";
+  }
+}
+
+/**
+ * Cancels whatever the page is still loading. A read that timed out is usually
+ * a load that will never finish, and the next read fights the same stuck load
+ * unless somebody stops it.
+ *
+ * Its own CDP session so a wedged main session cannot hang this too; raced so
+ * a wedged browser cannot either. Failure is acceptable: this is a nudge, and
+ * the read ceiling still owns the worst case.
+ */
+export async function haltLoading(page: Page): Promise<void> {
+  try {
+    const session = await page.createCDPSession();
+    const halt = session
+      .send("Page.stopLoading")
+      .then(() => session.detach())
+      .catch(() => undefined);
+    await Promise.race([
+      halt,
+      new Promise((resolve) => setTimeout(resolve, 1_000)),
+    ]);
+  } catch {
+    // A page that cannot even mint a session is beyond nudging.
   }
 }
 

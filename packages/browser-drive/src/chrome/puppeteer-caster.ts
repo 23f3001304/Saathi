@@ -1,6 +1,7 @@
 import type { CDPSession, Frame, Page } from "puppeteer";
 
 import type { CastFrame, CastSettings, Caster } from "../ports.js";
+import type { MainFrameNavigations } from "./main-frame-navigations.js";
 
 /**
  * `Page.startScreencast`, and the only file that knows the wire names.
@@ -26,6 +27,14 @@ import type { CastFrame, CastSettings, Caster } from "../ports.js";
  * long as anybody watched. A main-frame navigation now restarts the cast on
  * the page's current target, coalesced so a redirect chain restarts it once,
  * at the end, rather than per hop.
+ *
+ * DECISION: a screencast session is stamped with the navigation count it was
+ * attached under, and every frame it produces carries that stamp — not the
+ * count at the moment the frame is handled. A session attached to one document
+ * goes on delivering that document's pixels after the next one has committed,
+ * which is the bug this stamp exists for, and both frames are handled after
+ * the commit. Where the pixels came from is a property of the session; when
+ * they happened to be read out of the pipe is not.
  */
 const RESTART_COALESCE_MS = 180;
 
@@ -46,7 +55,10 @@ export class PuppeteerCaster implements Caster {
     this.restartTimer.unref?.();
   };
 
-  constructor(private readonly page: Page) {}
+  constructor(
+    private readonly page: Page,
+    private readonly navigations: MainFrameNavigations,
+  ) {}
 
   async start(
     settings: CastSettings,
@@ -61,15 +73,23 @@ export class PuppeteerCaster implements Caster {
   private async attach(): Promise<void> {
     const held = this.held;
     if (held === null) return;
+    // Read before the session exists, not after: a navigation that commits
+    // while the session is being created must leave the session stamped with
+    // the older count, so its frames are doubted rather than trusted.
+    const navigation = this.navigations.current();
     const session = await this.page.createCDPSession();
     this.session = session;
     const mediaType =
       held.settings.format === "jpeg" ? "image/jpeg" : "image/png";
     session.on("Page.screencastFrame", (event) => {
+      // A session this caster has moved on from can still have frames in the
+      // pipe: `detach()` is awaited, but events already sent arrive anyway.
+      if (this.session !== session) return;
       held.onFrame({
         bytes: Buffer.from(event.data, "base64"),
         mediaType,
         ack: event.sessionId,
+        navigation,
         // The viewport these pixels are of, not the size they were encoded at:
         // `maxWidth` may have scaled the image down, and a relayed click is in
         // page coordinates. The UI scales by the ratio, so it must be told the

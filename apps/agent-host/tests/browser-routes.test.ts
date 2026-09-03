@@ -45,6 +45,22 @@ beforeEach(async () => {
 });
 
 describe("GET /browser/frame", () => {
+  /**
+   * The polled half of the founder's report. The shutter opens on one page and
+   * resolves on the next, and the pixels that come back are the page the
+   * window has left — served under the new URL, which is read when the answer
+   * is written. "No picture yet" is the honest reply and an ordinary one: the
+   * card keeps the last frame up and asks again in half a second.
+   */
+  it("says no picture rather than one of the page it left", async () => {
+    page.underTheShutter = () => {
+      page.navigated += 1;
+    };
+    const body = await json(await read("/browser/frame"));
+    expect(body["ok"]).toBe(false);
+    expect(body["reason_code"]).toBe("NO_FRAME");
+  });
+
   it("carries a PNG with the password box already painted out", async () => {
     const body = await json(await read("/browser/frame"));
     const frame = body["frame"] as Record<string, unknown>;

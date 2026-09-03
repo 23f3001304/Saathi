@@ -73,9 +73,11 @@ export class BrowserSession {
     return this.required().signIn;
   }
 
-
   url(): string {
     return this.required().driven.url();
+  }
+  navigations(): number {
+    return this.required().driven.navigations();
   }
 
   /** Where this window is: a process on the desktop, or a container. */

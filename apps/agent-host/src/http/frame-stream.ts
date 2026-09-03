@@ -93,6 +93,7 @@ function summary(
     slow: counts.slow,
     blackouts: counts.blackouts,
     dropped: counts.dropped,
+    stale: counts.stale,
     seconds: Math.round(seconds),
   };
 }

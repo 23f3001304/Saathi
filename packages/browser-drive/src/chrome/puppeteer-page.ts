@@ -3,7 +3,8 @@ import type { Page } from "puppeteer";
 import type { CartDom } from "../cart/cart-dom.js";
 import type { ElementDescriptor } from "../field/element-descriptor.js";
 import type { Caster, DrivenPage, FieldSnapshot } from "../ports.js";
-import { freshPage, isStalePage } from "./page-recovery.js";
+import { MainFrameNavigations } from "./main-frame-navigations.js";
+import { freshPage, haltLoading, isStalePage } from "./page-recovery.js";
 import { PuppeteerCaster } from "./puppeteer-caster.js";
 import type { PageDom } from "../read/page-dom.js";
 import { readDeclaredListings } from "./listing-script.js";
@@ -33,12 +34,14 @@ const RELAY_DELAY_MS = 0;
  */
 export class PuppeteerPage implements DrivenPage {
   private readonly cast: Caster;
+  private readonly navs: MainFrameNavigations;
   /** Reassigned when Chrome retires the one we were holding; see `live`. */
   private page: Page;
 
   constructor(page: Page) {
     this.page = page;
-    this.cast = new PuppeteerCaster(page);
+    this.navs = new MainFrameNavigations(page);
+    this.cast = new PuppeteerCaster(page, this.navs);
   }
 
   /**
@@ -62,6 +65,10 @@ export class PuppeteerPage implements DrivenPage {
 
   caster(): Caster {
     return this.cast;
+  }
+
+  navigations(): number {
+    return this.navs.current();
   }
 
   url(): string {
@@ -111,31 +118,16 @@ export class PuppeteerPage implements DrivenPage {
     return this.live((page) => page.evaluate(scrapeCartDom));
   }
 
+  stopLoading(): Promise<void> {
+    return haltLoading(this.page);
+  }
+
   /**
    * The controls a decision will be aimed at, then the listings, which are only
    * ever read: what the page declared about its products, and what its
    * structure implies where it declared nothing. See `listing-script.ts` for
    * why the listings are a separate pass from the controls.
    */
-  async stopLoading(): Promise<void> {
-    // Its own CDP session so a wedged main session cannot hang this too;
-    // raced so a wedged browser cannot either. Failure is acceptable: this
-    // is a nudge, and the read ceiling still owns the worst case.
-    try {
-      const session = await this.page.createCDPSession();
-      const halt = session
-        .send("Page.stopLoading")
-        .then(() => session.detach())
-        .catch(() => undefined);
-      await Promise.race([
-        halt,
-        new Promise((resolve) => setTimeout(resolve, 1_000)),
-      ]);
-    } catch {
-      // A page that cannot even mint a session is beyond nudging.
-    }
-  }
-
   readPage(): Promise<PageDom> {
     return this.live(async (page) => {
       const dom = await page.evaluate(readPageDom);

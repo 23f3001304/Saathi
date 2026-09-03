@@ -28,6 +28,8 @@ export interface FeedCounts {
   blackouts: number;
   /** Frames produced and not sent: the subscriber was behind, or busy. */
   dropped: number;
+  /** Frames of a page this window has left, thrown away rather than served. */
+  stale: number;
   bytes: number;
 }
 
@@ -71,7 +73,7 @@ export function newFeed(
     service,
     sink,
     logger,
-    counts: { fast: 0, slow: 0, blackouts: 0, dropped: 0, bytes: 0 },
+    counts: { fast: 0, slow: 0, blackouts: 0, dropped: 0, stale: 0, bytes: 0 },
     climb: () => undefined,
     cast: null,
     starting: false,
@@ -83,8 +85,32 @@ export function newFeed(
   };
 }
 
+/**
+ * A picture of a page this window has already left.
+ *
+ * Measured in the container against two full-bleed fixtures: three
+ * milliseconds after the main frame committed the second document, the
+ * screencast delivered a frame of the *first* page — Chrome holds the last
+ * paint of the document it left until the new one has something to show — and
+ * the payload it went out in was stamped with the new URL, because the sink
+ * reads the URL when it sends. The shopper watched one shop's pixels under
+ * another shop's address bar and clicked on what the picture showed. A frame
+ * whose stamp is behind the window's is not late, it is wrong, and the next
+ * one is the current state of the page: dropping is the whole remedy.
+ */
+function stale(feed: Feed, capture: Capture): boolean {
+  return (
+    capture.kind === "frame" &&
+    capture.frame.navigation < feed.service.navigations()
+  );
+}
+
 /** The one place a frame is counted and handed on, so the split is countable. */
 export function emit(feed: Feed, capture: Capture): void {
+  if (stale(feed, capture)) {
+    feed.counts.stale += 1;
+    return;
+  }
   if (capture.kind === "blackout") {
     feed.counts.blackouts += 1;
   } else {
@@ -97,6 +123,10 @@ export function emit(feed: Feed, capture: Capture): void {
 
 /** Dropped rather than queued, and counted so the policy is observable. */
 export function offer(feed: Feed, capture: Capture): void {
-  if (feed.sink.ready()) emit(feed, capture);
+  // Staleness first: a frame of the wrong page is thrown away whether or not
+  // the subscriber had room for it, and it is not the same event as falling
+  // behind — the log line has to be able to tell the two apart.
+  if (stale(feed, capture)) feed.counts.stale += 1;
+  else if (feed.sink.ready()) emit(feed, capture);
   else feed.counts.dropped += 1;
 }

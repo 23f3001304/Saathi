@@ -24,6 +24,9 @@ export interface Frame {
   readonly height: number;
   /** How many boxes were painted out — the number the UI and tests assert on. */
   readonly redacted: number;
+  /** The window's navigation count when these pixels were taken. A capture
+   *  whose stamp is below the current count is a picture of a page we left. */
+  readonly navigation: number;
   /**
    * True when these are the browser's own bytes, forwarded without being
    * decoded here. Only ever set on a frame the classifier found nothing to
@@ -133,6 +136,10 @@ export class FrameCapture {
    */
   async capture(): Promise<Capture> {
     if (this.driver() === "user-drive") return await this.yours();
+    // Read before the shutter, not after: a shutter that opens on one page and
+    // resolves on the next must be stamped with the page it opened on, so the
+    // feed can recognise it as a picture of somewhere this window has left.
+    const navigation = this.page.navigations();
     // Before and after, unioned. An element that appears between the field
     // read and the shutter would otherwise be photographed unmasked; only an
     // element that both appears and vanishes inside the same capture escapes,
@@ -153,6 +160,7 @@ export class FrameCapture {
         width: image.width,
         height: image.height,
         redacted,
+        navigation,
         passthrough: false,
       },
     };
@@ -164,6 +172,7 @@ export class FrameCapture {
    * two fewer round trips per frame on the path where lag is felt as lag.
    */
   private async yours(): Promise<Capture> {
+    const navigation = this.page.navigations();
     const image = decodePng(await this.page.screenshot());
     return {
       kind: "frame",
@@ -173,6 +182,7 @@ export class FrameCapture {
         width: image.width,
         height: image.height,
         redacted: 0,
+        navigation,
         passthrough: false,
       },
     };

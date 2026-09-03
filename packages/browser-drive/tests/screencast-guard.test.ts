@@ -13,11 +13,12 @@ const HEIGHT = 100;
 /** Stands in for the browser's own JPEG: opaque here, and meant to stay so. */
 const JPEG = Uint8Array.from([0xff, 0xd8, 0xff, 0xe0, 1, 2, 3, 4, 5, 6, 7, 8]);
 
-function castFrame(ack = 1): CastFrame {
+function castFrame(ack = 1, navigation = 0): CastFrame {
   return {
     bytes: JPEG,
     mediaType: "image/jpeg",
     ack,
+    navigation,
     width: WIDTH,
     height: HEIGHT,
   };

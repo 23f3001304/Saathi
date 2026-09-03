@@ -22,15 +22,21 @@ export const WINDOW = { width: 900, height: 700 } as const;
  * in-process one. Only the launcher and the file root differ: the classifier,
  * the redactor and the state machine are the shipping ones, so a guard that
  * holds here is the guard that holds in a real session.
+ *
+ * The session id names the container, so two suites sharing one would race for
+ * the same name. A suite that runs beside another container suite passes its
+ * own; the default is the one the assertions about names are written against.
  */
-export function buildContainerSession(): BrowserSession {
+export function buildContainerSession(
+  sessionId: string = SESSION_ID,
+): BrowserSession {
   return new BrowserSession({
     launcher: new ContainerLauncher({
       image: IMAGE,
       seccompProfile: seccompProfilePath(),
       memoryMb: MEMORY_MB,
       ttlSeconds: 300,
-      sessionId: SESSION_ID,
+      sessionId,
     }),
     sandboxes: new TmpSandboxFactory(),
     classifier: new FieldClassifier(),
@@ -45,12 +51,12 @@ export function buildContainerSession(): BrowserSession {
     journal: new Journal(
       new CollectingJournalSink(),
       new FixedClock(),
-      SESSION_ID,
+      sessionId,
     ),
     waiter: new TimerWaiter(),
     clock: new FixedClock(),
     config: {
-      sessionId: SESSION_ID,
+      sessionId,
       surface: "container",
       windowWidth: WINDOW.width,
       windowHeight: WINDOW.height,

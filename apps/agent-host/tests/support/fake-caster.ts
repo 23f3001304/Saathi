@@ -55,6 +55,17 @@ export class BrokenCaster implements Caster {
   }
 }
 
-export function castFrameOf(ack: number, bytes: Uint8Array): CastFrame {
-  return { bytes, mediaType: "image/jpeg", ack, width: 320, height: 200 };
+export function castFrameOf(
+  ack: number,
+  bytes: Uint8Array,
+  navigation = 0,
+): CastFrame {
+  return {
+    bytes,
+    mediaType: "image/jpeg",
+    ack,
+    navigation,
+    width: 320,
+    height: 200,
+  };
 }

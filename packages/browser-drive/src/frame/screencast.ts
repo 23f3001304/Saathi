@@ -122,6 +122,7 @@ function passthroughFrame(frame: CastFrame): Frame {
     width: frame.width,
     height: frame.height,
     redacted: 0,
+    navigation: frame.navigation,
     passthrough: true,
   };
 }

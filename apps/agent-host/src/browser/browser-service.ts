@@ -9,9 +9,13 @@ import type {
 } from "@covenant/browser-drive";
 import type { IdGenerator, Logger } from "@covenant/domain";
 
-import { look, lookFields, lookFrame } from "./browser-look.js";
-import { sessionView } from "./browser-view.js";
-import type { BrowserSessionView } from "./browser-view.js";
+import {
+  look,
+  lookFields,
+  lookFrame,
+  lookNavigations,
+} from "./browser-look.js";
+import { sessionView, type BrowserSessionView } from "./browser-view.js";
 import type { FieldView } from "./field-view.js";
 import { relayInto } from "./relay-dispatch.js";
 import type { RelayRequest, RelayResponse } from "./relay-input.js";
@@ -144,6 +148,9 @@ export class BrowserService {
 
   frame(): Promise<Capture | null> {
     return lookFrame(this.session);
+  }
+  navigations(): number {
+    return lookNavigations(this.session);
   }
 
   fields(): Promise<readonly FieldView[]> {

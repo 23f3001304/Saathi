@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Bazaar Fixture — Cast page B</title>
+    <style>
+      html, body { margin: 0; padding: 0; height: 100%; background: #1e3ac8; }
+      #beat {
+        position: fixed;
+        bottom: 0;
+        width: 60px;
+        height: 60px;
+        background: #ffffff;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="beat"></div>
+    <script>
+      // This page paints late on purpose. The bug it exists to reproduce is a
+      // navigation where the new document has committed — the URL has already
+      // changed — and the pixels on screen are still the old page's, because
+      // Chrome holds the last paint of the document it left until the new one
+      // has something to show. A sandbox with no network cannot make the
+      // cross-origin hop that opens that gap by itself, so the gap is opened
+      // here: the document commits, then blocks its own first paint.
+      var until = Date.now() + 400;
+      while (Date.now() < until) { /* hold the first paint */ }
+      var beat = document.getElementById("beat");
+      function step() {
+        beat.style.left = ((Date.now() / 4) % 400) + "px";
+        requestAnimationFrame(step);
+      }
+      requestAnimationFrame(step);
+    </script>
+  </body>
+</html>
