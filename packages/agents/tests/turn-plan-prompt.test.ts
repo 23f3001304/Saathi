@@ -104,7 +104,7 @@ describe("what the closing rules say", () => {
 
   it("caps a runaway quoted line rather than growing the prompt with it", () => {
     const long = turnPlanClosing("x".repeat(2000));
-    expect(long.length).toBeLessThan(2600);
+    expect(long.length).toBeLessThan(3300);
   });
 
   it("names the pick and the reads beside the moves", () => {
@@ -120,6 +120,21 @@ describe("what the closing rules say", () => {
   });
 });
 
+describe("what the closing rules say about a web errand", () => {
+  const webClosing = turnPlanClosing("buy ssd");
+
+  it("asks once for what it cannot fill before a web errand", () => {
+    expect(webClosing).toContain("ask for once");
+    expect(webClosing).toContain("Never a generic phrase");
+    expect(webClosing).not.toContain("a missing budget alone means look first");
+  });
+
+  it("names the three things a web look needs", () => {
+    expect(webClosing).toContain("the most they will spend");
+    expect(webClosing).toContain("anything it must be");
+  });
+});
+
 describe("what the closing rules no longer say", () => {
   it("drops the deleted spec gate's paragraph", () => {
     const closing = turnPlanClosing("mujhe ek sasta kurta chahiye");
@@ -129,8 +144,8 @@ describe("what the closing rules no longer say", () => {
 });
 
 describe("what the prompt says about looking", () => {
-  it("is sealed as v9 and names both reads as looks, not moves", () => {
-    expect(TURN_PLAN_PROMPT_ID).toBe("buyer.turn-plan@v9");
+  it("is sealed as v10 and names both reads as looks, not moves", () => {
+    expect(TURN_PLAN_PROMPT_ID).toBe("buyer.turn-plan@v10");
     expect(TURN_PLAN_PROMPT).toContain(SEE_SHELF_TOOL);
     expect(TURN_PLAN_PROMPT).toContain(SEE_STATE_TOOL);
     expect(TURN_PLAN_PROMPT).toContain("A look is not a move");

@@ -22,8 +22,10 @@ import {
  *  v9: two reads, see_shelf and see_state, may precede the move; the
  *  browse count and the spec rule are gone, the model looks instead.
  *  v9 (Stage 3): the pick is a move, the reads are not, and the browse
- *  names skus. */
-export const TURN_PLAN_PROMPT_ID = "buyer.turn-plan@v9";
+ *  names skus.
+ *  v10: a web look is an errand; the planner holds what/ceiling/must-haves
+ *  first and asks once for the rest. */
+export const TURN_PLAN_PROMPT_ID = "buyer.turn-plan@v10";
 
 /**
  * What stands over the harness's working-context digest when a turn has one.
@@ -82,7 +84,8 @@ export const TURN_PLAN_PROMPT =
   `${WEB_LOOK_TOOL} is the only move that opens the open web. If you mean ` +
   `to look on Amazon or anywhere else, call ${WEB_LOOK_TOOL}; saying so on ` +
   "any other move is a claim you have no way to keep. When they have named a " +
-  "shop outside this one, going there is the move; a question about it is not.\n" +
+  "shop outside this one and you hold what to look for there, going is the " +
+  "move; when you do not, one question is.\n" +
   "A sentence naming two different products is two purchases. Say you will " +
   "take them one at a time, start with the first, and keep the second for " +
   "the moment the first is settled; never blend two products into one " +
@@ -129,10 +132,19 @@ function moveRule(): string {
     `Second, the move. A read (${SEE_SHELF_TOOL}, ${SEE_STATE_TOOL}) is not ` +
     "a move: look first when the answer depends on what is there, then call " +
     "exactly one move, and pick it by what that quoted line names.\n" +
-    `A shop outside this one - a marketplace, a brand's own site - is ${WEB_LOOK_TOOL}, ` +
-    "and you go there in this turn. Not yet knowing what they will spend " +
-    "is not, by itself, a reason to wait: a missing budget alone means " +
-    "look first, and narrow it once you have seen the page.\n" +
+    `A shop outside this one - a marketplace, a brand's own site - is ${WEB_LOOK_TOOL}. ` +
+    "A web look is an errand: it opens a window they watch and costs them a wait, " +
+    "so it is worth spending only on a thing you could recognise on a page. " +
+    "Before you go, hold three things: what exactly (the thing, with the details " +
+    "that change which one is right: size, capacity, internal or external, colour, " +
+    "model), the most they will spend, and anything it must be (returnable, a " +
+    "particular shop, a delivery they need). Take each from what they wrote, from " +
+    "the key: value facts about them and from what they said earlier in this " +
+    "conversation; what you still cannot fill, ask for once, all of it in one " +
+    "question, with the likely answers in replies. When you hold those three, go " +
+    `this turn, and the query you hand ${WEB_LOOK_TOOL} is what you would type ` +
+    "yourself for exactly their thing: their own product words, the detail that " +
+    "narrows it, and the shop if they named one. Never a generic phrase.\n" +
     "Their words choosing one of the cards on their screen (" +
     `${SEE_STATE_TOOL} lists them with their refs) is ${PICK_TOOL}: name the ` +
     "ref, and the host takes the same path a tap on that card takes. If " +

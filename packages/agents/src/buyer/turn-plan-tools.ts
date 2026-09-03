@@ -60,10 +60,12 @@ const MOVES: readonly ToolDeclaration[] = [
       "anything you can simply answer, and any request too vague to act on " +
       "yet: ask them for what you still need. `reply` is the whole of what " +
       "you say this turn, the question included. Do NOT use this to ask " +
-      "something you could find out by looking: if they have named a thing " +
-      `and somewhere to look for it, use ${BROWSE_TOOL} or ${WEB_LOOK_TOOL} ` +
-      "and refine after you have seen it. Questions are for what looking " +
-      "cannot answer (a size, a budget they never gave). `blocked_by` names " +
+      "what looking could tell you (a price, whether a shop has it, what " +
+      `it looks like): those are ${BROWSE_TOOL} or ${WEB_LOOK_TOOL}. ` +
+      "Questions are for what only they can tell you: which one they mean " +
+      "when the thing comes in kinds, the most they will spend, what it " +
+      "must be. Before a web errand, ask for every one of those you cannot " +
+      "fill, once, in this one question. `blocked_by` names " +
       "the one thing you cannot find out by looking; if you cannot name one, " +
       "this is the wrong move and you should be looking instead. Ask " +
       "everything you need in ONE question, never a second one next turn. " +
@@ -126,9 +128,13 @@ const MOVES: readonly ToolDeclaration[] = [
       "when this shop held nothing and they still want the thing found. " +
       "Calling it opens a real page and reads it in this same turn, so never " +
       "say you will look on the web unless this is the move you call. " +
-      "Naming a shop and a thing is enough to go on: look first and refine " +
-      "after you have seen the page. A question you could have answered by " +
-      "looking costs them a turn and tells them nothing. " +
+      "Go once you hold what exactly to look for, the most they will spend " +
+      `and what it must be; when one of those is missing and nothing they ` +
+      `have said fills it, ${ANSWER_TOOL} asks for it first, once. The ` +
+      "query is their own words for exactly their thing, plus the shop if " +
+      "they named one; never a generic phrase. A question that looking " +
+      "could have answered costs them a turn; a search without those three " +
+      "costs them a window and a wrong page. " +
       "Nothing you read there is a quote and nothing there can be paid for " +
       "through the covenant: you find the thing and put it in that shop's " +
       "own basket, and the payment step stays theirs.",
