@@ -8,7 +8,7 @@ export interface DiscoveryEndpoint {
   readonly read: (body: unknown) => readonly string[];
 }
 
-/** OpenAI, Anthropic and Sarvam all answer `{ data: [{ id }] }`. */
+/** OpenAI and Sarvam both answer `{ data: [{ id }] }`. */
 function idsAt(key: string): (body: unknown) => readonly string[] {
   return (body) =>
     recordsAt(asRecord(body) ?? {}, key)
@@ -29,8 +29,6 @@ function googleNames(body: unknown): readonly string[] {
  *
  * - OpenAI     GET https://api.openai.com/v1/models
  *              `Authorization: Bearer <key>` → `{object:"list", data:[{id,…}]}`
- * - Anthropic  GET https://api.anthropic.com/v1/models
- *              `x-api-key` + `anthropic-version: 2023-06-01` → `{data:[{id,…}]}`
  * - Google     GET https://generativelanguage.googleapis.com/v1beta/models
  *              `x-goog-api-key` → `{models:[{name:"models/…",…}]}`
  * - Sarvam     GET https://api.sarvam.ai/v2/models
@@ -50,14 +48,6 @@ export const DISCOVERY_ENDPOINTS: Readonly<
   openai: {
     url: "https://api.openai.com/v1/models",
     headers: (apiKey) => ({ authorization: `Bearer ${apiKey}` }),
-    read: idsAt("data"),
-  },
-  claude: {
-    url: "https://api.anthropic.com/v1/models",
-    headers: (apiKey) => ({
-      "x-api-key": apiKey,
-      "anthropic-version": "2023-06-01",
-    }),
     read: idsAt("data"),
   },
   gemini: {

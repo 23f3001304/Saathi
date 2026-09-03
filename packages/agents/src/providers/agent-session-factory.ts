@@ -1,15 +1,10 @@
-import type { McpServerConfig } from "@anthropic-ai/claude-agent-sdk";
-
 import type { PreToolUseHook } from "../buyer/pre-tool-use-hook.js";
-import { ClaudeAgentSession } from "../sdk/claude-agent-session.js";
-import type { Env } from "../sdk/model.js";
 import type { AgentSession, ToolDispatcher } from "../shared/agent-session.js";
 import { GeminiAgentSession, GEMINI_BASE_URL } from "./gemini-agent-session.js";
 import { GuardedToolDispatcher } from "./guarded-tool-dispatcher.js";
 import { OpenAiAgentSession } from "./openai-agent-session.js";
-import type { AgentProviderId } from "./provider-config.js";
+import type { AgentProviderId, Env } from "./provider-config.js";
 import {
-  hasProviderApiKey,
   PROVIDER_SPECS,
   resolveProviderApiKey,
   resolveProviderId,
@@ -22,16 +17,8 @@ import {
 } from "./provider-transport.js";
 import { SARVAM_BASE_URL, SarvamAgentSession } from "./sarvam-agent-session.js";
 import type { ToolDeclaration } from "./tool-declarations.js";
-import { COVENANT_TOOL_DECLARATIONS, wireNameOf } from "./tool-declarations.js";
+import { COVENANT_TOOL_DECLARATIONS } from "./tool-declarations.js";
 import type { DraftScope } from "./turn-stream.js";
-
-/** Only the Claude path needs these; every other provider ignores them. */
-export interface ClaudeSessionOverrides {
-  readonly mcpServers?: Record<string, McpServerConfig>;
-  readonly allowedTools?: readonly string[];
-  readonly cwd?: string;
-  readonly maxTurns?: number;
-}
 
 export interface AgentSessionRequest {
   readonly env: Env;
@@ -57,24 +44,20 @@ export interface AgentSessionRequest {
   /** Where the adapter opens a draft per model round trip. Absent means the
    *  blocking path: every adapter answers the same way with nobody watching. */
   readonly drafts?: DraftScope | null;
-  /** Set `false` when Claude is authenticated by CLI login rather than a key. */
-  readonly requireApiKey?: boolean;
-  readonly claude?: ClaudeSessionOverrides;
 }
 
 /**
  * DECISION: the factory returns the provider and model alongside the session
  * rather than the bare session. `const { session } = createAgentSession(...)`
  * is still one line, and the caller gets the two facts it will want in every
- * log line plus `guard` — the block list for the non-Claude paths, which is
- * where the demo reads its refusals from when the SDK hook is not the gate.
+ * log line plus `guard`, the F2 gate every tool call on this session passes
+ * through, which is where the demo reads its refusals from.
  */
 export interface CreatedAgentSession {
   readonly provider: AgentProviderId;
   readonly model: string;
   readonly session: AgentSession;
-  /** `null` on Claude: the Agent SDK's `PreToolUse` hook is the gate there. */
-  readonly guard: GuardedToolDispatcher | null;
+  readonly guard: GuardedToolDispatcher;
 }
 
 interface Resolved {
@@ -102,13 +85,10 @@ export function createAgentSession(
   const resolved: Resolved = {
     id,
     model: request.model ?? resolveProviderModel(request.env, id),
-    apiKey: apiKeyOf(request, id),
+    apiKey: resolveProviderApiKey(request.env, id),
     tools: request.tools ?? COVENANT_TOOL_DECLARATIONS,
     maxToolIterations: request.maxToolIterations ?? DEFAULT_MAX_TOOL_ITERATIONS,
   };
-  if (id === "claude") {
-    return claudeSession(request, resolved);
-  }
   const guard = new GuardedToolDispatcher(
     request.hook,
     request.dispatcher,
@@ -116,14 +96,6 @@ export function createAgentSession(
   );
   const session = httpSession(request, resolved, guard);
   return { provider: id, model: resolved.model, session, guard };
-}
-
-/** A missing key is a typed error naming the variable, not a 401 later on. */
-function apiKeyOf(request: AgentSessionRequest, id: AgentProviderId): string {
-  if (request.requireApiKey === false && !hasProviderApiKey(request.env, id)) {
-    return "";
-  }
-  return resolveProviderApiKey(request.env, id);
 }
 
 function httpSession(
@@ -163,25 +135,4 @@ function httpSession(
     );
   }
   return new OpenAiAgentSession(guard, transport, config, drafts);
-}
-
-function claudeSession(
-  request: AgentSessionRequest,
-  resolved: Resolved,
-): CreatedAgentSession {
-  const overrides = request.claude ?? {};
-  const session = new ClaudeAgentSession(
-    request.hook,
-    {
-      model: resolved.model,
-      systemPrompt: request.systemPrompt,
-      allowedTools: overrides.allowedTools ?? resolved.tools.map(wireNameOf),
-      mcpServers: overrides.mcpServers ?? {},
-      maxTurns: overrides.maxTurns ?? resolved.maxToolIterations,
-      cwd: overrides.cwd ?? ".",
-    },
-    request.txnId,
-    request.drafts ?? null,
-  );
-  return { provider: "claude", model: resolved.model, session, guard: null };
 }

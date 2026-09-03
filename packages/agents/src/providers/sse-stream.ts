@@ -4,7 +4,7 @@ export interface SseFrame {
   readonly data: string;
 }
 
-/** Chat Completions and Gemini end with this; Responses and Anthropic do not. */
+/** The Chat Completions wire shape ends with this; the Responses one does not. */
 export const SSE_DONE = "[DONE]";
 
 function frameOf(block: string): SseFrame | null {
@@ -27,11 +27,12 @@ function frameOf(block: string): SseFrame | null {
 /**
  * Frames off a `text/event-stream` body.
  *
- * DECISION: the four vendors disagree about whether an `event:` name is
- * present at all — OpenAI's spec declares only the payload, Anthropic
- * documents both a name and a matching `type` inside the data — so this reader
- * hands back whatever it saw and every adapter switches on the JSON instead.
- * A vendor that stops sending names cannot break a reader that never read one.
+ * DECISION: the wire shapes disagree about whether an `event:` name is present
+ * at all — the Chat Completions shape declares only the payload, the Responses
+ * shape documents both a name and a matching `type` inside the data — so this
+ * reader hands back whatever it saw and every adapter switches on the JSON
+ * instead. A stream that stops sending names cannot break a reader that never
+ * read one.
  */
 export async function* readSseFrames(
   body: ReadableStream<Uint8Array>,

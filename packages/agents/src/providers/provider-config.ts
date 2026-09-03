@@ -1,14 +1,19 @@
-import type { Env } from "../sdk/model.js";
-import { DEFAULT_AGENT_MODEL, MODEL_ENV_KEY } from "../sdk/model.js";
+export type Env = Readonly<Record<string, string | undefined>>;
 
-/** The providers a Covenant agent can run on. `claude` stays the default. */
-export const AGENT_PROVIDERS = ["claude", "openai", "gemini", "sarvam"] as const;
+export const MODEL_ENV_KEY = "COVENANT_AGENT_MODEL";
+
+/** The package default, and OpenAI's: overridable so a demo can drop to a
+ *  cheaper tier. Read off OpenAI's live model page, never from memory. */
+export const DEFAULT_AGENT_MODEL = "gpt-5.6";
+
+/** The providers a Covenant agent can run on. `openai` is the default. */
+export const AGENT_PROVIDERS = ["openai", "gemini", "sarvam"] as const;
 
 export type AgentProviderId = (typeof AGENT_PROVIDERS)[number];
 
 export const PROVIDER_ENV_KEY = "COVENANT_AGENT_PROVIDER";
 
-export const DEFAULT_AGENT_PROVIDER: AgentProviderId = "claude";
+export const DEFAULT_AGENT_PROVIDER: AgentProviderId = "openai";
 
 export interface ProviderSpec {
   readonly id: AgentProviderId;
@@ -16,20 +21,13 @@ export interface ProviderSpec {
   readonly defaultModel: string;
   /** Checked in order; the first non-empty one wins. */
   readonly apiKeyEnvKeys: readonly string[];
-  /** Empty for `claude`: the Agent SDK owns its own transport. */
   readonly baseUrl: string;
 }
 
 export const PROVIDER_SPECS: Readonly<Record<AgentProviderId, ProviderSpec>> = {
-  claude: {
-    id: "claude",
-    defaultModel: DEFAULT_AGENT_MODEL,
-    apiKeyEnvKeys: ["ANTHROPIC_API_KEY"],
-    baseUrl: "",
-  },
   openai: {
     id: "openai",
-    defaultModel: "gpt-5.6",
+    defaultModel: DEFAULT_AGENT_MODEL,
     apiKeyEnvKeys: ["OPENAI_API_KEY"],
     baseUrl: "https://api.openai.com/v1",
   },

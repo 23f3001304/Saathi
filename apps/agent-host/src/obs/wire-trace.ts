@@ -4,9 +4,9 @@ import type { Logger } from "@covenant/domain";
  * What was actually sent to a model, and what actually came back.
  *
  * DECISION: a `fetch` wrapper rather than a hook inside each provider adapter.
- * Every non-Claude adapter reaches the network through the one injected
- * `fetch` in `agent-session-factory.ts`, so one wrapper sees all three — and
- * an adapter added tomorrow is traced without being told to be.
+ * The adapter reaches the network through the one injected `fetch` in
+ * `agent-session-factory.ts`, so one wrapper sees everything, and an adapter
+ * added tomorrow is traced without being told to be.
  *
  * DECISION: off unless `LOG_LEVEL=debug`. This prints the whole assembled
  * message list, which is the only artefact that can settle an argument about

@@ -1,12 +1,11 @@
 import type { Logger } from "@covenant/domain";
 
-import type { AgentProviderId } from "../providers/provider-config.js";
+import type { AgentProviderId, Env } from "../providers/provider-config.js";
 import {
   AGENT_PROVIDERS,
   hasProviderApiKey,
   resolveProviderApiKey,
 } from "../providers/provider-config.js";
-import type { Env } from "../sdk/model.js";
 import { capabilitiesFor, lookupCapabilities } from "./capability-table.js";
 import type { CatalogModel, ModelCatalogSource } from "./model-catalog.js";
 import type { ModelDiscovery } from "./model-discovery.js";

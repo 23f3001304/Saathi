@@ -16,7 +16,7 @@ import type { RoutingDecision } from "../src/routing/router-audit.js";
 import { requirementsFor } from "../src/routing/task-classifier.js";
 import { extractFeatures } from "../src/routing/task-features.js";
 
-type Provider = "openai" | "sarvam" | "claude";
+type Provider = "openai" | "sarvam";
 
 export function modelOf(provider: Provider, id: string): CatalogModel {
   return {

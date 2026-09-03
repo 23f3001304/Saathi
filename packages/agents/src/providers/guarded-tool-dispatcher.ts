@@ -11,19 +11,15 @@ import type {
 import { toolCallOf } from "../shared/agent-session.js";
 
 /**
- * F2 for every provider that is not Claude.
+ * F2, at the one place a tool call is executed.
  *
- * The Claude path gets its interception from the Agent SDK's `PreToolUse`
- * hook (§10.2 hook 1). OpenAI, Gemini and Sarvam have no such hook: their
- * APIs hand back a function call and trust the caller to run it. This class
- * is that caller, and it is the only one — the provider adapters take a
+ * The provider API hands back a function call and trusts the caller to run
+ * it. This class is that caller, and it is the only one: the adapter takes a
  * `GuardedToolDispatcher`, never a bare `ToolDispatcher`, so there is no
- * constructor anywhere in this package that can build an adapter with the
- * gate missing. The guarantee is a type, not a convention.
- *
- * It holds the same `PreToolUseHook` instance the SDK path holds, so the block
- * matrix proven in tests is the block matrix that runs live on all four
- * providers, and every decision lands in the same ledger.
+ * constructor anywhere in this package that can build a session with the
+ * gate missing. The guarantee is a type, not a convention, and every
+ * decision it makes lands in the same ledger the harness-driven loop in
+ * `BuyerAgent` writes to.
  */
 export class GuardedToolDispatcher {
   private readonly refused: ToolCallDecision[] = [];

@@ -13,7 +13,7 @@ import type { RoutingRequest } from "./model-router.js";
 
 export interface RoutedSessionBuild {
   readonly session: AgentSession;
-  /** `null` on Claude, where the Agent SDK's own hook is the gate. */
+  /** `null` only for a session a test builds without a guard. */
   readonly guard: GuardedToolDispatcher | null;
 }
 

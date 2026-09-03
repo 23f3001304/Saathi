@@ -13,7 +13,6 @@ import type { AgentProviderId } from "../providers/provider-config.js";
 export const STATIC_MODEL_MANIFEST: Readonly<
   Record<AgentProviderId, readonly string[]>
 > = {
-  claude: ["claude-haiku-4-5", "claude-sonnet-5", "claude-opus-5"],
   openai: ["gpt-5.6-luna", "gpt-5.6-terra", "gpt-5.6-sol"],
   gemini: ["gemini-3.7-flash", "gemini-3.1-pro-preview"],
   sarvam: ["sarvam-105b-conversations", "sarvam-105b"],

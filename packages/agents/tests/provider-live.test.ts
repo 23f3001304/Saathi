@@ -4,14 +4,16 @@ import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 
 import { createAgentSession } from "../src/providers/agent-session-factory.js";
-import type { AgentProviderId } from "../src/providers/provider-config.js";
+import type {
+  AgentProviderId,
+  Env,
+} from "../src/providers/provider-config.js";
 import {
   AGENT_PROVIDERS,
   hasProviderApiKey,
   PROVIDER_SPECS,
   resolveProviderModel,
 } from "../src/providers/provider-config.js";
-import type { Env } from "../src/sdk/model.js";
 import { RecordingDispatcher } from "./doubles.js";
 import { RecordingSink } from "./fakes.js";
 import { hookOf } from "./provider-cases.js";
@@ -45,14 +47,6 @@ const repoRoot = join(
 );
 const env: Env = { ...readEnvFile(join(repoRoot, ".env")), ...process.env };
 
-/** Claude has its own live smoke in `claude-agent-session.live.test.ts`; these
- *  are the three HTTP adapters this package added. */
-const HTTP_PROVIDERS: readonly AgentProviderId[] = [
-  "openai",
-  "gemini",
-  "sarvam",
-];
-
 /**
  * `COVENANT_AGENT_MODEL` is a cross-provider operator preference — it names the
  * model an operator wants the *router* to open on, and the router honours it
@@ -67,7 +61,7 @@ function envFor(id: AgentProviderId): Env {
 
 // Never log a key anywhere below: a transport failure carries the response
 // body and the status, and deliberately not the request headers.
-for (const id of HTTP_PROVIDERS) {
+for (const id of AGENT_PROVIDERS) {
   const live = hasProviderApiKey(env, id);
 
   describe.skipIf(!live)(`${id} live smoke`, () => {
@@ -103,7 +97,7 @@ for (const id of HTTP_PROVIDERS) {
 /**
  * The reporter line: a CI box with no credentials must still go green, and
  * whoever reads the output has to be able to see which providers were actually
- * exercised rather than assuming all four were.
+ * exercised rather than assuming every one was.
  */
 describe("provider live smoke gates", () => {
   it.each(AGENT_PROVIDERS)("reports the gate for %s", (id) => {

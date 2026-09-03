@@ -40,15 +40,6 @@ describe("model discovery", () => {
     expect(ids).toContain("gpt-5.6-luna");
   });
 
-  it("sends Anthropic the version header its models route requires", async () => {
-    const { fetch: fetchImpl, calls } = capturingFetch([
-      jsonResponse(200, { data: [{ id: "claude-haiku-4-5" }] }),
-    ]);
-    await new HttpModelDiscovery(fetchImpl).discover("claude", "sk-ant");
-    expect(headerOf(calls[0]!, "x-api-key")).toBe("sk-ant");
-    expect(headerOf(calls[0]!, "anthropic-version")).toBe("2023-06-01");
-  });
-
   it("strips Google's models/ prefix off the resource name", async () => {
     const { fetch: fetchImpl, calls } = capturingFetch([
       jsonResponse(200, GOOGLE_LIST),

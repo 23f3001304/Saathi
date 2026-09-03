@@ -1,9 +1,14 @@
 import { describe, expect, it } from "vitest";
 
 import { createAgentSession } from "../src/providers/agent-session-factory.js";
-import type { AgentProviderId } from "../src/providers/provider-config.js";
+import type {
+  AgentProviderId,
+  Env,
+} from "../src/providers/provider-config.js";
 import {
   AGENT_PROVIDERS,
+  DEFAULT_AGENT_MODEL,
+  DEFAULT_AGENT_PROVIDER,
   hasProviderApiKey,
   PROVIDER_SPECS,
   ProviderConfigError,
@@ -12,18 +17,15 @@ import {
   resolveProviderId,
   resolveProviderModel,
 } from "../src/providers/provider-config.js";
-import type { Env } from "../src/sdk/model.js";
-import { DEFAULT_AGENT_MODEL } from "../src/sdk/model.js";
 import { capturingFetch, RecordingDispatcher } from "./doubles.js";
 import { RecordingSink } from "./fakes.js";
 import { hookOf } from "./provider-cases.js";
 
-const KEYS: Readonly<Record<AgentProviderId, Env>> = {
-  claude: { ANTHROPIC_API_KEY: "sk-ant-x" },
-  openai: { OPENAI_API_KEY: "sk-openai-x" },
-  gemini: { GEMINI_API_KEY: "gem-x" },
-  sarvam: { SARVAM_API_KEY: "sarvam-x" },
-};
+/** One key per provider, read off its spec so this file cannot drift. */
+function keyFor(id: AgentProviderId): Env {
+  const [name] = PROVIDER_SPECS[id].apiKeyEnvKeys;
+  return name === undefined ? {} : { [name]: `${id}-key` };
+}
 
 function build(env: Env) {
   const { fetch: fetchImpl } = capturingFetch([]);
@@ -38,9 +40,10 @@ function build(env: Env) {
 }
 
 describe("provider selection", () => {
-  it("defaults to claude when COVENANT_AGENT_PROVIDER is unset or empty", () => {
-    expect(resolveProviderId({})).toBe("claude");
-    expect(resolveProviderId({ COVENANT_AGENT_PROVIDER: "" })).toBe("claude");
+  it("defaults to openai when COVENANT_AGENT_PROVIDER is unset or empty", () => {
+    expect(DEFAULT_AGENT_PROVIDER).toBe("openai");
+    expect(resolveProviderId({})).toBe("openai");
+    expect(resolveProviderId({ COVENANT_AGENT_PROVIDER: "" })).toBe("openai");
   });
 
   it.each(AGENT_PROVIDERS)("accepts %s", (id) => {
@@ -53,7 +56,13 @@ describe("provider selection", () => {
     ).toThrow(ProviderConfigError);
     expect(() =>
       resolveProviderId({ COVENANT_AGENT_PROVIDER: "llama" }),
-    ).toThrow(/claude, openai, gemini, sarvam/);
+    ).toThrow(new RegExp(AGENT_PROVIDERS.join(", ")));
+  });
+
+  it.each(["claude"])("no longer knows %s", (id) => {
+    expect(() => resolveProviderId({ COVENANT_AGENT_PROVIDER: id })).toThrow(
+      ProviderConfigError,
+    );
   });
 });
 
@@ -67,36 +76,26 @@ describe("model resolution", () => {
     },
   );
 
-  it("keeps claude's existing default untouched", () => {
-    expect(resolveProviderModel({}, "claude")).toBe(DEFAULT_AGENT_MODEL);
+  it("makes the OpenAI default the package default", () => {
+    expect(resolveProviderModel({}, "openai")).toBe(DEFAULT_AGENT_MODEL);
   });
 
-  it("lets the shared key move every provider", () => {
-    const env = { COVENANT_AGENT_MODEL: "shared-model" };
-    expect(resolveProviderModel(env, "openai")).toBe("shared-model");
-    expect(resolveProviderModel(env, "sarvam")).toBe("shared-model");
-  });
-
-  it("lets the per-provider key win over the shared one", () => {
-    const env = {
-      COVENANT_AGENT_MODEL: "shared-model",
-      [providerModelEnvKey("gemini")]: "gemini-pinned",
+  it("lets the shared key move a provider, and the per-provider key win", () => {
+    const shared = { COVENANT_AGENT_MODEL: "shared-model" };
+    expect(resolveProviderModel(shared, "openai")).toBe("shared-model");
+    const pinned = {
+      ...shared,
+      [providerModelEnvKey("openai")]: "openai-pinned",
     };
-    expect(resolveProviderModel(env, "gemini")).toBe("gemini-pinned");
-    expect(resolveProviderModel(env, "openai")).toBe("shared-model");
+    expect(resolveProviderModel(pinned, "openai")).toBe("openai-pinned");
   });
 });
 
 describe("api key resolution", () => {
   it.each(AGENT_PROVIDERS)("reads the documented variable for %s", (id) => {
-    expect(resolveProviderApiKey(KEYS[id], id)).toEqual(expect.any(String));
-    expect(hasProviderApiKey(KEYS[id], id)).toBe(true);
+    expect(resolveProviderApiKey(keyFor(id), id)).toBe(`${id}-key`);
+    expect(hasProviderApiKey(keyFor(id), id)).toBe(true);
     expect(hasProviderApiKey({}, id)).toBe(false);
-  });
-
-  it("prefers GOOGLE_API_KEY over GEMINI_API_KEY, as the docs specify", () => {
-    const env = { GOOGLE_API_KEY: "google-x", GEMINI_API_KEY: "gemini-x" };
-    expect(resolveProviderApiKey(env, "gemini")).toBe("google-x");
   });
 
   it.each(AGENT_PROVIDERS)("names the missing variable for %s", (id) => {
@@ -107,53 +106,40 @@ describe("api key resolution", () => {
 
   it("carries the variable names on the error, not just in the message", () => {
     try {
-      resolveProviderApiKey({}, "sarvam");
+      resolveProviderApiKey({}, "openai");
       expect.unreachable("expected a ProviderConfigError");
     } catch (error) {
       expect(error).toBeInstanceOf(ProviderConfigError);
       expect((error as ProviderConfigError).envVars).toEqual([
-        "SARVAM_API_KEY",
+        "OPENAI_API_KEY",
       ]);
-      expect((error as ProviderConfigError).provider).toBe("sarvam");
+      expect((error as ProviderConfigError).provider).toBe("openai");
     }
   });
 });
 
 describe("createAgentSession", () => {
   it.each(AGENT_PROVIDERS)("builds a working session for %s", (id) => {
-    const created = build({ ...KEYS[id], COVENANT_AGENT_PROVIDER: id });
+    const created = build({ ...keyFor(id), COVENANT_AGENT_PROVIDER: id });
 
     expect(created.provider).toBe(id);
     expect(created.model).toBe(PROVIDER_SPECS[id].defaultModel);
     expect(typeof created.session.turn).toBe("function");
   });
 
-  it("gives the non-claude providers a guard and claude the SDK hook", () => {
-    for (const id of AGENT_PROVIDERS) {
-      const created = build({ ...KEYS[id], COVENANT_AGENT_PROVIDER: id });
-      // A guard on every path the SDK's PreToolUse hook does not cover.
-      expect(created.guard === null).toBe(id === "claude");
-    }
-  });
+  it.each(AGENT_PROVIDERS)(
+    "puts the F2 gate on %s: there is no path without one",
+    (id) => {
+      const created = build({ ...keyFor(id), COVENANT_AGENT_PROVIDER: id });
+
+      expect(created.guard.blocked).toEqual([]);
+      expect(created.guard.seen).toEqual([]);
+    },
+  );
 
   it.each(AGENT_PROVIDERS)("refuses to build %s without its key", (id) => {
     expect(() => build({ COVENANT_AGENT_PROVIDER: id })).toThrow(
       ProviderConfigError,
     );
-  });
-
-  it("lets claude opt out of the key check for a CLI login", () => {
-    const { fetch: fetchImpl } = capturingFetch([]);
-    const created = createAgentSession({
-      env: { COVENANT_AGENT_PROVIDER: "claude" },
-      hook: hookOf(new RecordingSink()),
-      dispatcher: new RecordingDispatcher(),
-      txnId: null,
-      systemPrompt: "prompt",
-      fetchImpl,
-      requireApiKey: false,
-    });
-
-    expect(created.provider).toBe("claude");
   });
 });

@@ -171,10 +171,11 @@ export function loadConfig(env: Env): AgentHostConfig {
 }
 
 /**
- * Live mode needs **one** provider key, not a particular one. The router
- * discovers what each key can reach and chooses among the providers that are
- * actually configured, so requiring Anthropic specifically would lock out an
- * operator holding an OpenAI or a Sarvam key for no architectural reason.
+ * Live mode needs **one** provider key, and the registry decides which. The
+ * router discovers what each key can reach and chooses among the providers
+ * that are actually configured, so naming a vendor here would only contradict
+ * `AGENT_PROVIDERS`: live mode needs the chat provider's key, whichever
+ * provider the registry is down to.
  */
 export function keyedProviders(env: Env): readonly string[] {
   return AGENT_PROVIDERS.filter((id) => hasProviderApiKey(env, id));

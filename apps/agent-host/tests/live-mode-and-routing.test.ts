@@ -28,10 +28,6 @@ describe("live mode needs one provider key, not a particular one", () => {
     expect(loadConfig(live({ SARVAM_API_KEY: "sk-y" })).mode).toBe("live");
   });
 
-  it("still starts on an Anthropic key alone", () => {
-    expect(loadConfig(live({ ANTHROPIC_API_KEY: "sk-ant" })).mode).toBe("live");
-  });
-
   it("refuses with no key at all, naming every key it looked for", () => {
     expect(() => loadConfig(live())).toThrow(/at least one provider API key/);
     for (const key of LIVE_PROVIDER_KEYS) {

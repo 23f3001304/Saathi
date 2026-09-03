@@ -92,8 +92,8 @@ export interface TurnPlan {
    * Empty is normal and means the answer has to be typed.
    */
   readonly replies?: readonly string[];
-  /** A compound question's axes, Claude-style: one labelled group per axis,
-   *  one pick per group. Optional; flat `replies` stays the simple form. */
+  /** A compound question's axes: one labelled group per axis, one pick per
+   *  group. Optional; flat `replies` stays the simple form. */
   readonly choiceGroups?: readonly ChoiceGroup[];
   /** What to look for, when the move is `browse` or `look_on_web`. */
   readonly query?: string | null;

@@ -1,18 +1,11 @@
 import type {
   AgentSession,
-  ClaudeSessionOverrides,
   DraftSink,
   PreToolUseHook,
   ToolDeclaration,
   ToolDispatcher,
 } from "@covenant/agents";
-import {
-  MERCHANT_MCP_SERVER,
-  CATALOG_TOOL_NAME,
-  QUOTE_TOOL_NAME,
-  RoutedAgentSession,
-  merchantMcpServer,
-} from "@covenant/agents";
+import { RoutedAgentSession } from "@covenant/agents";
 import type { Clock, IdGenerator } from "@covenant/domain";
 
 import type { AgentHostConfig } from "../config.js";
@@ -55,16 +48,6 @@ export interface SessionShape {
   readonly sideEffects?: boolean;
 }
 
-function claudeOverrides(merchant: MerchantParts): ClaudeSessionOverrides {
-  return {
-    mcpServers: { [MERCHANT_MCP_SERVER]: merchantMcpServer(merchant.agent) },
-    allowedTools: [CATALOG_TOOL_NAME, QUOTE_TOOL_NAME].map(
-      (tool) => `mcp__${MERCHANT_MCP_SERVER}__${tool}`,
-    ),
-    cwd: process.cwd(),
-  };
-}
-
 function routerDepsOf(deps: SessionDeps, shape: SessionShape): RouterDeps {
   return {
     config: deps.config,
@@ -78,7 +61,6 @@ function routerDepsOf(deps: SessionDeps, shape: SessionShape): RouterDeps {
     env: deps.env ?? process.env,
     decidesByToolCall: shape.decidesByTool,
     sideEffects: shape.sideEffects === true,
-    claude: claudeOverrides(deps.merchant),
   };
 }
 

@@ -41,12 +41,6 @@ export * from "./merchant/quote-tool.js";
 export * from "./merchant/rzp-mcp-mount.js";
 export * from "./merchant/turn-shelf.js";
 
-export * from "./sdk/claude-agent-session.js";
-export * from "./sdk/claude-stream.js";
-export * from "./sdk/model.js";
-export * from "./sdk/sdk-hooks.js";
-export * from "./sdk/sdk-tools.js";
-
 export * from "./providers/agent-session-factory.js";
 export * from "./providers/attempt-drafts.js";
 export * from "./providers/chat-completions-session.js";

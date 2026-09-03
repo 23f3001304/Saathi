@@ -1,7 +1,6 @@
 import type {
   AgentProviderId,
   CatalogModel,
-  ClaudeSessionOverrides,
   DraftScope,
   ModelRouter as ModelRouterType,
   PreToolUseHook,
@@ -39,11 +38,7 @@ export type Env = Readonly<Record<string, string | undefined>>;
  * chosen for a different job. A key that exists for one purpose does not
  * thereby volunteer for every purpose.
  */
-export const CHAT_PROVIDERS: readonly AgentProviderId[] = [
-  "claude",
-  "openai",
-  "gemini",
-];
+export const CHAT_PROVIDERS: readonly AgentProviderId[] = ["openai", "gemini"];
 
 export interface RouterDeps {
   readonly config: AgentHostConfig;
@@ -60,8 +55,6 @@ export interface RouterDeps {
   readonly sideEffects: boolean;
   /** See `SessionShape.hostedWebSearch`. */
   readonly hostedWebSearch?: boolean;
-  /** The merchant MCP mount; ignored on every provider except Claude. */
-  readonly claude: ClaudeSessionOverrides;
 }
 
 /**
@@ -138,7 +131,6 @@ export function wireRoutedSessions(deps: RouterDeps): RoutedSessionFactory {
         hostedWebSearch: deps.hostedWebSearch === true,
         maxToolIterations: deps.config.maxTurns,
         timeoutMs: deps.config.timeoutMs,
-        claude: { ...deps.claude, maxTurns: deps.config.maxTurns },
       });
       return { session: created.session, guard: created.guard };
     },

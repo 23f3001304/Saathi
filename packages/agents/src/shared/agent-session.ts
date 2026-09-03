@@ -38,11 +38,9 @@ export interface AgentTurn {
 }
 
 /**
- * DECISION: the agent loop sits behind this port rather than calling the
- * Claude Agent SDK directly. Why: the SDK's `query()` spawns a session that
- * needs credentials and a network, so a test of the negotiation logic would
- * become a test of the model. The SDK adapter lives in `src/sdk` and is
- * smoke-tested only when `ANTHROPIC_API_KEY` is present; every rule in this
+ * DECISION: the agent loop sits behind this port rather than calling a provider
+ * API directly. Why: a live call needs credentials and a network, so a test of
+ * the negotiation logic would become a test of the model. Every rule in this
  * package is tested against a scripted session instead.
  *
  * The port deliberately does not expose a "run to completion" method: the

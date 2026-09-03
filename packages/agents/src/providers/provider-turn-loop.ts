@@ -109,18 +109,16 @@ function nextDraft(drafts: DraftScope | null, previous: Draft): Draft | null {
 }
 
 /**
- * One `AgentSession.turn()` for a provider with no hook of its own.
+ * One `AgentSession.turn()`.
  *
- * This function is the single place where a non-Claude tool call is executed,
- * and it can only execute one by handing it to `GuardedToolDispatcher`. Three
- * adapters, one gate: adding a fourth provider cannot reintroduce the bypass,
- * because an adapter that wanted to skip the gate would have to stop using
- * this loop, and then it would have no loop at all.
+ * This function is the single place where a tool call is executed, and it can
+ * only execute one by handing it to `GuardedToolDispatcher`. An adapter that
+ * wanted to skip the gate would have to stop using this loop, and then it
+ * would have no loop at all.
  *
- * `toolRequests` comes back empty for the same reason it does on
- * `ClaudeAgentSession`: the tool loop runs to completion inside the adapter,
- * so `BuyerAgent` is never handed a pending call to approve. Both paths are
- * gated before execution, just at different depths.
+ * `toolRequests` comes back empty because the tool loop runs to completion in
+ * here: `BuyerAgent` is never handed a pending call to approve, and is gated
+ * again if it ever were.
  */
 export async function runGuardedTurn(
   exchange: ProviderExchange,

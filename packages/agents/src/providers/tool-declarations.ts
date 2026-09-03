@@ -6,13 +6,12 @@ import {
 } from "../buyer/money-tool-registry.js";
 import { CATALOG_TOOL_NAME } from "../merchant/catalog-tool.js";
 import { QUOTE_TOOL_NAME } from "../merchant/quote-tool.js";
-import { parseSdkToolName } from "../sdk/sdk-hooks.js";
 import type { AgentToolRequest } from "../shared/agent-session.js";
 import type { ToolArgs } from "../shared/tool-envelope.js";
 
 export type JsonSchemaObject = Readonly<Record<string, unknown>>;
 
-/** One tool as every non-Claude provider is told about it. */
+/** One tool as the provider is told about it. */
 export interface ToolDeclaration {
   readonly tool: string;
   readonly server: string;
@@ -20,16 +19,37 @@ export interface ToolDeclaration {
   readonly parameters: JsonSchemaObject;
 }
 
+/** A tool with no `mcp__` prefix comes from the harness itself, not from a
+ *  server: it can only ever resolve to the built-in server, which offers no
+ *  money tool, so `PreToolUseHook` refuses it on the registry's fail-closed
+ *  default. */
+export const BUILTIN_TOOL_SERVER = "builtin";
+
 /**
- * The wire name a provider sees. It is deliberately the Agent SDK's
- * `mcp__<server>__<tool>`: `parseSdkToolName` reads it straight back, so all
- * four providers hand `PreToolUseHook` the identical `(tool, server)` pair.
- * F2 cannot come out different on OpenAI than it does on Claude, because it is
- * not deciding on a different input. It is also a legal function name under
- * every provider's `^[A-Za-z0-9_-]+$` rule.
+ * The wire name a provider sees: `mcp__<server>__<tool>`, the MCP naming
+ * convention. `parseWireToolName` reads it straight back, so the adapter hands
+ * `PreToolUseHook` exactly the `(tool, server)` pair it declared, and it is a
+ * legal function name under OpenAI's `^[A-Za-z0-9_-]+$` rule.
  */
 export function wireNameOf(declaration: ToolDeclaration): string {
   return `mcp__${declaration.server}__${declaration.tool}`;
+}
+
+/**
+ * Wire names are `mcp__<server>__<tool>`; built-ins are bare. Splitting on the
+ * prefix is what lets the registry ask "which server is offering this", which
+ * is the question AM2 and F2 both turn on.
+ */
+export function parseWireToolName(toolName: string): {
+  tool: string;
+  server: string;
+} {
+  const parts = toolName.split("__");
+  const [prefix, server] = parts;
+  if (parts.length >= 3 && prefix === "mcp" && server !== undefined) {
+    return { server, tool: parts.slice(2).join("__") };
+  }
+  return { server: BUILTIN_TOOL_SERVER, tool: toolName };
 }
 
 /**
@@ -60,7 +80,7 @@ export function toolRequestOf(
   toolUseId: string,
   rawArgs: unknown,
 ): AgentToolRequest {
-  const { server, tool } = parseSdkToolName(wireName);
+  const { server, tool } = parseWireToolName(wireName);
   return { toolUseId, tool, server, args: parseToolArgs(rawArgs) };
 }
 
@@ -105,11 +125,11 @@ const executePaymentShape = {
 const signShape = { envelope, cart_mandate_jwt: z.string() };
 
 /**
- * The buyer's tool surface. The merchant half mirrors the zod shapes in
- * `sdk/sdk-tools.ts` so the two paths describe the same tools; the gateway
- * half is the money surface of `GATEWAY_MONEY_TOOLS`, declared so that the
- * F2 block has something real to be proven against — a registry that only
- * ever sees non-money tools proves nothing.
+ * The buyer's tool surface. The merchant half mirrors the zod shapes the
+ * merchant agent parses; the gateway half is the money surface of
+ * `GATEWAY_MONEY_TOOLS`, declared so that the F2 block has something real to
+ * be proven against: a registry that only ever sees non-money tools proves
+ * nothing.
  */
 export const COVENANT_TOOL_DECLARATIONS: readonly ToolDeclaration[] = [
   {

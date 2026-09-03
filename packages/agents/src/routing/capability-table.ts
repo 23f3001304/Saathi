@@ -43,9 +43,9 @@ export const CONSERVATIVE_CAPABILITIES: ModelCapabilities = caps(
 
 /**
  * Families, not exact ids. A vendor ships dated snapshots
- * (`gpt-5.6-luna-2026-09-01`, `claude-sonnet-5-20260901`) faster than any table
- * is maintained; matching on the longest prefix means a snapshot released this
- * morning routes like its family instead of falling to the conservative floor.
+ * (`gpt-5.6-luna-2026-09-01`) faster than any table is maintained; matching on
+ * the longest prefix means a snapshot released this morning routes like its
+ * family instead of falling to the conservative floor.
  *
  * There is deliberately no catch-all per vendor. `openai` alone lists 124 ids,
  * most of them long superseded, and a `gpt-` fallback granted every one of them
@@ -56,20 +56,11 @@ export const CONSERVATIVE_CAPABILITIES: ModelCapabilities = caps(
  *
  * Context windows and tiers are read off the vendors' current model pages; the
  * discovery call is the source of truth for *which* ids exist, this table for
- * what they can do. Anthropic's list endpoint does return capabilities inline,
- * but the table stays authoritative so all four providers are described on one
- * scale — a router comparing a rich record against three poor ones would just
- * be preferring Anthropic.
+ * what they can do.
  */
 const FAMILIES: Readonly<
   Record<AgentProviderId, ReadonlyArray<readonly [string, ModelCapabilities]>>
 > = {
-  claude: [
-    ["claude-haiku", caps(200_000, "economy", "fast")],
-    ["claude-sonnet", caps(1_000_000, "standard", "medium")],
-    ["claude-opus", caps(1_000_000, "premium", "slow")],
-    ["claude-fable", caps(1_000_000, "premium", "slow")],
-  ],
   openai: [
     ["gpt-5.6-luna", caps(1_050_000, "economy", "fast")],
     ["gpt-5.6-terra", caps(1_050_000, "standard", "medium")],
