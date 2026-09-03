@@ -40,7 +40,7 @@ function containerReader(image: string = IMAGE): HeadlessReader {
   });
   return new HeadlessReader(
     policy,
-    new ContainerReaderBrowser({ ...READER_CONFIG, image }),
+    () => new ContainerReaderBrowser({ ...READER_CONFIG, image }),
   );
 }
 

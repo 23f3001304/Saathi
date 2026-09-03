@@ -10,6 +10,10 @@ import { launch } from "puppeteer";
  * should not know which it got. One `open` per batch and one `close` after it:
  * the container surface cannot be allowed to outlive the batch it was opened
  * for, and a single lifetime rule is worth more than a warm start.
+ *
+ * A surface serves one batch. Nothing here is shared between two of them, which
+ * is the reason `open` may end whatever it was holding: the only browser it can
+ * possibly close is one this same batch abandoned.
  */
 export interface ReaderBrowser {
   open(): Promise<Browser>;

@@ -135,11 +135,13 @@ function sharedOf(
 }
 
 /**
- * One read-only browser for the whole host: research batches from every lane
- * share it, and it holds no state a lane could leak through. Where its Chrome
+ * One read-only reader for the whole host: research batches from every lane go
+ * through it, and it holds no state a lane could leak through — every batch
+ * builds a browser of its own from the factory below, so two errands reading at
+ * once are two browsers and neither can close the other's. Where that Chrome
  * runs is the sandbox plan's answer rather than this file's, and the plan is
  * resolved here, once, at boot — a probe of Docker, so a promise, which is why
- * the reader is handed the question instead of the answer. A plan that cannot
+ * each batch is handed the question instead of the answer. A plan that cannot
  * be honoured is the first window's complaint to make, not this line's.
  */
 function readerFor(logger: Logger): HeadlessReader {
@@ -147,7 +149,7 @@ function readerFor(logger: Logger): HeadlessReader {
   void chosen.catch(() => undefined);
   return new HeadlessReader(
     new NavigationPolicy({ fileRoots: [], allowHosts: [], denyHosts: [] }),
-    new DeferredReaderBrowser(async () => (await chosen).readerBrowser()),
+    () => new DeferredReaderBrowser(async () => (await chosen).readerBrowser()),
   );
 }
 

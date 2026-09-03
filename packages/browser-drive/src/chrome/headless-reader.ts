@@ -57,34 +57,31 @@ const SOLD_OUT = /out of stock|currently unavailable|sold out|अभी उप�
 export class HeadlessReader {
   constructor(
     private readonly policy: NavigationPolicy,
-    private readonly surface: ReaderBrowser = new NativeReaderBrowser(),
+    private readonly surfaces: () => ReaderBrowser = () =>
+      new NativeReaderBrowser(),
   ) {}
 
   /**
-   * DECISION: a browser per batch, opened and closed here however the batch
-   * ends. The container surface must not outlive the read it was started for -
-   * a throwaway profile is only throwaway if it goes - and one lifetime rule
-   * beats one rule per surface. A browser that will not start is this batch's
-   * answer rather than this process's: the errand hears that the read did not
-   * happen and carries on.
+   * DECISION: a browser per batch, built here, opened here and closed here
+   * however the batch ends. A container must not outlive the read it was
+   * started for - a throwaway profile is only throwaway if it goes - and the
+   * factory is what makes that safe: one reader serves every lane on this host
+   * with nothing serialising them, so a batch that reached into a browser it
+   * shares would be closing a browser another errand is still reading through.
+   * Two batches at once are two browsers. A browser that will not start is this
+   * batch's answer rather than this process's: the errand hears that the read
+   * did not happen and carries on.
    */
   async readMany(urls: readonly string[]): Promise<readonly BatchRead[]> {
-    let held: Browser;
+    const surface = this.surfaces();
     try {
-      held = await this.surface.open();
+      return await this.drain(await surface.open(), urls);
     } catch (cause) {
       const why = cause instanceof Error ? cause.message : "unknown";
       return urls.map((url) => refused(url, why));
-    }
-    try {
-      return await this.drain(held, urls);
     } finally {
-      await this.surface.close();
+      await surface.close();
     }
-  }
-
-  async close(): Promise<void> {
-    await this.surface.close();
   }
 
   private async drain(
