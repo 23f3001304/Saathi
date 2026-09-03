@@ -2,12 +2,7 @@ import type { Waiter } from "@covenant/browser-drive";
 
 import type { BrowserService } from "./browser-service.js";
 import type { Picture } from "./web-picture.js";
-import {
-  NO_PICTURE,
-  NO_WINDOW_OPEN,
-  pictureOf,
-  withheld,
-} from "./web-picture.js";
+import { NO_WINDOW_OPEN, pictureOf, withheld } from "./web-picture.js";
 import type { WebResult } from "./web-result.js";
 import { NO_WINDOW, webFailure } from "./web-result.js";
 
@@ -38,18 +33,27 @@ export class GlanceVerbs {
       return { result: NO_WINDOW, image: null };
     }
     const seen = await this.picture();
-    if (seen.note === NO_PICTURE) {
-      return {
-        result: webFailure(
-          "no_picture",
-          "No picture could be taken of the window right now. Read the page " +
-            "instead, or try the glance again after your next move.",
-        ),
-        image: null,
-      };
-    }
+    if (seen.image === null) return { result: blind(seen.note), image: null };
     return { result: glanced(seen), image: seen.image };
   }
+}
+
+/**
+ * A glance whose whole answer was the picture, and no picture came. Every
+ * withheld note lands here, not only the one that means the shutter broke: a
+ * body saying `ok` with a sentence promising a screenshot that is not attached
+ * would have the model reading its next move off the last picture it saw. The
+ * note is carried through as the reason, so "no picture came back" has one
+ * answer here rather than two contradictory halves of one.
+ */
+function blind(note: string): WebResult {
+  return webFailure(
+    "no_picture",
+    "No picture of the window came back, so there is nothing to look at. " +
+      "Read the page with web_read instead, or glance again after your next " +
+      "move.",
+    { picture: note },
+  );
 }
 
 function glanced(seen: Picture): WebResult {

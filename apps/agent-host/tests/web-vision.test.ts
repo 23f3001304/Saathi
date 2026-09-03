@@ -100,6 +100,40 @@ describe("what the errand sees after it moves", () => {
   });
 });
 
+/**
+ * The one call whose entire answer is the picture. When none may leave there
+ * is nothing left of it, so it has to fail rather than report a success with
+ * an image it did not send: a body that says a screenshot follows, when one
+ * does not, is the model deciding its next move off the last one it saw.
+ */
+describe("a glance with no picture in it", () => {
+  it("fails plainly under the shutter and names the reason", async () => {
+    closeShutter(web);
+    const result = await web.call(WEB_GLANCE_TOOL, {});
+    const body = JSON.parse(result.content) as Record<string, unknown>;
+    expect(result.isError).toBe(true);
+    expect(body["ok"]).toBe(false);
+    expect(body["failure"]).toBe("no_picture");
+    expect(body["picture"]).toBe("withheld: a protected field has focus");
+    expect(result.image).toBeUndefined();
+    expect(JSON.stringify(body)).not.toContain("screenshot follows");
+  });
+
+  it("fails the same way once the window is the shopper's", async () => {
+    await web.call(WEB_HANDOVER_TOOL, {
+      reason: "payment",
+      why: "The card form is up.",
+    });
+    const result = await web.call(WEB_GLANCE_TOOL, {});
+    const body = JSON.parse(result.content) as Record<string, unknown>;
+    expect(result.isError).toBe(true);
+    expect(body["failure"]).toBe("no_picture");
+    expect(String(body["picture"])).toMatch(/^withheld/);
+    expect(result.image).toBeUndefined();
+    expect(JSON.stringify(body)).not.toContain("screenshot follows");
+  });
+});
+
 // The moves that are not at the window get nothing: a search is answered by
 // the reading it causes, a cart check is a read, and handing the wheel over is
 // the one move whose whole point is that the window stops being the agent's.
