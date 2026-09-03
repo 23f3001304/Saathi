@@ -32,9 +32,12 @@ import { speakFor } from "./web-errand.js";
  * with price, speeds, warranty and a page citation, woven into one unbroken
  * wall the shopper refused to read. The shape now mirrors how the answer is
  * used: the verdict is what they act on, a bullet per option is what they
- * compare, and everything else is the cards' and the harness's job — the
- * per-price page citations and the whose-payment-step line are said once,
- * under the cards, by the harness in its own voice, not once more here.
+ * compare, and everything else belongs to the screen around the reply. The
+ * card carries the page its price was read off and says on its face that the
+ * price is unsigned; the OBSERVED block below carries this host's record of
+ * the errand. Nothing under the reply is written in the harness's own voice
+ * any more, so this sentence has no second line to collide with, and the
+ * per-price citations it used to repeat are the cards' to make.
  */
 const SUMMARISE =
   "You have finished looking. Write the one thing they will actually read: " +
@@ -53,9 +56,9 @@ const SUMMARISE =
   "Close with at most one short sentence for anything that bothered you: " +
   "a rating nobody should ignore, a discount anchored to a price nobody " +
   "ever charged, a spec that is not what they asked for. Nothing after " +
-  "that: the screen under your reply already carries the cards and the " +
-  "harness's note that these are unsigned page prices, so never repeat " +
-  "where a price was read or whose payment step it is.\n" +
+  "that: the cards under your reply say on their face that these are " +
+  "unsigned page prices and where each was read from, so never repeat " +
+  "where a price was read.\n" +
   "Do not narrate what you did, do not describe your own reasoning, and do " +
   "not open by restating the question. No headings, no tables, and never a " +
   "paragraph longer than two sentences. Never write an em dash; use a " +
