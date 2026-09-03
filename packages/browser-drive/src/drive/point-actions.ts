@@ -57,6 +57,20 @@ export class PointActions {
     return ok(null);
   }
 
+  /**
+   * Moving the viewport, not the page's contents. There is no target to judge
+   * and nothing to reveal that the window was not already showing its watcher,
+   * so the state machine is the whole gate here - exactly as it is for the
+   * shopper's own wheel in `UserInput.scroll`. What it does change is which
+   * pixels the coordinates name, which is why it belongs beside them.
+   */
+  async scroll(dy: number): Promise<ActionResult<null>> {
+    this.state.assertAgentMayAct("scroll");
+    await this.page.scrollBy(dy);
+    this.record("page.scrolled", { dy });
+    return ok(null);
+  }
+
   private async judge(
     x: number,
     y: number,

@@ -15,6 +15,12 @@ export const webWriteArgs = z.object({
   text: z.string().min(1).max(300),
 });
 
+/** Viewport pixels, up or down. Bounded because it reaches Chrome's input
+ *  pipeline: a scroll nobody could perform by hand is not a look. */
+export const webScrollArgs = z.object({
+  dy: z.number().int().min(-2000).max(2000),
+});
+
 /** What a research errand reports: candidates as the source printed them.
  *  Every row is untrusted text and the host re-parses the price itself. */
 export const webVerifyArgs = z.object({
@@ -88,7 +94,5 @@ export type WebCardArgs = z.infer<typeof webCardArgs>;
  * on their own server name, so `PreToolUseHook` judges them on the same
  * `(tool, server)` pair as everything else and the block matrix is unchanged.
  */
-export {
-  RESEARCH_TOOL_DECLARATIONS,
-  WEB_TOOL_DECLARATIONS,
-} from "./web-buy-tools.js";
+export { WEB_TOOL_DECLARATIONS } from "./web-buy-tools.js";
+export { RESEARCH_TOOL_DECLARATIONS } from "./web-research-tools.js";

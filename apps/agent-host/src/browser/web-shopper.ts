@@ -4,8 +4,7 @@ import { UserDriveViolation } from "@covenant/browser-drive";
 import type { BrowserService } from "./browser-service.js";
 import { settledRead } from "./settled-read.js";
 import type { KnownAddress } from "./web-address-fill.js";
-import { fillKnownAddress } from "./web-address-fill.js";
-import { checkCartAgainst } from "./web-cart-check.js";
+import { fillDelivery, readCart } from "./web-shopper-checkout.js";
 import { observeWindow } from "./web-handover.js";
 import type { WebFindings } from "./web-listing.js";
 import type { WebProgress } from "./web-progress.js";
@@ -14,7 +13,7 @@ import { PageRefs, WEB_PROVENANCE } from "./web-page-view.js";
 import type { WebResult } from "./web-result.js";
 import type { WebTrail } from "./web-trail.js";
 import type { ActDeps } from "./web-acts.js";
-import { pressAt, settleAfterAct, writeAt } from "./web-acts.js";
+import { pressAt, scrollPage, settleAfterAct, writeAt } from "./web-acts.js";
 import {
   NO_WINDOW,
   pageMoved,
@@ -133,6 +132,11 @@ export class WebShopper {
     );
   }
 
+  /** Looking below the fold. Judged only by the wheel: there is no target. */
+  scroll(dy: number): Promise<WebResult> {
+    return this.onSession((session) => scrollPage(session, this.acts(), dy));
+  }
+
   private acts(): ActDeps {
     return {
       waiter: this.waiter,
@@ -143,29 +147,14 @@ export class WebShopper {
   }
 
   cart(): Promise<WebResult> {
-    return this.onSession(async (session) => {
-      const result = await checkCartAgainst(session, this.browser.ceiling);
-      // The host itself read rows in the shop's basket: that is the carted
-      // fact, however the item got there. A press that filled the basket
-      // used to leave the record empty and the closing line denied a basket
-      // the model had truthfully described.
-      const items = result.body["items"];
-      if (typeof items === "number" && items > 0) {
-        this.progress.recordCarted();
-      }
-      return result;
-    });
+    return this.onSession((session) =>
+      readCart(session, this.browser.ceiling, this.progress),
+    );
   }
 
-  /** Fills only the delivery fields this host knows, from `TraitMemory` —
-   *  what the shopper themselves stated, never the model, never the page. A
-   *  field with no trait stays blank and is named in the result; a sensitive
-   *  field is refused, as for every keystroke this class makes. */
   fillAddress(): Promise<WebResult> {
     return this.onSession((session) =>
-      fillKnownAddress(session, this.address, this.waiter, (slots) =>
-        this.progress.recordFilled(slots),
-      ),
+      fillDelivery(session, this.address, this.waiter, this.progress),
     );
   }
 

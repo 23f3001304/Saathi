@@ -121,7 +121,7 @@ function webRunner(deps: DispatchDeps, shopper: WebShopper): WebToolRunner {
       verify: new VerifyVerbs(deps.reader, reads, deps.trail, steps, deps.pin),
       card: new CardVerbs(deps.findings, reads, deps.pin),
     },
-    new GlanceVerbs(deps.browser),
+    new GlanceVerbs(deps.browser, new TimerWaiter()),
   );
 }
 

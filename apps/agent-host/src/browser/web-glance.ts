@@ -1,25 +1,44 @@
-import { withCoordinateGrid } from "@covenant/browser-drive";
+import type { Waiter } from "@covenant/browser-drive";
 
 import type { BrowserService } from "./browser-service.js";
+import type { Picture } from "./web-picture.js";
+import {
+  NO_PICTURE,
+  NO_WINDOW_OPEN,
+  pictureOf,
+  withheld,
+} from "./web-picture.js";
 import type { WebResult } from "./web-result.js";
 import { NO_WINDOW, webFailure } from "./web-result.js";
 
 /**
- * The errand's eyes. One call returns the window's own REDACTED screenshot
- * with the coordinate grid burned in, as a data URL the provider session
- * attaches to the model's next turn. The redaction is the point: this is
- * the same capture path the shopper's card paints from, so a field the
- * classifier blanks is blank here too, and no model sees a pixel the person
- * would not.
+ * The errand's eyes. Every window move already comes back with the picture it
+ * left the window in; this is the same look, asked for on its own, when the
+ * model wants to see the page again without touching it.
+ *
+ * Both go through `pictureOf`, so there is one capture path in this host and
+ * one place the shutter and the redaction are honoured.
  */
 export class GlanceVerbs {
-  constructor(private readonly browser: BrowserService) {}
+  constructor(
+    private readonly browser: BrowserService,
+    private readonly waiter: Waiter,
+  ) {}
+
+  /** The look every window move gets. Never throws and never fails a move:
+   *  a window that could not be photographed says so in the note. */
+  async picture(): Promise<Picture> {
+    const session = this.browser.current();
+    if (session === null) return withheld(NO_WINDOW_OPEN);
+    return await pictureOf(session, this.waiter);
+  }
 
   async glance(): Promise<{ result: WebResult; image: string | null }> {
-    const session = this.browser.current();
-    if (session === null) return { result: NO_WINDOW, image: null };
-    const capture = await session.screenshot();
-    if (capture.kind !== "frame" || capture.frame.mediaType !== "image/png") {
+    if (this.browser.current() === null) {
+      return { result: NO_WINDOW, image: null };
+    }
+    const seen = await this.picture();
+    if (seen.note === NO_PICTURE) {
       return {
         result: webFailure(
           "no_picture",
@@ -29,24 +48,24 @@ export class GlanceVerbs {
         image: null,
       };
     }
-    const annotated = withCoordinateGrid(capture.frame.bytes);
-    const image = `data:image/png;base64,${Buffer.from(annotated).toString("base64")}`;
-    return {
-      result: {
-        isError: false,
-        body: {
-          ok: true,
-          width: capture.frame.width,
-          height: capture.frame.height,
-          grid_px: 100,
-          redacted_fields: capture.frame.redacted,
-          note:
-            "The screenshot follows as an image. Orange lines every 100px; " +
-            "coordinates read off the numbers on the edges. Aim web_press " +
-            "and web_write in these pixels.",
-        },
-      },
-      image,
-    };
+    return { result: glanced(seen), image: seen.image };
   }
+}
+
+function glanced(seen: Picture): WebResult {
+  return {
+    isError: false,
+    body: {
+      ok: true,
+      width: seen.width,
+      height: seen.height,
+      grid_px: 100,
+      redacted_fields: seen.redacted,
+      picture: seen.note,
+      note:
+        "The screenshot follows as an image. Orange lines every 100px; " +
+        "coordinates read off the numbers on the edges. Aim web_press " +
+        "and web_write in these pixels.",
+    },
+  };
 }

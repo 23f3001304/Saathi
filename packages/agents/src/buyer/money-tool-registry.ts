@@ -48,6 +48,14 @@ export const WEB_VERIFY_TOOL = "web_verify";
 export const WEB_CARD_TOOL = "web_card";
 export const WEB_GLANCE_TOOL = "web_glance";
 /**
+ * Looking further down the page the window is already on.
+ *
+ * F2: it moves no money and reaches no rail. It carries no target at all, only
+ * a distance in viewport pixels, so there is nothing under it to press and
+ * nothing in it to type: the most a shopper's own scroll wheel could do.
+ */
+export const WEB_SCROLL_TOOL = "web_scroll";
+/**
  * Giving the window back to the shopper, because the model read the page and
  * decided the next step is not the agent's to take.
  *
@@ -73,6 +81,7 @@ export const WEB_SHOP_TOOLS: readonly string[] = [
   WEB_VERIFY_TOOL,
   WEB_CARD_TOOL,
   WEB_GLANCE_TOOL,
+  WEB_SCROLL_TOOL,
   WEB_HANDOVER_TOOL,
 ];
 

@@ -54,6 +54,25 @@ export async function pressAt(
   return settleAfterAct(session, deps, { pressed: { x, y } });
 }
 
+/**
+ * Looking further down the page the window is already on. Nothing is aimed at
+ * and nothing is pressed; what moves is which pixels the coordinates name.
+ *
+ * It settles like every other act rather than returning the instant the
+ * viewport jumps, because what is below the fold is usually what a shop has
+ * not painted yet - the read that follows is the half of this move the model
+ * can use.
+ */
+export async function scrollPage(
+  session: BrowserSession,
+  deps: ActDeps,
+  dy: number,
+): Promise<WebResult> {
+  const scrolled = await session.points().scroll(dy);
+  if (!scrolled.ok) return webRefusal(scrolled);
+  return settleAfterAct(session, deps, { scrolled: dy });
+}
+
 /** Keystrokes into a text box at a point: a quantity, a pincode. Refused
  *  before the focusing click unless the box is an ordinary text entry. */
 export async function writeAt(

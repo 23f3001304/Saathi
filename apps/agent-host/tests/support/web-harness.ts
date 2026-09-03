@@ -11,20 +11,11 @@ import {
   PreToolUseHook,
   WEB_TOOL_SERVER,
 } from "@covenant/agents";
-import {
-  BrowserSession,
-  CartCovenant,
-  CartInspector,
-  DEFAULT_HANDOFF_CONFIG,
-  FieldClassifier,
-  Journal,
-  NavigationPolicy,
-  TimerWaiter,
-} from "@covenant/browser-drive";
-import type { JournalSink } from "@covenant/browser-drive";
+import { TimerWaiter } from "@covenant/browser-drive";
 import type { Clock } from "@covenant/domain";
 
 import { BrowserService } from "../../src/browser/browser-service.js";
+import { GlanceVerbs } from "../../src/browser/web-glance.js";
 import { HandoverMove } from "../../src/browser/web-handover-move.js";
 import type { AddressFact } from "../../src/browser/web-address-fill.js";
 import { WebFindings } from "../../src/browser/web-listing.js";
@@ -40,9 +31,8 @@ import { SilentLogger, StepClock } from "./fakes.js";
 import {
   CollectingSink,
   CountingSink,
-  FakeLauncher,
-  FakeSandboxes,
   SilentTracer,
+  webSessionOf,
 } from "./web-doubles.js";
 
 /** Delegates to the web runner alone: the merchant and gateway halves of
@@ -73,45 +63,27 @@ export interface WebHarness {
  * → the web runner → `GuardedPage` → the real `FieldClassifier`. Only Chrome
  * and the sibling merchant tools are stood in for, so every refusal these tests
  * assert is a refusal the shipped guards produced.
+ *
+ * No vault and no research lane: those have suites of their own. The eyes are
+ * wired, because every window move now comes back with a picture.
  */
-function sessionOf(
-  page: FakeShopPage,
-  clock: Clock,
-  sink: JournalSink,
-  sessionId: string,
-): BrowserSession {
-  return new BrowserSession({
-    launcher: new FakeLauncher(page),
-    sandboxes: new FakeSandboxes(),
-    classifier: new FieldClassifier(),
-    policy: new NavigationPolicy({
-      fileRoots: [],
-      allowHosts: [],
-      denyHosts: [],
-    }),
-    inspector: new CartInspector(),
-    // Deliberately unusable: `web_cart` must hold the ceiling the run bound,
-    // never the number the session happened to be built with.
-    covenant: new CartCovenant({ capPaise: 1, currency: "INR" }),
-    journal: new Journal(sink, clock, sessionId),
-    waiter: new TimerWaiter(),
-    clock,
-    config: {
-      sessionId,
-      surface: "native-window",
-      windowWidth: 320,
-      windowHeight: 200,
-      handoff: DEFAULT_HANDOFF_CONFIG,
-    },
-  });
-}
-
-/** The real hook and the real guarded dispatcher — the point of the harness. */
 function guardOf(
+  service: BrowserService,
   shopper: WebShopper,
+  progress: WebProgress,
   ledger: CountingSink,
-  handover: HandoverMove,
 ): GuardedToolDispatcher {
+  const runner = new WebToolRunner(
+    shopper,
+    new HandoverMove(() => service.current(), progress),
+    null,
+    undefined,
+    null,
+    null,
+    null,
+    { verify: null, card: null },
+    new GlanceVerbs(service, NO_WAIT),
+  );
   return new GuardedToolDispatcher(
     new PreToolUseHook(
       new MoneyToolRegistry(),
@@ -120,14 +92,14 @@ function guardOf(
       new SilentTracer(),
       { tenantId: "tnt_demo", attackId: null },
     ),
-    new WebOnlyDispatcher(new WebToolRunner(shopper, handover)),
+    new WebOnlyDispatcher(runner),
     null,
   );
 }
 
 function serviceOf(page: FakeShopPage, clock: Clock, journal: CollectingSink) {
   return new BrowserService({
-    build: (sessionId) => sessionOf(page, clock, journal, sessionId),
+    build: (sessionId) => webSessionOf(page, clock, journal, sessionId),
     ids: { uuid: () => "web" },
     logger: new SilentLogger(),
   });
@@ -178,8 +150,7 @@ export function webHarness(traits: readonly AddressFact[] = []): WebHarness {
     { lookup: () => Promise.resolve(traits) },
     progress,
   );
-  const handover = new HandoverMove(() => service.current(), progress);
-  const guard = guardOf(shopper, ledger, handover);
+  const guard = guardOf(service, shopper, progress, ledger);
   const call = callerOn(guard);
   return {
     page,

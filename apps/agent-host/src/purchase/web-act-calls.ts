@@ -5,6 +5,7 @@ import {
   WEB_FOUND_TOOL,
   WEB_VERIFY_TOOL,
   WEB_PRESS_TOOL,
+  WEB_SCROLL_TOOL,
   WEB_SEARCH_TOOL,
   WEB_SIGN_IN_TOOL,
   WEB_WRITE_TOOL,
@@ -24,13 +25,15 @@ import {
   webFoundArgs,
   webVerifyArgs,
   webPressArgs,
+  webScrollArgs,
   webSearchArgs,
   webWriteArgs,
 } from "./web-tools.js";
 
 /**
  * The act calls that are pure argument-parsing over the shopper: a search, a
- * press, a write. `null` for any other tool, so the runner keeps the calls
+ * press, a write, a scroll. `null` for any other tool, so the runner keeps the
+ * calls
  * that need its own state (the pin, the basket guidance) and asks here last.
  */
 export function actCall(
@@ -50,6 +53,8 @@ export function actCall(
       return parsedCall(webWriteArgs, call, (args) =>
         shopper.write(args.x, args.y, args.text),
       );
+    case WEB_SCROLL_TOOL:
+      return parsedCall(webScrollArgs, call, (args) => shopper.scroll(args.dy));
     default:
       return null;
   }

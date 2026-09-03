@@ -37,6 +37,7 @@ export class FakeShopPage implements DrivenPage {
 
   readonly typed: { selector: string; text: string }[] = [];
   readonly clicked: string[] = [];
+  readonly scrolled: number[] = [];
   fronted = 0;
   private at = HOME;
   private navigated = 0;
@@ -130,7 +131,8 @@ export class FakeShopPage implements DrivenPage {
   pressKey(): Promise<void> {
     return Promise.resolve();
   }
-  scrollBy(): Promise<void> {
+  scrollBy(dy: number): Promise<void> {
+    this.scrolled.push(dy);
     return Promise.resolve();
   }
 }

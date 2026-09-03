@@ -15,7 +15,6 @@ import {
   WEB_ADD_TO_CART_TOOL,
   WEB_CART_TOOL,
   WEB_FILL_ADDRESS_TOOL,
-  WEB_GLANCE_TOOL,
   WEB_HANDOVER_TOOL,
   WEB_OPEN_TOOL,
   WEB_READ_TOOL,
@@ -40,6 +39,7 @@ import {
   vaultCall,
   verifyCall,
 } from "./web-act-calls.js";
+import { glanceCall, withPicture } from "./web-picture-call.js";
 import { webHandoverArgs, webOpenArgs, webRefArgs } from "./web-tools.js";
 
 export function isWebTool(tool: string): boolean {
@@ -92,7 +92,11 @@ export class WebToolRunner {
   ) {}
 
   async run(call: ToolCall): Promise<ToolOutcome> {
-    const outcome = await this.bounded(call);
+    const moved = await this.bounded(call);
+    // Outside the call ceiling on purpose: a picture is never worth losing a
+    // move's own answer to, and `withPicture` cannot fail - a window that
+    // would not be photographed comes back as a note saying so.
+    const outcome = await withPicture(call, moved, this.glanceVerbs);
     const label = stepLabel(call.tool, call.args, failureOf(outcome));
     if (label !== null) this.steps?.step(label);
     return outcome;
@@ -120,6 +124,7 @@ export class WebToolRunner {
       stateful ??
       verifyCall(call, this.research.verify) ??
       cardCall(call, this.research.card) ??
+      (await glanceCall(call, this.glanceVerbs)) ??
       foundCall(call, this.findings) ??
       (await actCall(call, this.shopper)) ??
       (await vaultCall(call, this.vaultVerbs)) ??
@@ -139,8 +144,6 @@ export class WebToolRunner {
         return outcomeOf(await this.shopper.cart());
       case WEB_FILL_ADDRESS_TOOL:
         return outcomeOf(await this.shopper.fillAddress());
-      case WEB_GLANCE_TOOL:
-        return await this.glance();
       case WEB_HANDOVER_TOOL:
         return await this.handover(call);
       default:
@@ -168,14 +171,6 @@ export class WebToolRunner {
       return offPin(parsed.data.url);
     }
     return outcomeOf(await this.shopper.open(parsed.data.url));
-  }
-
-  /** The picture rides beside the text outcome; see `ToolOutcome.image`. */
-  private async glance(): Promise<ToolOutcome> {
-    if (this.glanceVerbs === null) return unknown(WEB_GLANCE_TOOL);
-    const seen = await this.glanceVerbs.glance();
-    const outcome = outcomeOf(seen.result);
-    return seen.image === null ? outcome : { ...outcome, image: seen.image };
   }
 
   private async addToCart(call: ToolCall): Promise<ToolOutcome> {

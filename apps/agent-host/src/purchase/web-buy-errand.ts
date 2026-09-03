@@ -2,6 +2,23 @@ import type { WebListingView } from "../browser/web-listing.js";
 import { WROTE, speakFor } from "./web-errand.js";
 
 /**
+ * How the errand perceives the window, said once and used by both legs.
+ *
+ * DECISION: it replaces the two bullets that told the model to fall back on
+ * coordinates when refs failed and on `web_glance` when both did. Vision is no
+ * longer a fallback: the picture arrives with every move, so the instruction
+ * is to decide from it rather than to reach for it.
+ */
+const SEEING =
+  "After every move you see the window: the picture that follows each result " +
+  "is the page as it stands, with orange grid lines every 100px. Decide the " +
+  "next move from that picture, not from memory of an earlier one: where the " +
+  "checkout stands, what to press, whether the page moved. Coordinates come " +
+  "off the grid; refs from web_read name the same controls and are how you " +
+  "type. When what you need is below the fold, web_scroll. web_glance looks " +
+  "again without moving. Say nothing between moves.";
+
+/**
  * What the errand behind a tapped card is asked to do.
  *
  * DECISION: the window is already on the listing before this is read. The host
@@ -26,14 +43,6 @@ const BUY =
   "- put this one thing in the shop's own basket with web_add_to_cart, using " +
   "a ref from that reading. Read again after every click: the page moves.\n" +
   "- go on toward the shop's checkout the same way, one control at a time.\n" +
-  "- when the reader's refs fail you (a mislabelled basket button, a size " +
-  "picker, a popup in the way), aim web_press at a control's own `at` " +
-  "coordinates from your last web_read, or web_write for a small text box. " +
-  "Both are judged like every click, so aim freely.\n" +
-  "- when refs and coordinates both fail, call web_glance: you get the " +
-  "page's own screenshot with a coordinate grid drawn on. Read the point " +
-  "you need off the picture and press it with web_press. Trust the " +
-  "picture over the control list whenever they disagree.\n" +
   "- when a delivery form is in front of you, call web_fill_address. It fills " +
   "only what the shopper has already told us about themselves, and you cannot " +
   "choose what it types. There is no other way to put an address on a form " +
@@ -56,6 +65,7 @@ const BUY =
   "becomes theirs. Until then keep going.\n" +
   "- never press a button that pays. A refusal there is the design working, " +
   "not a fault.\n\n" +
+  `${SEEING}\n\n` +
   "Say nothing while you work. No commentary between tool calls: when you " +
   "have stopped, you will be asked what happened, and that answer is the only " +
   "thing they will see.\n\n" +
@@ -122,7 +132,8 @@ export function buyErrandFor(
 const RESUME =
   "You are partway through a checkout in the sandbox window the shopper is " +
   "watching. Nothing has moved since; the window is still on the step where " +
-  "you stopped, and the basket is still in it.\n\n";
+  "you stopped, and the basket is still in it.\n\n" +
+  `${SEEING}\n\n`;
 
 /** Why you stopped, and therefore what their line means. */
 const WHY: Readonly<Record<string, string>> = {
