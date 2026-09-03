@@ -5,6 +5,12 @@
  * collector checks them against the operator's cap, and the human sees them
  * on the sheet. Scripted mode has no model, so the script reads the number
  * itself, and its rule stands: a mandate is never looser than the sentence.
+ *
+ * Both readings are narrow for the same reason. `requires_refundability` used
+ * to be a literal `true` on every deterministic draft, which signed a bound
+ * over requests that never mentioned returns and then refused every cart from
+ * a merchant attesting no returns policy: a refusal about a term the shopper
+ * never asked for. So each flag is read off the sentence or left off.
  */
 
 const PAISE_PER_RUPEE = 100;
@@ -70,20 +76,8 @@ export function ceilingFor(request: string, capPaise: number): number {
   return Math.max(1, Math.min(stated, capPaise));
 }
 
-/**
- * Whether the shopper asked to be able to send it back.
- *
- * `requires_refundability` used to be a literal `true` on every deterministic
- * draft. That is a hardcoded answer to a question the shopper answers for
- * themselves, and it is not the safe default it looks like: it signed a bound
- * over requests that never mentioned returns, and then refused every cart from
- * a merchant who attests no returns policy — a refusal about a term the shopper
- * never asked for.
- *
- * Narrow and deterministic, for the same reason `statedCeilingPaise` is: a
- * model may propose the flag and usually will, and this decides what the
- * sentence itself supports when no model answered.
- */
+/** Whether the shopper asked to be able to send it back, in the phrasings
+ *  that actually ask for it. */
 const REFUND_PHRASES: readonly RegExp[] = [
   /\brefundab(?:le|ility)\b/i,
   /\brefunds?\b/i,

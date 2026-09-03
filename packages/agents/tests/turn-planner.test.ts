@@ -76,8 +76,8 @@ describe("the open-web move", () => {
 
   /**
    * A browse is recorded, and the model may still change its move in the same
-   * turn: the shop's own stock reaches it through `see_shelf` (Stage 2), never
-   * as a count the harness computed with a word list.
+   * turn: the shop's own stock reaches it through `see_shelf`, never as rows
+   * the harness picked out of the shelf with a word list.
    */
   it("records the browse and still lets the model change its mind", async () => {
     const collector = new TurnPlanCollector();

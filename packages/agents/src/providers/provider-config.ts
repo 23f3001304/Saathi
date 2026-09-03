@@ -84,8 +84,8 @@ export function resolveProviderId(env: Env): AgentProviderId {
 }
 
 /** `COVENANT_AGENT_MODEL_<PROVIDER>` pins one provider; `COVENANT_AGENT_MODEL`
- *  moves them all. The narrower key wins, so a mixed-provider demo can override
- *  one leg without disturbing the others. */
+ *  moves them all. The narrower key wins, so the day a second provider is
+ *  added one of them can be moved without disturbing the other. */
 export function providerModelEnvKey(id: AgentProviderId): string {
   return `${MODEL_ENV_KEY}_${id.toUpperCase()}`;
 }

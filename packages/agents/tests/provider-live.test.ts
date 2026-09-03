@@ -48,12 +48,12 @@ const repoRoot = join(
 const env: Env = { ...readEnvFile(join(repoRoot, ".env")), ...process.env };
 
 /**
- * `COVENANT_AGENT_MODEL` is a cross-provider operator preference — it names the
- * model an operator wants the *router* to open on, and the router honours it
- * only where the model is admissible. A raw session smoke has no router, so
- * inheriting it asked Sarvam for `gpt-5.6-luna` and got a 400 that said
- * nothing about the adapter under test. Each provider is smoked on its own
- * model here; the global pin is dropped and the per-provider one still wins.
+ * `COVENANT_AGENT_MODEL` is an operator preference addressed to the *router*:
+ * it names the rung the router should open on, and the router honours it only
+ * where that model is admissible. A raw session smoke has no router, so
+ * inheriting the pin sent an operator's rung id straight at the provider and
+ * got back a 400 that said nothing about the adapter under test. The global
+ * pin is dropped here; the per-provider key still wins.
  */
 function envFor(id: AgentProviderId): Env {
   return { ...env, COVENANT_AGENT_MODEL: "", COVENANT_AGENT_PROVIDER: id };

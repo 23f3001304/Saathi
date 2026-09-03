@@ -13,7 +13,7 @@ import type { Turn } from "./dialogue.js";
  * the park — so the summary is allowed to be lossy about prose, and a
  * deterministic clamp is lossy in a way that cannot invent anything. A model
  * pass would buy fluency at the price of a second unstreamed leg per turn and
- * one more surface the language gate has to hold.
+ * one more place a turn can fail before the shopper hears anything.
  *
  * DECISION: folded once and stored, never recomputed. The watermark (`folded`)
  * is the instant of the newest folded line, so a line is read for folding on

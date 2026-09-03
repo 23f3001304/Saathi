@@ -66,7 +66,7 @@ Scale honesty: this is a demo — tens of transactions, hundreds of memory entri
 
 ```mermaid
 flowchart LR
-    U[User / chat UI] --> BA[Buyer Agent<br/>Claude Agent SDK]
+    U[User / chat UI] --> BA[Buyer Agent<br/>OpenAI Responses API]
     BA <-->|A2A-style| MA[Merchant Agent<br/>agent-readable catalog]
     BA --> PTLM[(PTLM Memory<br/>typed + tiered)]
     BA -->|proposed cart| MG{Mandate Gateway<br/>verifier}
@@ -243,7 +243,7 @@ Merchant connection follows the same honesty: today the counterparty is our test
 
 ### 5.11 Model routing — nobody picks a model
 
-Nothing in the product asks a human which model to use. At boot each keyed provider is asked what it actually exposes (`GET /v1/models` on OpenAI and Anthropic, `/v1beta/models` on Google, `/v2/models` on Sarvam), cached behind a TTL, with a static manifest as the offline floor so a judge with no network still gets a working ladder. Discovered ids map onto capabilities by longest-prefix family match, so a dated snapshot released this morning routes like its family instead of falling to the conservative default.
+Nothing in the product asks a human which model to use. At boot the keyed provider is asked what it actually exposes (`GET /v1/models` on OpenAI), cached behind a TTL, with a static manifest as the offline floor so a judge with no network still gets a working ladder. Discovered ids map onto capabilities by longest-prefix family match, so a dated snapshot released this morning routes like its family instead of falling to the conservative default.
 
 A turn is classified deterministically — length, tool depth, structured-output need, whether it touches money, script — and answered on the cheapest capable model. The answer is then scored: did the structured output validate first try, were the tool arguments in bounds, does the prose hedge or refuse, what did the model rate its own confidence at, and (on money turns only) do two cheap samples agree. Below threshold it escalates, capped at two escalations. This is FrugalGPT's cascade (arXiv:2305.05176 §3.3) with RouteLLM's quality-versus-cost ordering (arXiv:2406.18665); we cannot train their scorer, so `g` is a fixed weighted sum renormalised over the signals a given turn can actually produce.
 
@@ -379,7 +379,7 @@ Principle: **production-shaped infra, one-command run.** The runtime core stays 
 
 | Layer           | Choice                                                                                    | Why                                                                                       |
 | --------------- | ----------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
-| Agents          | Claude Agent SDK (TypeScript)                                                             | Razorpay's own Agent Studio is built on it; buyer + merchant as two agents in one process |
+| Agents          | OpenAI Responses API (TypeScript, no vendor SDK)                                          | The tool loop is ours, so the money gate sits inside it; buyer + merchant as two agents in one process |
 | Mandates/VCs    | `jose` (ES256) — **W3C VC data model, JWT-VC serialization**                              | Standards-compliant and auditable; pinned JWKs for the demo trust ring                    |
 | Tool layer      | MCP (agent↔merchant tools, Razorpay MCP server mount)                                     | Matches AM2's signed envelope and Razorpay's own stack                                    |
 | Gateway         | Node + Hono (runs on `node:http`), separate process                                       | Independent trust context; ~14 kB, zero plugins                                           |
@@ -418,7 +418,7 @@ Native platform primitives are _preferred_ where they do the identical job (`fet
 
 "Simple" must not cut the places where control is seized. These five hooks are the architecture:
 
-1. **Agent SDK `PreToolUse` hook** — _the_ F2 enforcement. Every tool call tagged money-affecting is intercepted before execution and hard-blocked unless it targets the gateway client; the hook result is ledgered either way. The agent cannot bypass the gateway even if prompted to, because the block happens in harness code, not in the prompt.
+1. **The money-tool gate in `GuardedToolDispatcher.dispatch`** — _the_ F2 enforcement, at the single place in the agents package where a tool call actually executes. Every tool call tagged money-affecting is intercepted before execution by the hook the dispatcher holds (`pre-tool-use-hook.ts`) and hard-blocked unless it targets the gateway client; the hook result is ledgered either way. The agent cannot bypass the gateway even if prompted to, because the block happens in harness code, not in the prompt.
 2. **SQLite triggers on `events`** — `CREATE TRIGGER … BEFORE UPDATE/DELETE … RAISE(ABORT)`. Append-only enforced by the database engine, not by discipline (N2 becomes mechanical).
 3. **Gateway verdict pipeline** — the ordered `VerdictCheck` chain is itself a hook system: new checks (behavioral, envelope, cooling-off) register in the composition root, zero engine edits (§12-O).
 4. **Git pre-commit hook** (via `core.hooksPath`) — eslint + dependency-cruiser + fast vitest slice; CI re-runs the same script, so local and CI can't drift.
@@ -426,16 +426,13 @@ Native platform primitives are _preferred_ where they do the identical job (`fet
 
 ### 10.2.1 Provider-agnostic agent layer
 
-The buyer/merchant agents run on **Claude, OpenAI, Gemini, or Sarvam**, selected by `COVENANT_AGENT_PROVIDER`. Sarvam matters twice over: it is India's sovereign-AI provider _and_ Razorpay's own agentic-payments partner.
+The buyer/merchant agents run on **OpenAI**, over the Responses API, and `COVENANT_AGENT_PROVIDER` names the single entry the provider registry holds — a registry, so a second vendor is an entry rather than an edit. Sarvam is in the product too, but only as speech: the audit UI transcribes with `saaras` and reads back with `bulbul`.
 
-| Provider         | Model              | Surface                                                                       |
-| ---------------- | ------------------ | ----------------------------------------------------------------------------- |
-| Claude (default) | `claude-opus-5`    | Claude Agent SDK `query()` — the same SDK Razorpay's Agent Studio is built on |
-| OpenAI           | `gpt-5.6`          | Responses API                                                                 |
-| Gemini           | `gemini-3.7-flash` | Interactions API (`generateContent` is now legacy)                            |
-| Sarvam           | `sarvam-105b`      | OpenAI-compatible chat completions                                            |
+| Provider | Model     | Surface                              |
+| -------- | --------- | ------------------------------------ |
+| OpenAI   | `gpt-5.6` | Responses API (`POST /v1/responses`) |
 
-This is a security argument, not a checkbox. **The gateway is model-agnostic because it trusts no model** — and the guarantee is structural: the Claude path gets F2 from the SDK's `PreToolUse` hook, while every other provider routes tool dispatch through a shared `GuardedToolDispatcher` holding the _same_ hook instance. Adapters take that concrete guard rather than an interface, so **an adapter without money interception does not compile**. The demo consequence: run the T-1 attack against four different vendors' models and watch the same covenant hold — evaluation across providers that agentic-security work rarely attempts.
+This is a security argument, not a checkbox. **The gateway is model-agnostic because it trusts no model** — and the guarantee is structural: F2 is applied in `GuardedToolDispatcher.dispatch`, the one place a tool call is executed, and `OpenAiAgentSession` takes that concrete guard rather than a bare `ToolDispatcher` interface, so **a session without money interception does not compile**. The demo consequence: run the T-1 attack across the router's own ladder — `gpt-5.6-luna`, then `gpt-5.6-terra`, then `gpt-5.6-sol` — and watch the same covenant hold on every rung, which is what `routing-safety.test.ts` asserts.
 
 ### 10.3 Stand-out tech — exempt from pruning
 
@@ -445,7 +442,7 @@ Simplicity serves the demo; these are the reasons we win, and no future "keep it
 2. **Hash-chained ledger + deterministic replay** (§6, N3) — the on-camera integrity proof.
 3. **AP2-compatible mandate chain** with the real claim set (§A.2) — spec fluency the judges can verify.
 4. **The attack harness** (§5.6) — three live blocked attacks are the demo's spine.
-5. **`PreToolUse` interception** (§10.2) — "the agent physically cannot bypass the gateway" is a sentence competitors can't say.
+5. **Tool-call interception at the dispatcher** (§10.2) — "the agent physically cannot bypass the gateway" is a sentence competitors can't say.
 6. **Bi-temporal memory** (§A.6) — powers anchoring defense and leak-free backtests; two features from one schema.
 7. **Provenance-filtered flywheel + regret objective** (§5.8) — the recommendation story nobody else will have.
 8. **The kolam audit instrument + design system** (§11) — the thing screenshots are made of.
@@ -521,7 +518,7 @@ packages/
   mandates    # VC issue/verify, nonce registry      -> domain, ledger
   gateway     # verdict engine + policy              -> domain, ledger, mandates, memory
   razorpay    # PaymentRail adapter (test-mode REST) -> domain
-  agents      # buyer + merchant (Claude Agent SDK)  -> domain, memory, mandates
+  agents      # buyer + merchant (OpenAI Responses)  -> domain, memory, mandates
   recs        # flywheel folds + rec serving         -> domain, ledger, memory
 apps/
   gateway-svc # composition root: wires gateway + razorpay + ledger
@@ -546,11 +543,11 @@ Enforced by **dependency-cruiser** in CI: no package imports from `apps/`, no cy
 
 **Tests:** Vitest; every `VerdictCheck` and both PTLM gates get table-driven tests; the attack harness doubles as the integration suite.
 
-**Latest & verified policy:** every dependency is installed at latest stable and checked against its current docs at integration time (no from-memory API usage — this applies doubly to the Razorpay REST surface and the Claude Agent SDK); CI runs a non-blocking `pnpm -r outdated` report so drift is visible; and no agent (human or AI) reports a task done without pasting the actual output of the four gates — evidence before assertions, always.
+**Latest & verified policy:** every dependency is installed at latest stable and checked against its current docs at integration time (no from-memory API usage — this applies doubly to the Razorpay REST surface and the OpenAI Responses API); CI runs a non-blocking `pnpm -r outdated` report so drift is visible; and no agent (human or AI) reports a task done without pasting the actual output of the four gates — evidence before assertions, always.
 
 ## 13. Build plan — what the sprint actually did
 
-Human + Claude Code working in parallel; packages are independent by design (§12), so most phases fanned out — in practice as far as four concurrent agents on disjoint file sets, coordinated by ownership rather than by locking.
+Human + coding agents working in parallel; packages are independent by design (§12), so most phases fanned out — in practice as far as four concurrent agents on disjoint file sets, coordinated by ownership rather than by locking.
 
 The table below is the plan as written. It held through the money spine, the mandate chain and PTLM. What it did not anticipate is that **most of the remaining work was found by running the thing against real keys**: a payment link rejected for a 40-character field, a settlement turn routed to a 2023 model, an intent signed looser than the sentence that produced it, a catalog search that sorted without filtering and answered "ssd" with socks, an agent that offered to look on the web from a turn that structurally could not, and a conversation that looped because only half of it was being written down. None of those were visible against fixtures.
 

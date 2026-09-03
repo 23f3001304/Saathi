@@ -49,11 +49,8 @@ describe("what the agent says is prose", () => {
   });
 });
 
-/**
- * The one path where the model has actually *seen* the listings: it called
- * `catalog_search` itself. So it is the one path that can read the table back
- * out, above the cards printing the same rows at the same prices.
- */
+/** A row the model's own `catalog_search` pulled, as the tool log holds it:
+ *  what the narrator has in front of it when a sentence names that row. */
 const LISTING = {
   sku: "sku_shoe",
   label: "Kolam Run Gc9 road shoe, UK 8",

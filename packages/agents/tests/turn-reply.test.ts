@@ -21,7 +21,7 @@ import { RecordingLogger } from "./fakes.js";
  * away, so a shopper got "I'm checking this shop for 1TB SSDs." and nothing.
  */
 describe("the sentence that knows what the shop holds", () => {
-  it("prefers what the model said after the count, and says it once", async () => {
+  it("prefers what the model said after the shop answered, and says it once", async () => {
     const collector = new TurnPlanCollector();
     await collector.dispatch({
       tool: BROWSE_TOOL,

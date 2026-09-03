@@ -1,7 +1,6 @@
 // The harness used to answer a drafter that found nothing on the shelf by
-// starting a web errand the model never chose. Until the draft is the model's
-// own (Stage 3), a refusal simply ends the run: nothing is said for the model,
-// and nothing is driven on its behalf.
+// starting a web errand the model never chose. A refusal simply ends the run:
+// nothing is said for the model, and nothing is driven on its behalf.
 import type { TurnPlan } from "@covenant/agents";
 import { describe, expect, it } from "vitest";
 

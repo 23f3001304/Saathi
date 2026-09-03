@@ -30,17 +30,17 @@ export class PurchaseRunner {
   ): Promise<PurchaseResult> {
     const base = emptyResult(await this.freshTable(chat ?? null), request);
     try {
-      // The turn's one shelf read: the probe, the listing, the drafter, the
-      // catalog tool and the quote tool all read this snapshot, so no two of
-      // them can disagree about the stock mid-purchase.
+      // The turn's one shelf read: the planner's `see_shelf`, the bounds a
+      // proposal is checked against, the catalog tool and the quote tool all
+      // read this snapshot, so no two of them can disagree about the stock
+      // mid-purchase.
       await this.parts.shelf.open();
       return await this.drive(base, request, chat ?? null, replyLanguage);
     } catch (cause) {
-      // A drafter that can find nothing to name is a fault of the drafter,
-      // not a turn for the harness to answer on the model's behalf. The
-      // shelf reaches the model as a tool from Stage 2 on, and the draft
-      // becomes the model's own proposal in Stage 3; until then a refusal
-      // here ends the run and drives nothing.
+      // The shelf is the model's own to read and the draft its own to
+      // propose, so anything still throwing this far up is the harness
+      // failing, not a turn for the harness to answer on the model's
+      // behalf. It ends the run and drives nothing.
       return this.abort(base, cause);
     }
   }

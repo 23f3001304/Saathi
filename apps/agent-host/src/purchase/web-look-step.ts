@@ -31,7 +31,7 @@ export type { WebErrand } from "./errand-run.js";
  *
  * `stated` is the shopper's own half of this conversation, and the errand
  * reads its language off it. Absent, the turn falls back to the sentence that
- * started the run — which is what the no-stock path has and all it has.
+ * started the run, which is all a caller holding no transcript can give it.
  */
 export interface WebLook {
   look(

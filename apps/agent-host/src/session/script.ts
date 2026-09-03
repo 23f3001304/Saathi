@@ -115,9 +115,8 @@ function flagRemark(matched: readonly CatalogSku[]): string {
 }
 
 /** The listing as a person would say it: the part before the size or pack
- *  coda. The full label verbatim would trip `restatesRow`, which drops any
- *  bubble carrying a whole card row, and took the quote and closing lines
- *  with it on the kurta run. */
+ *  coda. These lines are read as speech, and a whole card row read out
+ *  verbatim is a label rather than a sentence. */
 function spokenName(sku: CatalogSku): string {
   return sku.label.split(",")[0] ?? sku.label;
 }
