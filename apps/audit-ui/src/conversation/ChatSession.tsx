@@ -34,6 +34,12 @@ export type ChatSessionProps = {
   visible: boolean;
 };
 
+/** A choice made on this screen, and whether its errand has been launched. */
+type HandPick = { readonly id: string | null; readonly launched: boolean };
+
+/** Nothing chosen here: the way back out of a pick, and what a fresh one is. */
+const NO_PICK: HandPick = { id: null, launched: false };
+
 /** Marketplace titles run to a paragraph; a dock prompt gets the first clause. */
 function shortTitle(title: string): string {
   const cut = title.split(/[,|(]/)[0]?.trim() ?? title;
@@ -67,37 +73,40 @@ export function ChatSession({
   const transport = useAssistantTransport(conversationId);
   const chat = useAssistant(transport);
   const { entries, question, offering, options, awaiting, answer, sign } = chat;
-  // Seeded from the host, not from zero: the pick is a beat in the durable
-  // log, so a chat that remounts (a walk to the Windows tab and back) opens
-  // already knowing which card it is fetching.
-  const [pickedId, setPickedId] = useState<string | null>(chat.picked);
   const [confirmed, setConfirmed] = useState(false);
-  // A tapped open-web card is chosen, not launched: the errand costs a window
-  // and a wait, so "Go to the shop" is its own gesture at the dock. A restored
-  // pick whose window is already open has been launched by definition.
-  const [webLaunched, setWebLaunched] = useState(
-    chat.picked !== null && chat.sandbox !== null,
-  );
   /**
-   * The host is the authority on what was chosen — a tap, and a model naming a
-   * card in words through `pick_option`, both land as the same beat. Adopting
-   * on *change* rather than on every render is what leaves "Switch product"
-   * and "Change choice" working: they clear the choice on this screen between
-   * beats, and only the host saying something new overrides them.
+   * What the hand has chosen since the host last spoke, or `null` while the
+   * host's own answer stands.
+   *
+   * DECISION: the `picked` beat is read straight through rather than mirrored
+   * into state. Why: mirroring repaints a restored chat twice, the pick menu
+   * for one frame and then the choice, which is a flash of the very menu this
+   * exists to remove. And the two facts travel together: a launch belongs to
+   * the pick it was made for, so whatever clears one has to clear the other.
    */
-  const adopted = useRef(chat.picked);
+  const [hand, setHand] = useState<HandPick | null>(null);
+  const pickedId = hand === null ? chat.picked : hand.id;
+  // A tapped open-web card is chosen, not launched: the errand costs a window
+  // and a wait, so "Go to the shop" is its own gesture at the dock. A pick the
+  // host holds whose window is already open has been launched by definition;
+  // a hand that has just tapped a card says for itself that it has not, which
+  // is what tells a restore from switching away and back to the same card.
+  const webLaunched =
+    hand === null
+      ? chat.picked !== null && chat.sandbox !== null
+      : hand.launched;
+  /**
+   * The host saying something new supersedes the hand: a fresh offer clears
+   * the choice, and a card the model named in words takes the screen. Compared
+   * against the last value seen rather than against the hand's, so "Switch
+   * product" and "Change choice" still stand between beats.
+   */
+  const spoken = useRef(chat.picked);
   useEffect(() => {
-    if (chat.picked === adopted.current) return;
-    adopted.current = chat.picked;
-    setPickedId(chat.picked);
+    if (chat.picked === spoken.current) return;
+    spoken.current = chat.picked;
+    setHand(null);
   }, [chat.picked]);
-  // A restored pick whose window is already open has been launched: the errand
-  // is running in it, so the dock owes the way out and not the ask again.
-  useEffect(() => {
-    const launched =
-      chat.picked !== null && chat.picked === pickedId && chat.sandbox !== null;
-    if (launched) setWebLaunched(true);
-  }, [chat.picked, pickedId, chat.sandbox]);
   // Between the tap and the window's first beat, the run is busy on a
   // window that does not exist yet; the strip says so and the composer
   // waits rather than collecting a sentence nobody is reading. Never while
@@ -174,14 +183,11 @@ export function ChatSession({
    * three times; "Change choice" under the sheet is the way back out.
    */
   function choose(optionId: string): void {
-    setPickedId(optionId);
+    // Chosen, not launched: an open-web errand starts on "Go to the shop", and
+    // a tap on a different card before or after that is the way back out.
+    setHand({ id: optionId, launched: false });
     const option = options.find((o) => o.id === optionId);
-    if (option?.sourceUrl !== undefined) {
-      // Chosen, not launched: the errand starts on "Go to the shop", and a
-      // tap on a different card before or after that is the way back out.
-      setWebLaunched(false);
-      return;
-    }
+    if (option?.sourceUrl !== undefined) return;
     // With a cart standing, the tap rebuilds it for this card - what you
     // see must be what you sign. With NO cart standing (cards offered by a
     // browse answer), there is nothing to rebuild: the tap becomes the
@@ -198,7 +204,7 @@ export function ChatSession({
   }
 
   function changeChoice(): void {
-    setPickedId(null);
+    setHand(NO_PICK);
     setConfirmed(false);
     setBillOpen(false);
   }
@@ -208,14 +214,13 @@ export function ChatSession({
   function goToShop(): void {
     if (webChosen === undefined) return;
     void pickWebOption(webChosen.id, conversationId);
-    setWebLaunched(true);
+    setHand({ id: webChosen.id, launched: true });
   }
 
   /** The rollback. The cards come back to the dock; a new pick queues behind
    *  whatever the window is still doing and then takes over. */
   function switchProduct(): void {
-    setPickedId(null);
-    setWebLaunched(false);
+    setHand(NO_PICK);
   }
 
   /**

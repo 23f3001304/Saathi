@@ -3,7 +3,7 @@
 // Windows tab and came back to "Pick one below" with Cheaper / Better rated /
 // None of these, over an errand that was already running in the window.
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { screen } from "@testing-library/react";
+import { act, fireEvent, screen } from "@testing-library/react";
 
 import { mount, resetAuthEnvironment } from "./support/authHarness.tsx";
 
@@ -15,7 +15,13 @@ import type {
   Emit,
 } from "../src/conversation/assistantTransport.ts";
 
-const held = vi.hoisted(() => ({ signals: [] as AssistantSignal[] }));
+const held = vi.hoisted(() => ({
+  signals: [] as AssistantSignal[],
+  /** Kept so a test can land a later beat, a run after the first drain. */
+  emit: null as Emit | null,
+  /** Every ref this screen actually sent to the host. */
+  picks: [] as string[],
+}));
 
 // One frozen transport, as `useAssistantTransport`'s own `useMemo` gives: a
 // fresh object per render would restart the run on every render.
@@ -23,6 +29,7 @@ vi.mock("../src/conversation/useAssistantTransport.ts", () => {
   const transport = {
     live: true,
     start: (emit: Emit) => {
+      held.emit = emit;
       for (const signal of held.signals) emit(signal);
       return () => undefined;
     },
@@ -31,6 +38,14 @@ vi.mock("../src/conversation/useAssistantTransport.ts", () => {
   };
   return { useAssistantTransport: () => transport };
 });
+
+vi.mock("../src/api/agent.ts", async (original) => ({
+  ...(await original<typeof import("../src/api/agent.ts")>()),
+  pickWebOption: (optionId: string) => {
+    held.picks.push(optionId);
+    return Promise.resolve(true);
+  },
+}));
 
 const { ChatSession } = await import("../src/conversation/ChatSession.tsx");
 
@@ -45,6 +60,8 @@ const WEB_ROW = {
   quoteSigned: false,
   sourceUrl: "https://www.amazon.in/dp/B0D1XYZ123",
 };
+
+const SECOND_ROW = { ...WEB_ROW, id: "w2", sku: "w2", title: "SanDisk Extreme 1TB" };
 
 const OFFER: AgentBeat = { offsetMs: 10, kind: "options", options: [WEB_ROW] };
 const PICKED: AgentBeat = { offsetMs: 20, kind: "picked", ref: "w1" };
@@ -110,12 +127,22 @@ function chatWith(beats: readonly AgentBeat[]): void {
   );
 }
 
-describe("coming back to a chat whose card was already chosen", () => {
-  beforeEach(() => {
-    resetAuthEnvironment();
-    // jsdom lays nothing out, so it implements no scrolling at all.
-    Element.prototype.scrollIntoView = () => undefined;
+/** A beat that lands after the first drain, as a live run's next one does. */
+function later(beats: readonly AgentBeat[]): void {
+  act(() => {
+    for (const signal of signalsForBeats(beats, 100)) held.emit?.(signal);
   });
+}
+
+function readyToRender(): void {
+  resetAuthEnvironment();
+  held.picks = [];
+  // jsdom lays nothing out, so it implements no scrolling at all.
+  Element.prototype.scrollIntoView = () => undefined;
+}
+
+describe("coming back to a chat whose card was already chosen", () => {
+  beforeEach(readyToRender);
 
   it("offers the way out of the choice, not the menu again", () => {
     chatWith([OFFER, PICKED, WINDOW]);
@@ -128,6 +155,41 @@ describe("coming back to a chat whose card was already chosen", () => {
 
   it("still opens the menu when nothing has been picked", () => {
     chatWith([OFFER]);
+
+    expect(screen.getByRole("button", { name: "Cheaper" })).toBeTruthy();
+    expect(screen.queryByRole("button", { name: "Switch product" })).toBeNull();
+  });
+});
+
+/**
+ * The launch is its own gesture, and switching away then back is the shopper
+ * changing their mind twice. Reading "the host says w1 and the screen says w1"
+ * as a restore cannot tell that apart from a re-tap, and it left the dock
+ * showing "Switch product" over an errand nobody had asked for again.
+ */
+describe("re-choosing the same card after switching away from it", () => {
+  beforeEach(readyToRender);
+
+  it("offers the launch again rather than assuming it is under way", () => {
+    chatWith([OFFER, PICKED, WINDOW]);
+    fireEvent.click(screen.getByRole("button", { name: "Switch product" }));
+    fireEvent.click(screen.getByRole("button", { name: /Crucial E100/ }));
+
+    expect(screen.getByRole("button", { name: "Go to the shop" })).toBeTruthy();
+    expect(screen.getByText(/Go and put it in that shop's basket\?/)).toBeTruthy();
+    // The tap chose; it did not send anybody to a shop.
+    expect(held.picks).toEqual([]);
+  });
+});
+
+describe("a fresh set of cards after a launched errand", () => {
+  beforeEach(readyToRender);
+
+  it("brings the refinements back with them", () => {
+    chatWith([OFFER, PICKED, WINDOW]);
+    expect(screen.getByRole("button", { name: "Switch product" })).toBeTruthy();
+
+    later([{ offsetMs: 90, kind: "options", options: [SECOND_ROW] }]);
 
     expect(screen.getByRole("button", { name: "Cheaper" })).toBeTruthy();
     expect(screen.queryByRole("button", { name: "Switch product" })).toBeNull();

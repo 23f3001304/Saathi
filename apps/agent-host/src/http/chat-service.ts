@@ -138,13 +138,13 @@ export class ChatService {
     replyLanguage: string | null,
   ): Promise<PurchaseResult> {
     if (inFlight !== null) await inFlight.catch(() => undefined);
-    // Before the errand: the choice is the host's fact to replay, and a chat
-    // that remounts mid-run must not re-offer a card already being fetched.
-    this.hub.emit({ kind: "picked", ref });
     try {
       const reproposed = await this.runner.repropose(ref);
-      if (reproposed !== null) return reproposed;
-      return await this.webPick.buy(ref, [stated], replyLanguage);
+      // A stale ref was never a choice, so nothing is said until it rebuilds;
+      // `WebBuyStep` says it for the leg where a listing is what resolves.
+      if (reproposed === null) return await this.webPick.buy(ref, [stated], replyLanguage);
+      this.hub.emit({ kind: "picked", ref });
+      return reproposed;
     } finally {
       this.recordSandbox();
     }

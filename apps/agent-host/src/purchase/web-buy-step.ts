@@ -92,6 +92,10 @@ export class WebBuyStep {
       this.logger.warn("purchase.web_pick.unresolved", { ref });
       return settleAs(this.hub, base, [], "web_pick_unknown");
     }
+    // The ref has claimed a listing, so the choice is now a fact about the run
+    // and is written down before the window moves: the client replays it, and
+    // a chat that remounts mid-errand must not re-offer the card being fetched.
+    this.hub.emit({ kind: "picked", ref });
     await covenantFirst(this.intents, listing);
     const from = this.trail.length;
     const landed = await this.sandbox.open(listing.url);

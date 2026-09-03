@@ -44,7 +44,8 @@ export async function pickTurn(
   const ref = plan.ref ?? "";
   if (parts.offered.current().some((row) => row.ref === ref)) {
     parts.logger.info("purchase.pick.web", { run_id: base.runId, ref });
-    parts.hub.emit({ kind: "picked", ref });
+    // `WebBuyStep` says which card this was, where the ref resolves to a
+    // listing; a tap reaches the same step and must not say it twice.
     return await parts.webPick.buy(ref, stated, replyLanguage);
   }
   const rebuilt = await parts.repropose(ref);
