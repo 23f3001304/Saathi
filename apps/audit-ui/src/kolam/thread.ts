@@ -131,9 +131,8 @@ export function buildThread(
 /**
  * §5.4 growth — a self-contained path fragment for exactly one new segment.
  * Unlike the substring §5.4 describes appending onto a mutable ref, this
- * renders as its OWN `<path>` element (KolamThread's simpler full-recompute
- * model — see the DECISION note there), so it always opens with its own
- * `M`, even when continuing from the previous event's exit point.
+ * renders as its OWN `<path>` element, so it always opens with its own `M`,
+ * even when continuing from the previous event's exit point.
  */
 export function buildSegment(
   events: ThreadEvent[],

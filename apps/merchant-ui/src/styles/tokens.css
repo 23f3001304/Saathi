@@ -32,9 +32,8 @@
 
   --saffron: #e8740c;
   --marigold: #e8a33d;
-  /* The sunrise: Sarvam's own entry gesture, and the one place this app is
-     allowed to be warm. Used at the top edge and behind the covenant, never
-     on data and never on a status. */
+  /* The sunrise: the one place this app is allowed to be warm. Used at the
+     top edge and behind the covenant, never on data and never on a status. */
   --sunrise: linear-gradient(
     100deg,
     var(--saffron) 0%,

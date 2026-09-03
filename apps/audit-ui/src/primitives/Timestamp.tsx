@@ -13,7 +13,7 @@ function hhmmssSSS(iso: string): string {
   return `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}.${pad(d.getMilliseconds(), 3)}`;
 }
 
-/** §6.4 — used by TxnRail and MemoryRail.age; coarse buckets, no fake precision. */
+/** §6.4 — used by MemoryRail.age; coarse buckets, no fake precision. */
 export function relativeTime(iso: string, now: number): string {
   const deltaMs = now - new Date(iso).getTime();
   const minutes = Math.floor(deltaMs / 60_000);

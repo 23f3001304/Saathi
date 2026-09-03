@@ -38,7 +38,6 @@ export * from "./merchant/item-sku.js";
 export * from "./merchant/merchant-agent.js";
 export * from "./merchant/merchant-tool-result.js";
 export * from "./merchant/quote-tool.js";
-export * from "./merchant/rzp-mcp-mount.js";
 export * from "./merchant/turn-shelf.js";
 
 export * from "./providers/agent-session-factory.js";

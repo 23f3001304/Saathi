@@ -1,5 +1,3 @@
-export const BUYER_PROMPT_VERSION = "buyer.system@v2";
-
 /**
  * A versioned release artifact, not a string literal that drifts. Nothing here
  * is load-bearing for safety: every rule the prompt states is also enforced in

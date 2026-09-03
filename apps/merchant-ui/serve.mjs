@@ -38,8 +38,8 @@ async function resolveFile(url) {
  *
  * `img-src` allows any `https:` host on purpose: that is the merchant imagery
  * feature. `data:` carries the kolam ground and the sandbox's redacted frames.
- * `connect-src` names the gateway, the agent host and Sarvam's speech API,
- * which is the whole of what this app talks to.
+ * `connect-src` names the gateway and the agent host, which is the whole
+ * of what this app talks to.
  */
 const SECURITY = {
   "content-security-policy": [
@@ -49,7 +49,7 @@ const SECURITY = {
     "font-src 'self'",
     "style-src 'self' 'unsafe-inline'",
     "script-src 'self'",
-    "connect-src 'self' http://localhost:8787 http://localhost:8788 ws://localhost:8788 https://api.sarvam.ai wss://api.sarvam.ai",
+    "connect-src 'self' http://localhost:8787 http://localhost:8788 ws://localhost:8788",
     "frame-ancestors 'none'",
     "base-uri 'self'",
     "form-action 'none'",
