@@ -50,7 +50,7 @@ export class PuppeteerLauncher implements BrowserLauncher {
     const page = await firstPage(browser);
     await denyDownloads(page);
     await page.evaluate(() => document.readyState).catch(() => undefined);
-    return new PuppeteerBrowser(browser, new PuppeteerPage(page));
+    return new PuppeteerBrowser(browser, await PuppeteerPage.open(page));
   }
 
   private async start(

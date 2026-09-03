@@ -75,7 +75,8 @@ export class ContainerLauncher implements BrowserLauncher {
     );
     await assertBound(spec);
     const page = await firstPage(browser, request);
-    return new ContainerBrowser(spec, child, browser, new PuppeteerPage(page));
+    const driven = await PuppeteerPage.open(page);
+    return new ContainerBrowser(spec, child, browser, driven);
   }
 }
 

@@ -33,15 +33,21 @@ const RELAY_DELAY_MS = 0;
  * except `PuppeteerLauncher`.
  */
 export class PuppeteerPage implements DrivenPage {
-  private readonly cast: Caster;
-  private readonly navs: MainFrameNavigations;
+  private readonly cast: PuppeteerCaster;
+  private readonly navs = new MainFrameNavigations();
   /** Reassigned when Chrome retires the one we were holding; see `live`. */
   private page: Page;
 
   constructor(page: Page) {
     this.page = page;
-    this.navs = new MainFrameNavigations(page);
     this.cast = new PuppeteerCaster(page, this.navs);
+  }
+
+  /** Opened, not merely constructed: the counter has its own CDP session. */
+  static async open(page: Page): Promise<PuppeteerPage> {
+    const driven = new PuppeteerPage(page);
+    await driven.cast.follow(page);
+    return driven;
   }
 
   /**
@@ -59,6 +65,7 @@ export class PuppeteerPage implements DrivenPage {
     } catch (cause) {
       if (!isStalePage(cause)) throw cause;
       this.page = await freshPage(this.page);
+      await this.cast.follow(this.page);
       return await run(this.page);
     }
   }

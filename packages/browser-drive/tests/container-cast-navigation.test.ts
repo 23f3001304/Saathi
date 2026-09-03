@@ -55,11 +55,13 @@ function nearest(red: number, blue: number): Shade {
   return "other";
 }
 
-/** One frame: the page the session said it was on, what the pixels show, and
- *  whether the host would have served it. */
+/** One frame: the page the session said it was on, what the pixels show,
+ *  whether the URL had already been rewritten by `pushState`, and whether the
+ *  host would have served it. */
 interface Shot {
   readonly page: Shade;
   readonly shade: Shade;
+  readonly filtered: boolean;
   readonly stale: boolean;
 }
 
@@ -67,8 +69,8 @@ const shots: Shot[] = [];
 let session: BrowserSession;
 
 function pageOf(url: string): Shade {
-  if (url.endsWith("cast-a.html")) return "A";
-  if (url.endsWith("cast-b.html")) return "B";
+  if (url.includes("cast-a.html")) return "A";
+  if (url.includes("cast-b.html")) return "B";
   return "other";
 }
 
@@ -93,9 +95,11 @@ async function startCollecting(): Promise<void> {
   const cast = session.screencast();
   if (cast === null) throw new Error("the container surface has no caster");
   await cast.caster.start(PNG_CAST, (frame: CastFrame) => {
+    const url = session.url();
     shots.push({
-      page: pageOf(session.url()),
+      page: pageOf(url),
       shade: shadeOf(frame.bytes),
+      filtered: url.includes("?filtered"),
       stale: frame.navigation < session.navigations(),
     });
     void cast.caster.ack(frame.ack).catch(() => undefined);
@@ -159,20 +163,36 @@ container("the cast after a navigation", () => {
   });
 
   /**
-   * The bug itself, still happening and now nameable: Chrome goes on
-   * delivering the old document's pixels for as long as the new one has
-   * nothing to paint.
-   *
-   * The implication, not the race. Whether Chrome hands over one of those
-   * frames in the window between the commit and the reattach is its own
-   * compositor's business and this suite cannot make it happen; what it can
-   * insist on is that every one it does hand over was recognised. The run that
-   * found this bug caught one three milliseconds after the commit.
+   * The implication, not the race. Whether Chrome hands one of the old
+   * document's frames over in the window between the commit and the reattach
+   * is its own compositor's business and this suite cannot make it happen;
+   * what it can insist on is that every one it does hand over was recognised.
+   * The run that found this bug caught one three milliseconds after the
+   * commit.
    */
   it("recognised every frame of a page the window had left", () => {
     const wrong = shots.filter(
       (shot) => shot.shade !== "other" && shot.page !== shot.shade,
     );
     expect(wrong.every((shot) => shot.stale)).toBe(true);
+  });
+});
+
+/**
+ * The same window, the same document, a different URL. `cast-b.html` rewrites
+ * its own with `history.pushState` shortly after it paints, which is what a
+ * real shop does on every search and every filter. Nothing has been left, so
+ * the frames the cast is producing are still frames of the page the shopper is
+ * looking at — and a live view that read a same-document navigation as a new
+ * document would call every one of them stale and paint nothing from here on.
+ */
+container("the cast after a pushState", () => {
+  it("keeps serving the page it is still on", () => {
+    const after = shots.filter((shot) => shot.filtered);
+    expect(after.length).toBeGreaterThan(0);
+    expect(after.filter((shot) => shot.stale).length).toBe(0);
+    expect(after.filter((shot) => shot.shade === "B").length).toBeGreaterThan(
+      0,
+    );
   });
 });

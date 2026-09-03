@@ -56,9 +56,31 @@ export class PuppeteerCaster implements Caster {
   };
 
   constructor(
-    private readonly page: Page,
+    private page: Page,
     private readonly navigations: MainFrameNavigations,
   ) {}
+
+  /**
+   * The window is on another target now; `PuppeteerPage` re-resolved a handle
+   * Chrome had retired. Both halves of this file were bound to the old page —
+   * the listener that notices a navigation and the session the pixels come
+   * from — so without this the cast went on broadcasting a target nobody was
+   * driving, which is the freeze this file was written to end wearing a
+   * different hat. The counter moves with them: it is bound to a target too,
+   * and one that has stopped counting silently disables every stamp below.
+   */
+  async follow(page: Page): Promise<void> {
+    this.page.off("framenavigated", this.onNavigated);
+    await this.teardown();
+    this.page = page;
+    // Before the new session is attached, so it is stamped with a count the
+    // move has already stepped and nothing captured on the retired target can
+    // come out equal to it.
+    await this.navigations.follow(page);
+    if (this.held === null) return;
+    this.page.on("framenavigated", this.onNavigated);
+    await this.attach().catch(() => undefined);
+  }
 
   async start(
     settings: CastSettings,
@@ -111,13 +133,22 @@ export class PuppeteerCaster implements Caster {
    *  without ceremony and cast from the page's current target. */
   private async reattach(): Promise<void> {
     if (this.held === null) return;
-    const old = this.session;
-    this.session = null;
-    if (old !== null) {
-      await old.send("Page.stopScreencast").catch(() => undefined);
-      await old.detach().catch(() => undefined);
-    }
+    await this.teardown();
     await this.attach().catch(() => undefined);
+  }
+
+  /** Lets go of the session without forgetting what was being cast, so a
+   *  restart and a target swap can both use it. */
+  private async teardown(): Promise<void> {
+    if (this.restartTimer !== null) {
+      clearTimeout(this.restartTimer);
+      this.restartTimer = null;
+    }
+    const session = this.session;
+    this.session = null;
+    if (session === null) return;
+    await session.send("Page.stopScreencast").catch(() => undefined);
+    await session.detach().catch(() => undefined);
   }
 
   async ack(frame: number): Promise<void> {
@@ -129,14 +160,6 @@ export class PuppeteerCaster implements Caster {
   async stop(): Promise<void> {
     this.held = null;
     this.page.off("framenavigated", this.onNavigated);
-    if (this.restartTimer !== null) {
-      clearTimeout(this.restartTimer);
-      this.restartTimer = null;
-    }
-    const session = this.session;
-    this.session = null;
-    if (session === null) return;
-    await session.send("Page.stopScreencast").catch(() => undefined);
-    await session.detach().catch(() => undefined);
+    await this.teardown();
   }
 }

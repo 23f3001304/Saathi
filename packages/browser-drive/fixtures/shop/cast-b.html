@@ -4,7 +4,13 @@
     <meta charset="utf-8" />
     <title>Bazaar Fixture — Cast page B</title>
     <style>
-      html, body { margin: 0; padding: 0; height: 100%; background: #1e3ac8; }
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        height: 100%;
+        background: #1e3ac8;
+      }
       #beat {
         position: fixed;
         bottom: 0;
@@ -25,13 +31,24 @@
       // cross-origin hop that opens that gap by itself, so the gap is opened
       // here: the document commits, then blocks its own first paint.
       var until = Date.now() + 400;
-      while (Date.now() < until) { /* hold the first paint */ }
+      while (Date.now() < until) {
+        /* hold the first paint */
+      }
       var beat = document.getElementById("beat");
       function step() {
         beat.style.left = ((Date.now() / 4) % 400) + "px";
         requestAnimationFrame(step);
       }
       requestAnimationFrame(step);
+      // What every real shop does per search, per filter, per scroll: the URL
+      // changes and the document does not. Chrome reports it on
+      // Page.navigatedWithinDocument and never on Page.frameNavigated, while
+      // puppeteer's page-level `framenavigated` fires for it exactly as it
+      // does for a commit — so a live view that counted those would call its
+      // own correct frames stale and paint nothing on the pages that matter.
+      setTimeout(function () {
+        history.pushState({}, "", "cast-b.html?filtered");
+      }, 300);
     </script>
   </body>
 </html>
