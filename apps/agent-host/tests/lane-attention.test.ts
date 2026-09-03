@@ -41,6 +41,14 @@ describe("what a stopped lane is waiting on", () => {
     expect(attentionOf(lane)).toBe("pick");
   });
 
+  // A card taken off the table is no longer a table waiting on a person.
+  it("reads a run whose cards were picked from as owed nothing", () => {
+    const lane = riggedLane("A");
+    lane.hub.emit({ kind: "options", options: [] });
+    lane.hub.emit({ kind: "picked", ref: "w1" });
+    expect(attentionOf(lane)).toBe(null);
+  });
+
   it("reads a run that reached its outcome as owed nothing", () => {
     const lane = riggedLane("A");
     lane.hub.emit({ kind: "options", options: [] });

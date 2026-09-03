@@ -44,6 +44,8 @@ export function applyFieldSignal(
   const money = applyMoneySignal(state, signal);
   if (money !== null) return money;
   switch (signal.kind) {
+    case "picked":
+      return { ...state, picked: signal.ref };
     case "sandbox":
       return { ...state, sandbox: signal.session };
     case "await-sign":

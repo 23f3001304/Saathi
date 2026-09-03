@@ -16,6 +16,7 @@ export type BeatDraft =
   | Omit<Extract<ChatBeat, { kind: "draft-withdrawn" }>, "offsetMs">
   | Omit<Extract<ChatBeat, { kind: "sort-key" }>, "offsetMs">
   | Omit<Extract<ChatBeat, { kind: "options" }>, "offsetMs">
+  | Omit<Extract<ChatBeat, { kind: "picked" }>, "offsetMs">
   | Omit<Extract<ChatBeat, { kind: "step" }>, "offsetMs">
   | Omit<Extract<ChatBeat, { kind: "question" }>, "offsetMs">
   | Omit<Extract<ChatBeat, { kind: "cart" }>, "offsetMs">

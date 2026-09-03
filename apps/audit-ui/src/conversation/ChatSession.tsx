@@ -67,11 +67,37 @@ export function ChatSession({
   const transport = useAssistantTransport(conversationId);
   const chat = useAssistant(transport);
   const { entries, question, offering, options, awaiting, answer, sign } = chat;
-  const [pickedId, setPickedId] = useState<string | null>(null);
+  // Seeded from the host, not from zero: the pick is a beat in the durable
+  // log, so a chat that remounts (a walk to the Windows tab and back) opens
+  // already knowing which card it is fetching.
+  const [pickedId, setPickedId] = useState<string | null>(chat.picked);
   const [confirmed, setConfirmed] = useState(false);
   // A tapped open-web card is chosen, not launched: the errand costs a window
-  // and a wait, so "Go to the shop" is its own gesture at the dock.
-  const [webLaunched, setWebLaunched] = useState(false);
+  // and a wait, so "Go to the shop" is its own gesture at the dock. A restored
+  // pick whose window is already open has been launched by definition.
+  const [webLaunched, setWebLaunched] = useState(
+    chat.picked !== null && chat.sandbox !== null,
+  );
+  /**
+   * The host is the authority on what was chosen — a tap, and a model naming a
+   * card in words through `pick_option`, both land as the same beat. Adopting
+   * on *change* rather than on every render is what leaves "Switch product"
+   * and "Change choice" working: they clear the choice on this screen between
+   * beats, and only the host saying something new overrides them.
+   */
+  const adopted = useRef(chat.picked);
+  useEffect(() => {
+    if (chat.picked === adopted.current) return;
+    adopted.current = chat.picked;
+    setPickedId(chat.picked);
+  }, [chat.picked]);
+  // A restored pick whose window is already open has been launched: the errand
+  // is running in it, so the dock owes the way out and not the ask again.
+  useEffect(() => {
+    const launched =
+      chat.picked !== null && chat.picked === pickedId && chat.sandbox !== null;
+    if (launched) setWebLaunched(true);
+  }, [chat.picked, pickedId, chat.sandbox]);
   // Between the tap and the window's first beat, the run is busy on a
   // window that does not exist yet; the strip says so and the composer
   // waits rather than collecting a sentence nobody is reading. Never while

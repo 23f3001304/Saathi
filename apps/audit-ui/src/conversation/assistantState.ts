@@ -71,7 +71,10 @@ function withOffer(
   const closed = closeWork(state.entries);
   const offer: ChatEntry = { kind: "offer" };
   const kept = state.offering ? foldOffer(closed, state.options.length) : closed;
-  return { ...state, options, offering: true, entries: [...kept, offer] };
+  // A fresh set supersedes the old choice: nothing on this table has been
+  // taken yet, and a stale pick would arm the dock for a card that is gone.
+  const table = { ...state, options, picked: null, offering: true };
+  return { ...table, entries: [...kept, offer] };
 }
 
 /**

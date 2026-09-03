@@ -47,6 +47,9 @@ export type AssistantSignal =
    *  goes on saying "Saathi is driving" over one reads as a hang. */
   | { kind: "run-idle" }
   | { kind: "offer"; options: OptionRowData[] }
+  /** Which card the host says was chosen. The choice is app state, not this
+   *  component's: a remount must find it, and the model may make it in words. */
+  | { kind: "picked"; ref: string }
   | { kind: "covenant"; capPaise: number; thumbprint: string }
   | { kind: "cart-built"; totalPaise: number; itemCount: number }
   /** The sandbox window as the run left it — actions, no picture. */

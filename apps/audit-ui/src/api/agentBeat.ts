@@ -61,6 +61,9 @@ export type AgentBeat =
       label: string;
     }
   | { offsetMs: number; kind: "options"; options: readonly OptionRowData[] }
+  /** The card the shopper (or the model, naming it in words) chose. Replayed
+   *  from the log so a reload or a route change does not forget the choice. */
+  | { offsetMs: number; kind: "picked"; ref: string }
   /** One move the agent made at a window, as the harness watched it. */
   | { offsetMs: number; kind: "step"; stepId: string; label: string }
   /** The run stopped and is owed an answer; `replies` are the chips to offer. */
@@ -128,6 +131,7 @@ const BEAT_KINDS: readonly string[] = [
   "draft-withdrawn",
   "sort-key",
   "options",
+  "picked",
   "step",
   "question",
   "cart",

@@ -142,11 +142,19 @@ function restoredSignals(beat: AgentBeat): AssistantSignal[] | null {
   return [{ kind: "sandbox", session: beat.session }];
 }
 
+/** Which card was chosen. It sets a field and prints nothing: the offer block
+ *  already says which one is being fetched, and a pill saying it again would
+ *  be the duplication the shopper has called out. */
+function choiceSignals(beat: AgentBeat): AssistantSignal[] | null {
+  return beat.kind === "picked" ? [{ kind: "picked", ref: beat.ref }] : null;
+}
+
 export function signalsForBeat(
   beat: AgentBeat,
   index: number,
 ): AssistantSignal[] {
   return (
+    choiceSignals(beat) ??
     restoredSignals(beat) ??
     stepSignals(beat) ??
     draftSignals(beat) ??

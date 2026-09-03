@@ -44,11 +44,16 @@ export async function pickTurn(
   const ref = plan.ref ?? "";
   if (parts.offered.current().some((row) => row.ref === ref)) {
     parts.logger.info("purchase.pick.web", { run_id: base.runId, ref });
+    parts.hub.emit({ kind: "picked", ref });
     return await parts.webPick.buy(ref, stated, replyLanguage);
   }
   const rebuilt = await parts.repropose(ref);
   if (rebuilt !== null) {
     parts.logger.info("purchase.pick.shop", { run_id: base.runId, ref });
+    // Only once the sku resolved: a ref that rebuilt nothing was never a
+    // choice, and a `picked` beat over it would arm the dock for a card the
+    // shopper cannot see.
+    parts.hub.emit({ kind: "picked", ref });
     return rebuilt;
   }
   parts.logger.warn("purchase.pick.unknown", { run_id: base.runId, ref });

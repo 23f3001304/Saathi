@@ -14,8 +14,16 @@ export interface LaneReport {
   readonly window: boolean;
 }
 
-/** The beat kinds that settle what a stopped run left on the table. */
-const PARKED_KINDS = new Set(["question", "options", "outcome", "verdict"]);
+/** The beat kinds that settle what a stopped run left on the table. `picked`
+ *  is one of them: a card taken off the table answers the `options` beat
+ *  underneath it, so the badge clears rather than nagging for a second pick. */
+const PARKED_KINDS = new Set([
+  "question",
+  "options",
+  "picked",
+  "outcome",
+  "verdict",
+]);
 
 /**
  * Derived from what the harness observed, never from what a model said: the

@@ -25,6 +25,9 @@ export type AssistantSnapshot = {
   /** The cart a signature would release, off the cart beat: the bill binds
    *  to this, never to a tapped card's client-side price. */
   cart: { totalPaise: number; itemCount: number } | null;
+  /** Which card was chosen, off the `picked` beat: the host's fact, replayed
+   *  from the durable log exactly as the cart is. */
+  picked: string | null;
   /** A window the run opened, restored from the log; live cards come from
    *  `/browser/session`. */
   sandbox: SandboxSession | null;
@@ -47,6 +50,7 @@ export const emptySnapshot: AssistantSnapshot = {
   options: [],
   covenant: null,
   cart: null,
+  picked: null,
   sandbox: null,
   awaiting: null,
   running: false,

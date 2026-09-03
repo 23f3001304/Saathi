@@ -128,6 +128,9 @@ export type ChatBeat =
       readonly kind: "options";
       readonly options: readonly OptionRowData[];
     }
+  /** The card the shopper (or the model, naming it in words) chose. Replayed
+   *  from the log so a reload or a route change does not forget the choice. */
+  | { readonly offsetMs: number; readonly kind: "picked"; readonly ref: string }
   /**
    * One move the agent made at a window, as the harness watched it. Research
    * happens without a window on screen, and a phase with nothing to show is

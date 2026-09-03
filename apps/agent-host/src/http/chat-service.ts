@@ -109,8 +109,6 @@ export class ChatService {
     }
   }
 
-  /** A tapped open-web card queues like a sentence for the same reason a
-   *  second sentence does — one window, one timeline. */
   /** Wheel back = carry on: the parked checkout resumes by itself. */
   carryOn(): PurchaseResult | null {
     if (!this.webPick.parked || this.busy) return null;
@@ -124,6 +122,7 @@ export class ChatService {
     );
   }
 
+  /** A tapped card queues like a sentence: one window, one timeline. */
   pick(ref: string): PurchaseResult {
     const stated = this.current?.request ?? "";
     const language = this.language;
@@ -139,6 +138,9 @@ export class ChatService {
     replyLanguage: string | null,
   ): Promise<PurchaseResult> {
     if (inFlight !== null) await inFlight.catch(() => undefined);
+    // Before the errand: the choice is the host's fact to replay, and a chat
+    // that remounts mid-run must not re-offer a card already being fetched.
+    this.hub.emit({ kind: "picked", ref });
     try {
       const reproposed = await this.runner.repropose(ref);
       if (reproposed !== null) return reproposed;
@@ -154,9 +156,7 @@ export class ChatService {
   }
 
   async settled(): Promise<PurchaseResult | null> {
-    if (this.running !== null) {
-      await this.running;
-    }
+    if (this.running !== null) await this.running;
     return this.current;
   }
 
