@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { speakingLanguage, type LanguageChoice } from "./detectedLanguage.ts";
+import { spokenText } from "./spokenText.ts";
 import type { SpeechSynthesizer, VoiceLanguage } from "./ports.ts";
 import { readSpeakReplies, writeSpeakReplies } from "./voicePreference.ts";
 
@@ -95,7 +96,10 @@ export function useSpokenReplies(options: SpokenRepliesOptions): SpokenReplies {
   useEffect(() => {
     if (!enabled || text === undefined || text === handled.current) return;
     handled.current = text;
-    synthesizer.speak(text, speaks, (event) => {
+    // The document as it should be heard, not the source the screen renders
+    // from. Handing the synthesizer raw markdown read "**Lexar NM790**" with
+    // its asterisks in it and ran a bulleted list together into one sentence.
+    synthesizer.speak(spokenText(text), speaks, (event) => {
       setSpeaking(event.kind === "speaking");
       if (event.kind !== "speaking") settled.current?.();
     });
