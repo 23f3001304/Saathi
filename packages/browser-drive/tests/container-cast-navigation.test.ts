@@ -1,8 +1,8 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import { dockerSandboxReady } from "../src/container/docker-cli.js";
+import { shadeOf, type Shade } from "./cast-shades.js";
 import { fixtureShopUrl } from "../src/fixtures.js";
-import { decodePng } from "../src/frame/png.js";
 import type { CastFrame, CastSettings } from "../src/ports.js";
 import type { BrowserSession } from "../src/session/browser-session.js";
 import { buildContainerSession, IMAGE, LAUNCH_MS } from "./container-rig.js";
@@ -25,35 +25,6 @@ const PNG_CAST: CastSettings = {
   maxHeight: 900,
   everyNthFrame: 1,
 };
-
-/** The two full-bleed fixtures, by the corner colour each one floods. */
-const CORNER = 50;
-type Shade = "A" | "B" | "other";
-
-function shadeOf(bytes: Uint8Array): Shade {
-  const image = decodePng(bytes);
-  const wide = Math.min(CORNER, image.width);
-  const tall = Math.min(CORNER, image.height);
-  let red = 0;
-  let blue = 0;
-  for (let y = 0; y < tall; y += 1) {
-    for (let x = 0; x < wide; x += 1) {
-      const at = (y * image.width + x) * 4;
-      red += image.pixels[at] ?? 0;
-      blue += image.pixels[at + 2] ?? 0;
-    }
-  }
-  const count = wide * tall;
-  return nearest(red / count, blue / count);
-}
-
-/** `other` is a real answer, not a failure: a document that has committed but
- *  not painted is neither page, and the assertions below are about A and B. */
-function nearest(red: number, blue: number): Shade {
-  if (red > 120 && blue < 90) return "A";
-  if (blue > 120 && red < 90) return "B";
-  return "other";
-}
 
 /** One frame: the page the session said it was on, what the pixels show,
  *  whether the URL had already been rewritten by `pushState`, and whether the
@@ -190,9 +161,29 @@ container("the cast after a pushState", () => {
   it("keeps serving the page it is still on", () => {
     const after = shots.filter((shot) => shot.filtered);
     expect(after.length).toBeGreaterThan(0);
-    expect(after.filter((shot) => shot.stale).length).toBe(0);
-    expect(after.filter((shot) => shot.shade === "B").length).toBeGreaterThan(
-      0,
+    // The invariant: a pushState leaves the shopper where they were, so the
+    // frames of that page keep being served. Counting *served* B frames is
+    // the whole claim - a same-document navigation read as a new document
+    // would call every one of these stale and paint nothing from here on.
+    expect(
+      after.filter((shot) => !shot.stale && shot.shade === "B").length,
+    ).toBeGreaterThan(0);
+  });
+
+  /**
+   * DECISION: what may not happen is a frame of THIS page being called stale.
+   * Asserting no filtered frame is stale at all was too strong and flaked
+   * about one run in three: `filtered` is read from the URL when the frame is
+   * handed on, so a frame captured under the *previous* document and delivered
+   * a few milliseconds after the new one committed and pushStated is filtered,
+   * stale, and correctly so - it really is a picture of the page they left.
+   * The rule is about which page the pixels show, never about when they
+   * arrived.
+   */
+  it("calls stale only the frames of a page it had left", () => {
+    const wronglyStale = shots.filter(
+      (shot) => shot.filtered && shot.stale && shot.shade === "B",
     );
+    expect(wronglyStale).toEqual([]);
   });
 });
