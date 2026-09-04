@@ -81,6 +81,12 @@ Parallel today: lanes (one per conversation, capped) and
 `HeadlessReader.readMany`. Strictly serial: everything inside one errand — each
 tool call awaits the last, and research to verify to card is a chain.
 
+**This is smaller than it sounds and the founder knows it**: the hard part is
+already built. Ports are defined, the launcher already speaks over a pipe, the
+classifier and state machine already live on the sandbox side, and lanes are
+already concurrent. What is left is mostly transport and fan-out, not design.
+Do not turn it into a rewrite.
+
 Directions worth taking:
 
 - Let a turn issue **concurrent tool calls** and have the runner fan them out.
@@ -94,6 +100,17 @@ Directions worth taking:
   the **sandbox side**, never on the caller's word.
 
 ## Ask 3 — host it on Oracle Cloud (free tier)
+
+**Walk the founder through the setup, step by step.** They will be clicking in
+the Oracle console themselves, so give exact instructions and wait at each
+point where they must act: creating the always-free ARM instance (Ampere A1,
+Ubuntu), opening only the ports actually needed, the ingress rules in both the
+security list and `iptables`/`ufw` (Oracle images block ports at the OS level
+too, which surprises people), the ssh key, installing Docker and the compose
+plugin, cloning the repo, setting the environment, building the sandbox image
+on ARM, and bringing the three processes up under something that restarts them.
+Confirm each step worked before moving on, and prefer one command they can
+paste over a paragraph describing it.
 
 Target: Oracle always-free (typically 4 ARM cores / 24 GB). Three processes
 plus per-session Chrome containers.
