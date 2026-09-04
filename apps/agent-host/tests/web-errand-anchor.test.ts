@@ -74,7 +74,9 @@ describe("what the errand is told to write in", () => {
 
   it("points at those lines rather than naming a language", () => {
     const composed = errandFor("kurta", ["mujhe navy kurti chahiye"], "INR");
-    expect(composed.trimEnd().endsWith("both halves are right.")).toBe(true);
+    // Context, not a rule table: the errand ends by pointing back at the
+    // shopper's own quoted words, and never names a language itself.
+    expect(composed.trimEnd()).toMatch(/language they are writing in/i);
     expect(composed).not.toMatch(/answer in (english|hindi)/i);
   });
 });

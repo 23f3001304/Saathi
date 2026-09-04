@@ -21,7 +21,9 @@
  * session is reset when this fires: a turn nobody awaited must not be resumed
  * as though it had been.
  */
-export const ERRAND_CEILING_MS = 210_000;
+// A real checkout is a dozen page loads and as many model turns; three
+// and a half minutes cut it off mid-basket every time.
+export const ERRAND_CEILING_MS = 600_000;
 
 export class ErrandExpired extends Error {
   constructor(readonly afterMs: number) {

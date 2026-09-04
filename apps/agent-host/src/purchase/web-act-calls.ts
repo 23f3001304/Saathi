@@ -1,5 +1,6 @@
 import type { ToolCall, ToolOutcome } from "@covenant/agents";
 import {
+  APP_STATE_TOOL,
   WEB_CARD_TOOL,
   WEB_ENTER_CODE_TOOL,
   WEB_FOUND_TOOL,
@@ -13,6 +14,8 @@ import {
 import type { z } from "zod";
 
 import type { WebShopper } from "../browser/web-shopper.js";
+import type { StateParts } from "../browser/app-state.js";
+import { appState } from "../browser/app-state.js";
 import type { SignInVerbs } from "../browser/web-sign-in.js";
 import type { VerifyVerbs } from "../browser/web-verify.js";
 import type { CardVerbs } from "../browser/web-card.js";
@@ -148,4 +151,17 @@ export function cardCall(
   return parsed.success
     ? outcomeOf(verbs.card(parsed.data.rows))
     : badArgs(parsed.error);
+}
+
+/** Where things actually stand, as the model's own read. */
+export function stateCall(
+  call: ToolCall,
+  parts: StateParts | null,
+): Promise<ToolOutcome> | null {
+  if (call.tool !== APP_STATE_TOOL) return null;
+  if (parts === null) return Promise.resolve(unknown(call.tool));
+  return appState(parts).then((state) => ({
+    content: JSON.stringify(state),
+    isError: false,
+  }));
 }

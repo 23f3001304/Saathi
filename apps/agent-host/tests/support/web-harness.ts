@@ -81,8 +81,7 @@ function guardOf(
     null,
     null,
     null,
-    { verify: null, card: null },
-    new GlanceVerbs(service, NO_WAIT),
+    { glance: new GlanceVerbs(service, NO_WAIT) },
   );
   return new GuardedToolDispatcher(
     new PreToolUseHook(

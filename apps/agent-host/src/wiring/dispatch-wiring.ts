@@ -17,6 +17,7 @@ import type { WebTrail } from "../browser/web-trail.js";
 import type { TraitMemory } from "../purchase/trait-memory.js";
 import { MerchantToolRunner } from "../purchase/merchant-tool-runner.js";
 import type { WebPin } from "../purchase/web-pin.js";
+import type { RunnerReach } from "../purchase/web-tool-runner.js";
 import { WebToolRunner } from "../purchase/web-tool-runner.js";
 import { AgentToolDispatcher } from "../purchase/tool-dispatcher.js";
 import { ToolLog } from "../purchase/tool-log.js";
@@ -48,6 +49,8 @@ export interface DispatchDeps {
   /** The one product a buy errand may open, and the one shop a research
    *  errand may read. */
   readonly pin: WebPin;
+  /** Whether a checkout is parked, so the model can read it. */
+  readonly park: { readonly parked: boolean; readonly reason: string };
   /** What the shopper stated about themselves — the only source a delivery
    *  form is ever filled from. */
   readonly traits: TraitMemory;
@@ -86,6 +89,28 @@ export const ADDRESS_RECALL =
 
 /** The sandbox tools: every move written down for the shopper, and the pin
  *  that keeps a buy errand about the listing they tapped. */
+/** Everything the model may see and do beyond the shopper's own verbs. */
+function reachOf(
+  deps: DispatchDeps,
+  reads: VerifiedReads,
+  steps: { step(label: string): void },
+): RunnerReach {
+  return {
+    research: {
+      verify: new VerifyVerbs(deps.reader, reads, deps.trail, steps, deps.pin),
+      card: new CardVerbs(deps.findings, reads, deps.pin),
+    },
+    glance: new GlanceVerbs(deps.browser, new TimerWaiter()),
+    state: {
+      browser: deps.browser,
+      findings: deps.findings,
+      progress: deps.progress,
+      vault: deps.vault,
+      park: deps.park,
+    },
+  };
+}
+
 function webRunner(deps: DispatchDeps, shopper: WebShopper): WebToolRunner {
   const steps = {
     step: (label: string) =>
@@ -117,12 +142,10 @@ function webRunner(deps: DispatchDeps, shopper: WebShopper): WebToolRunner {
       deps.trail,
       deps.progress,
     ),
-    {
-      verify: new VerifyVerbs(deps.reader, reads, deps.trail, steps, deps.pin),
-      card: new CardVerbs(deps.findings, reads, deps.pin),
-    },
-    new GlanceVerbs(deps.browser, new TimerWaiter()),
+    reachOf(deps, reads, steps),
   );
+
+
 }
 
 export function wireToolDispatch(deps: DispatchDeps): DispatchParts {

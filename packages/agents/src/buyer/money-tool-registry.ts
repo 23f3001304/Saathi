@@ -47,6 +47,7 @@ export const WEB_VERIFY_TOOL = "web_verify";
  */
 export const WEB_CARD_TOOL = "web_card";
 export const WEB_GLANCE_TOOL = "web_glance";
+export const APP_STATE_TOOL = "app_state";
 /**
  * Looking further down the page the window is already on.
  *

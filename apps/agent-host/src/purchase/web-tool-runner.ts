@@ -2,12 +2,8 @@ import type { ToolCall, ToolOutcome } from "@covenant/agents";
 
 import {
   badArgs,
-  CART_INSTEAD,
   failureOf,
-  offPin,
   outcomeOf,
-  TRACKER_PATH,
-  trackerLink,
   unknown,
   unreachable,
 } from "./web-tool-guards.js";
@@ -26,6 +22,8 @@ import type { HandoverMove } from "../browser/web-handover-move.js";
 import type { WebFindings } from "../browser/web-listing.js";
 import type { WebShopper } from "../browser/web-shopper.js";
 import type { SignInVerbs } from "../browser/web-sign-in.js";
+import type { StateParts } from "../browser/app-state.js";
+import { cartCall, openCall } from "./web-open-calls.js";
 import type { GlanceVerbs } from "../browser/web-glance.js";
 import type { VerifyVerbs } from "../browser/web-verify.js";
 import { CALL_CEILING_MS, withinCall } from "./call-ceiling.js";
@@ -38,9 +36,10 @@ import {
   foundCall,
   vaultCall,
   verifyCall,
+  stateCall,
 } from "./web-act-calls.js";
 import { glanceCall, withPicture } from "./web-picture-call.js";
-import { webHandoverArgs, webOpenArgs, webRefArgs } from "./web-tools.js";
+import { webHandoverArgs } from "./web-tools.js";
 
 export function isWebTool(tool: string): boolean {
   return WEB_SHOP_TOOLS.includes(tool);
@@ -55,6 +54,19 @@ export function isWebTool(tool: string): boolean {
  * file re-decides whether a call was allowed, and nothing in it can reach a
  * payment rail — the only egress it knows is a DOM behind `GuardedPage`.
  */
+/**
+ * The optional half of a runner's world. One object because they are one
+ * idea, and because a tail of eight optional positionals had stopped
+ * reading as anything. `research` arrives as a pair: `web_verify` fills the
+ * table `web_card` is checked against, and a host wiring one without the
+ * other would card rows off pages nobody opened.
+ */
+export interface RunnerReach {
+  readonly research?: { verify: VerifyVerbs | null; card: CardVerbs | null };
+  readonly glance?: GlanceVerbs | null;
+  readonly state?: StateParts | null;
+}
+
 export class WebToolRunner {
   constructor(
     private readonly shopper: WebShopper,
@@ -78,18 +90,19 @@ export class WebToolRunner {
     private readonly findings: WebFindings | null = null,
     /** The vault's tool face; `null` on a host with no vault wired. */
     private readonly vaultVerbs: SignInVerbs | null = null,
-    /** The research lane's two verbs. They arrive together because they
-     *  share one table of reads - `web_verify` fills it and `web_card` is
-     *  checked against it - and a host that wired one without the other
-     *  would card rows off pages nobody opened. Both `null` where no
-     *  research is wired. */
-    private readonly research: {
-      verify: VerifyVerbs | null;
-      card: CardVerbs | null;
-    } = { verify: null, card: null },
-    /** The errand's eyes; `null` where no window can be pictured. */
-    private readonly glanceVerbs: GlanceVerbs | null = null,
+    /** What else this errand may see and do; see `RunnerReach`. */
+    private readonly reach: RunnerReach = {},
   ) {}
+
+  private get research(): { verify: VerifyVerbs | null; card: CardVerbs | null } {
+    return this.reach.research ?? { verify: null, card: null };
+  }
+  private get glanceVerbs(): GlanceVerbs | null {
+    return this.reach.glance ?? null;
+  }
+  private get state(): StateParts | null {
+    return this.reach.state ?? null;
+  }
 
   async run(call: ToolCall): Promise<ToolOutcome> {
     const moved = await this.bounded(call);
@@ -119,27 +132,34 @@ export class WebToolRunner {
   /** The calls that need this runner's own state first; everything else is
    *  a stateless lookup in `web-act-calls`, tried in one chain. */
   private async dispatch(call: ToolCall): Promise<ToolOutcome> {
-    const stateful = await this.statefulCall(call);
     return (
-      stateful ??
+      (await this.statefulCall(call)) ??
+      (await this.reachCall(call)) ??
+      unknown(call.tool)
+    );
+  }
+
+  /** The stateless lookups, tried in order; `null` means "not mine". */
+  private async reachCall(call: ToolCall): Promise<ToolOutcome | null> {
+    return (
+      (await stateCall(call, this.state)) ??
       verifyCall(call, this.research.verify) ??
       cardCall(call, this.research.card) ??
       (await glanceCall(call, this.glanceVerbs)) ??
       foundCall(call, this.findings) ??
       (await actCall(call, this.shopper)) ??
-      (await vaultCall(call, this.vaultVerbs)) ??
-      unknown(call.tool)
+      (await vaultCall(call, this.vaultVerbs))
     );
   }
 
   private async statefulCall(call: ToolCall): Promise<ToolOutcome | null> {
     switch (call.tool) {
       case WEB_OPEN_TOOL:
-        return await this.open(call);
+        return await openCall(call, this.shopper, this.pin);
       case WEB_READ_TOOL:
         return outcomeOf(await this.shopper.read());
       case WEB_ADD_TO_CART_TOOL:
-        return await this.addToCart(call);
+        return await cartCall(call, this.shopper);
       case WEB_CART_TOOL:
         return outcomeOf(await this.shopper.cart());
       case WEB_FILL_ADDRESS_TOOL:
@@ -161,34 +181,4 @@ export class WebToolRunner {
     return outcomeOf(await this.handoverMove.raise(reason, why));
   }
 
-  private async open(call: ToolCall): Promise<ToolOutcome> {
-    const parsed = webOpenArgs.safeParse(call.args);
-    if (!parsed.success) return badArgs(parsed.error);
-    if (TRACKER_PATH.test(parsed.data.url)) {
-      return trackerLink(parsed.data.url);
-    }
-    if (this.pin?.allows(parsed.data.url) === false) {
-      return offPin(parsed.data.url);
-    }
-    return outcomeOf(await this.shopper.open(parsed.data.url));
-  }
-
-  private async addToCart(call: ToolCall): Promise<ToolOutcome> {
-    const parsed = webRefArgs.safeParse(call.args);
-    if (!parsed.success) return badArgs(parsed.error);
-    const result = await this.shopper.addToCart(parsed.data.ref);
-    if (!result.isError) return outcomeOf(result);
-    // A refused basket click is usually the shopper's own control: the model
-    // aimed at Buy Now, which only they may press. The refusal was right and
-    // said so, but said nothing about what to press instead, so the errand
-    // handed over the wheel rather than pressing the basket control beside
-    // it. The way forward belongs in the refusal.
-    return {
-      content: JSON.stringify({
-        ...JSON.parse(outcomeOf(result).content),
-        next: CART_INSTEAD,
-      }),
-      isError: true,
-    };
-  }
 }
