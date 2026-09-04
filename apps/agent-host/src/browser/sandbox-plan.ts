@@ -6,13 +6,20 @@ import {
   PuppeteerLauncher,
   reapOrphans,
   seccompProfilePath,
+  WarmReaderBrowsers,
+  WarmWindows,
 } from "@covenant/browser-drive";
 import type {
   BrowserLauncher,
+  LaunchRequest,
   ReaderBrowser,
   SessionSurface,
 } from "@covenant/browser-drive";
 import type { Logger } from "@covenant/domain";
+
+import { SANDBOX_WINDOW } from "./sandbox-window.js";
+import { NO_WARM, warmSizesFrom } from "./warm-size.js";
+import type { WarmSizes } from "./warm-size.js";
 
 export const SANDBOX_IMAGE = "covenant-browser-sandbox:latest";
 
@@ -36,23 +43,64 @@ export interface SandboxPlan {
    *  container window beside a headless Chrome on the host would leave a
    *  browser on the very machine the container exists to keep clean. */
   readonly readerBrowser: () => ReaderBrowser;
+  /** Starts filling the warm pools. A no-op on a plan that keeps none. */
+  readonly primeWarm: () => void;
+  /** Ends every container still waiting unclaimed. Shutdown calls it. */
+  readonly drainWarm: () => Promise<void>;
+}
+
+/** The launch a warm purchase window is started in. It must match what
+ *  `BrowserSession` asks for, or the pool is primed for a shape nobody wants
+ *  and every claim falls through to a cold start. */
+export function windowLaunchTemplate(): LaunchRequest {
+  return {
+    // Both ignored inside a container: the profile is a tmpfs at a fixed path
+    // and downloads are denied outright. Stated because `LaunchRequest` is the
+    // native surface's type too, where they are neither.
+    userDataDir: "",
+    downloadDir: "",
+    surface: "container",
+    windowWidth: SANDBOX_WINDOW.width,
+    windowHeight: SANDBOX_WINDOW.height,
+  };
 }
 
 
 /** The container half of the two plans, exported so the surface a reader gets
  *  can be asserted on a machine with no Docker daemon to probe. */
-export function containerPlan(why: string): SandboxPlan {
+export function containerPlan(
+  why: string,
+  warm: WarmSizes = NO_WARM,
+  logger?: Logger,
+): SandboxPlan {
   const config = {
     image: SANDBOX_IMAGE,
     seccompProfile: seccompProfilePath(),
     memoryMb: CONTAINER_MEMORY_MB,
     ttlSeconds: CONTAINER_TTL_SECONDS,
   };
+  const readers =
+    warm.readers > 0
+      ? new WarmReaderBrowsers(config, warm.readers, logger)
+      : null;
+  const windows =
+    warm.windows > 0
+      ? new WarmWindows(config, windowLaunchTemplate(), warm.windows, logger)
+      : null;
   return {
     surface: "container",
     why,
-    launcherFor: (sessionId) => new ContainerLauncher({ ...config, sessionId }),
-    readerBrowser: () => new ContainerReaderBrowser(config),
+    launcherFor: (sessionId) =>
+      windows?.launcherFor(sessionId) ??
+      new ContainerLauncher({ ...config, sessionId }),
+    readerBrowser: () => readers?.surface() ?? new ContainerReaderBrowser(config),
+    primeWarm: () => {
+      readers?.prime();
+      windows?.prime();
+    },
+    drainWarm: async () => {
+      await Promise.all([readers?.drain(), windows?.drain()]);
+    },
   };
 }
 
@@ -62,6 +110,11 @@ export function inProcessPlan(why: string): SandboxPlan {
     why,
     launcherFor: () => new PuppeteerLauncher(),
     readerBrowser: () => new NativeReaderBrowser(),
+    // Nothing is kept warm on this surface: a pre-launched Chrome here would
+    // be a browser idling on the operator's own machine, which is the exact
+    // thing the container surface exists to avoid.
+    primeWarm: () => undefined,
+    drainWarm: () => Promise.resolve(),
   };
 }
 
@@ -81,6 +134,10 @@ export async function resolvePlan(
   logger: Logger,
 ): Promise<SandboxPlan> {
   const chosen = await choosePlan(env, logger);
+  // Resolved once, at boot, so this is where "always warm" begins. Filling is
+  // a background job: a pool that made boot wait for Chrome would trade the
+  // cold start for a slower start, which is not the trade being asked for.
+  chosen.primeWarm();
   // Both browsers this host opens, in one line: the window the shopper watches
   // and the reader the research errand batches through. Named separately
   // because "is there Chrome on this machine?" is a question about the reader
@@ -89,6 +146,7 @@ export async function resolvePlan(
     window: chosen.surface,
     reader: chosen.surface,
     why: chosen.why,
+    warm: warmSizesFrom(env),
   });
   return chosen;
 }
@@ -105,10 +163,13 @@ async function choosePlan(
   env: NodeJS.ProcessEnv,
   logger: Logger,
 ): Promise<SandboxPlan> {
-  void env;
   const missing = await dockerSandboxReady(SANDBOX_IMAGE);
   if (missing === null) {
-    return containerPlan("Docker is here and the sandbox image is built");
+    return containerPlan(
+      "Docker is here and the sandbox image is built",
+      warmSizesFrom(env),
+      logger,
+    );
   }
   logger.error("browser.sandbox.unavailable", { reason: missing });
   throw new Error(

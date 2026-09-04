@@ -16,13 +16,9 @@ import type { Clock, Logger } from "@covenant/domain";
 
 import { resolvePlan } from "./sandbox-plan.js";
 import type { SandboxPlan } from "./sandbox-plan.js";
+import { SANDBOX_WINDOW } from "./sandbox-window.js";
 
-/**
- * Smaller than the package default. Every frame is decoded, painted and
- * re-encoded twice a second, and the cost of that is linear in pixels — a
- * window the user can read beats a window nobody can stream.
- */
-export const SANDBOX_WINDOW = { width: 1024, height: 720 } as const;
+export { SANDBOX_WINDOW } from "./sandbox-window.js";
 
 export interface SandboxFactoryDeps {
   readonly clock: Clock;

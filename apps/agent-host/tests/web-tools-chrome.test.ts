@@ -9,18 +9,14 @@ import {
   PreToolUseHook,
   WEB_TOOL_SERVER,
 } from "@covenant/agents";
-import {
-  fixtureShopUrl,
-  PuppeteerLauncher,
-  TmpSandboxFactory,
-} from "@covenant/browser-drive";
+import { fixtureShopUrl } from "@covenant/browser-drive";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import { BrowserService } from "../src/browser/browser-service.js";
 import { buildFixtureShopSession } from "../src/browser/sandbox-factory.js";
-import { resolvePlan } from "../src/browser/sandbox-plan.js";
 import { HandoverMove } from "../src/browser/web-handover-move.js";
 import { WebToolRunner } from "../src/purchase/web-tool-runner.js";
+import { chromeSuiteSkip } from "./support/chrome-probe.js";
 import { SilentLogger, StepClock } from "./support/fakes.js";
 import { webShopperOn, WebOnlyDispatcher } from "./support/web-harness.js";
 import { CountingSink, SilentTracer } from "./support/web-doubles.js";
@@ -36,50 +32,7 @@ const CEILING = { capPaise: 300_000, currency: "INR" };
 /** ₹3,799.00 on the fixture's cart page. */
 const CART_PAISE = 379_900;
 
-async function probeChrome(): Promise<string | null> {
-  const sandbox = new TmpSandboxFactory().create(`web-tools-${process.pid}`);
-  try {
-    const browser = await new PuppeteerLauncher().launch({
-      userDataDir: sandbox.path,
-      downloadDir: sandbox.downloadDir,
-      surface: "native-window",
-      windowWidth: 900,
-      windowHeight: 700,
-    });
-    await browser.close();
-    return null;
-  } catch (error) {
-    return String(error).slice(0, 200);
-  } finally {
-    sandbox.dispose();
-  }
-}
-
-/**
- * This suite drives a real browser against fixture pages served from this
- * machine over `file://`, and a container mounts nothing from the host by
- * design (`FORBIDDEN_CONTAINER_ARGS`) - so on the container surface those
- * pages are unreachable and the suite cannot mean anything. It skips there,
- * loudly, rather than failing: the tool surface it covers is exercised by
- * `web-tools.test.ts` against a fake page, and what is lost here is the
- * real-Chrome half of that coverage. Serving the fixtures over HTTP into
- * the container's bridge is the way back to it.
- */
-async function probeSandbox(): Promise<string | null> {
-  try {
-    const plan = await resolvePlan(process.env, new SilentLogger());
-    return plan.surface === "container"
-      ? "the sandbox is a container and file:// fixtures live on this host"
-      : null;
-  } catch (error) {
-    return String(error).slice(0, 200);
-  }
-}
-
-const SKIP = (await probeChrome()) ?? (await probeSandbox());
-if (SKIP !== null) {
-  console.warn(`[agent-host] real-Chrome web-tool suite SKIPPED: ${SKIP}`);
-}
+const SKIP = await chromeSuiteSkip("real-Chrome web-tool suite");
 
 let service: BrowserService;
 let guard: GuardedToolDispatcher;

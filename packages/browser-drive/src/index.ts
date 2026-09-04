@@ -63,5 +63,8 @@ export * from "./container/docker-cli.js";
 export * from "./container/container-spec.js";
 export * from "./container/container-launcher.js";
 export * from "./container/container-reader.js";
+export * from "./container/warm-pool.js";
+export * from "./container/warm-reader.js";
+export * from "./container/warm-window.js";
 export * from "./container/pipe-transport.js";
 export * from "./container/profile-path.js";

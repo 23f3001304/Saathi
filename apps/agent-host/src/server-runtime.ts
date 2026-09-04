@@ -53,6 +53,10 @@ function stepsFor(root: CompositionRoot, server: ServerType) {
       // registry's own, then every lane's model session via `closeAll`.
       await root.lanes.closeAll();
       await root.browserRegistry.closeAll();
+      // Last, and separately: a warm container belongs to nobody, so nothing
+      // above would have ended it, and one left running is the same orphan the
+      // host reaps at boot.
+      await root.drainWarmSandboxes();
     },
   };
 }

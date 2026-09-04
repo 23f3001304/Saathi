@@ -1,4 +1,7 @@
-import { ContainerReaderBrowser } from "@covenant/browser-drive";
+import {
+  ContainerLauncher,
+  ContainerReaderBrowser,
+} from "@covenant/browser-drive";
 import { describe, expect, it } from "vitest";
 
 import { containerPlan, resolvePlan } from "../src/browser/sandbox-plan.js";
@@ -31,6 +34,22 @@ describe("the sandbox plan", () => {
       return;
     }
     expect(plan.surface).toBe("container");
+    await plan.drainWarm();
+  });
+
+  it("keeps nothing warm unless it is asked to", () => {
+    const plan = containerPlan("Docker is here");
     expect(plan.readerBrowser()).toBeInstanceOf(ContainerReaderBrowser);
+    expect(plan.launcherFor("web_x")).toBeInstanceOf(ContainerLauncher);
+  });
+
+  /** A warm pool changes *when* a container starts, never what a caller gets:
+   *  a research batch still reads through a container of its own and a window
+   *  still launches into one. Both surfaces come from the pool here, so the
+   *  assertion is that they are no longer the cold classes. */
+  it("serves both browsers from the pool once it is", () => {
+    const plan = containerPlan("Docker is here", { readers: 1, windows: 1 });
+    expect(plan.readerBrowser()).not.toBeInstanceOf(ContainerReaderBrowser);
+    expect(plan.launcherFor("web_x")).not.toBeInstanceOf(ContainerLauncher);
   });
 });

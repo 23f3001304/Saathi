@@ -54,6 +54,20 @@ export function readerLaunchRequest(): LaunchRequest {
   };
 }
 
+/** One reader container, started. The pool and the plain surface below both
+ *  go through here, so "what a research container is" is written once. */
+export function launchReaderContainer(
+  config: ContainerReaderConfig,
+  sessionId: string = readSessionId(),
+): Promise<ConnectedBrowser> {
+  const launcher = new ContainerLauncher({
+    ...config,
+    sessionId,
+    chromeArgs: READER_CHROME_ARGS,
+  });
+  return launcher.launch(readerLaunchRequest());
+}
+
 /**
  * Research reads in the same container the shopper's window would get: same
  * image, same seccomp profile, same lockdown, a throwaway profile on tmpfs that
@@ -68,12 +82,7 @@ export class ContainerReaderBrowser implements ReaderBrowser {
 
   async open(): Promise<Browser> {
     await this.close();
-    const launcher = new ContainerLauncher({
-      ...this.config,
-      sessionId: readSessionId(),
-      chromeArgs: READER_CHROME_ARGS,
-    });
-    const launched = await launcher.launch(readerLaunchRequest());
+    const launched = await launchReaderContainer(this.config);
     this.held = launched;
     return launched.connection;
   }

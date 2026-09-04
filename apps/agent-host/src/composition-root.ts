@@ -67,6 +67,8 @@ export interface CompositionRoot {
   readonly amend: AmendFlow;
   /** The shopper's stored sign-ins; read only by the sign-in routine. */
   readonly vault: CredentialVault;
+  /** Ends the containers this host keeps warm. Shutdown's last step. */
+  drainWarmSandboxes(): Promise<void>;
 }
 
 /**
@@ -182,5 +184,8 @@ export function buildRoot(config: AgentHostConfig): CompositionRoot {
     lanes,
     amend: wireAmendFlow(parts),
     vault,
+    drainWarmSandboxes: async () => {
+      await (await sandboxPlan(parts.obs.logger)).drainWarm();
+    },
   };
 }
