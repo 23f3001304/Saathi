@@ -1,4 +1,5 @@
 import type { SeeParts } from "../browser/app-see.js";
+import type { Devices } from "../browser/devices.js";
 import type { StateParts } from "../browser/app-state.js";
 import type { CardVerbs } from "../browser/web-card.js";
 import type { GlanceVerbs } from "../browser/web-glance.js";
@@ -17,6 +18,8 @@ export interface RunnerReach {
   /** How the model asks; `null` where nobody is listening. */
   readonly ask?: AskVerb | null;
   readonly see?: SeeParts | null;
+  /** The sandbox's mouse and keyboard. */
+  readonly devices?: Devices | null;
   readonly glance?: GlanceVerbs | null;
   readonly state?: StateParts | null;
 }

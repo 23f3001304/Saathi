@@ -46,17 +46,18 @@ function solid(image: RasterImage, x: number, y: number): void {
   blend(image, x, y, 255);
 }
 
+function block(image: RasterImage, x: number, y: number): void {
+  for (let sy = 0; sy < GLYPH_SCALE; sy += 1) {
+    for (let sx = 0; sx < GLYPH_SCALE; sx += 1) solid(image, x + sx, y + sy);
+  }
+}
+
 function drawDigit(image: RasterImage, digit: number, x: number, y: number): void {
-  const rows = DIGITS[digit] ?? DIGITS[0];
+  const rows = (DIGITS[digit] ?? DIGITS[0]) as number[];
   for (let row = 0; row < 5; row += 1) {
     for (let col = 0; col < 3; col += 1) {
-      if ((((rows as number[])[row] ?? 0) >> (2 - col)) & 1) {
-        for (let sy = 0; sy < GLYPH_SCALE; sy += 1) {
-          for (let sx = 0; sx < GLYPH_SCALE; sx += 1) {
-            solid(image, x + col * GLYPH_SCALE + sx, y + row * GLYPH_SCALE + sy);
-          }
-        }
-      }
+      const lit = ((rows[row] ?? 0) >> (2 - col)) & 1;
+      if (lit) block(image, x + col * GLYPH_SCALE, y + row * GLYPH_SCALE);
     }
   }
 }

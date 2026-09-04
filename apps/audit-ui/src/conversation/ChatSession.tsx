@@ -503,7 +503,8 @@ export function ChatSession({
       )}
       <Composer
         voiceStage={voiceStage}
-        blocked={offline || launching || working}
+        blocked={offline}
+        waiting={launching || working}
         onSend={answer}
         speakText={spokenLine}
         actions={replies}

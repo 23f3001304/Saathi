@@ -86,12 +86,28 @@ function withOffer(
  * returns to the transcript as history the moment it is answered — see the
  * `buyer` case below.
  */
+/** Drops the run of thinking at the tail, and nothing before it. */
+function withoutTrailingThoughts(entries: readonly ChatEntry[]): ChatEntry[] {
+  const kept = [...entries];
+  while (kept.length > 0) {
+    const last = kept[kept.length - 1];
+    if (last?.kind !== "agent" || last.thinking !== true) break;
+    kept.pop();
+  }
+  return kept;
+}
+
 function applyAsk(
   state: AssistantSnapshot,
   signal: Extract<AssistantSignal, { kind: "ask" }>,
 ): AssistantSnapshot {
   const { id, prompt, replies, groups } = signal;
-  const entries = dropEcho(closeWork(claimQuietly(state.entries)), prompt);
+  // The drafting of a question is not thinking worth keeping: it is the same
+  // sentence, one rewrite earlier. A turn that ends by asking claims its own
+  // trailing drafts, so the shopper sees the question once, at the composer,
+  // instead of reading it in a Thinking block and again underneath.
+  const held = withoutTrailingThoughts(claimQuietly(state.entries));
+  const entries = dropEcho(closeWork(held), prompt);
   return { ...state, question: { id, prompt, replies, groups }, entries };
 }
 
@@ -100,6 +116,16 @@ function applyAsk(
  *  draft written past by later steps folds into a pill, and the say that
  *  duplicates it then rendered the sentence twice. The pill goes; the say
  *  still speaks (and `speak` claims a claimable settled draft itself). */
+/** Unclaimed drafts are drafting: they go quiet, they do not stand as
+ *  answers beside the one the harness actually spoke for. */
+function settleSpoken(entries: readonly ChatEntry[]): ChatEntry[] {
+  return entries.map((entry) =>
+    entry.kind === "agent" && entry.draft !== undefined
+      ? { kind: "agent", text: entry.text, thinking: true }
+      : entry,
+  );
+}
+
 function spoken(
   entries: readonly ChatEntry[],
   signal: Extract<AssistantSignal, { kind: "say" }>,
@@ -111,7 +137,10 @@ function spoken(
   if (signal.thinking === true) {
     return [...held, { kind: "agent", text: signal.text, thinking: true }];
   }
-  return speak(held, signal.text, signal.system);
+  // One bubble per commit: the draft this answer landed in keeps it, and any
+  // other prose the model left standing this turn becomes thinking. Only the
+  // commit can tell those apart, which is why it does the tidying.
+  return settleSpoken(speak(held, signal.text, signal.system));
 }
 
 /** Their sentence starts the next turn: the answered question becomes

@@ -71,6 +71,53 @@ export class PointActions {
     return ok(null);
   }
 
+  /**
+   * Keystrokes to whatever the last click focused, which is how a keyboard
+   * works: you click a box, then you type. The focused element is judged by
+   * the same classifier first, so a password box refuses the agent's
+   * keystrokes exactly as it refuses its clicks.
+   */
+  async typeFocused(text: string): Promise<ActionResult<null>> {
+    this.state.assertAgentMayAct("type");
+    const target = await this.page.describeFocused();
+    const judged = this.judgeTarget(target, "type", { chars: text.length });
+    if (judged !== null) return judged;
+    if (target === null || !isTextEntry(target)) {
+      return this.refused(noTextTarget(), "type", {});
+    }
+    await this.page.typeText(text);
+    return ok(null);
+  }
+
+  /** One named key, to the same focus, judged the same way. */
+  async pressKey(name: string): Promise<ActionResult<null>> {
+    this.state.assertAgentMayAct("key");
+    const judged = this.judgeTarget(
+      await this.page.describeFocused(),
+      "key",
+      { key: name },
+    );
+    if (judged !== null) return judged;
+    await this.page.pressKey(name);
+    return ok(null);
+  }
+
+  /** The judge, for a target somebody else resolved. */
+  private judgeTarget(
+    target: ElementDescriptor | null,
+    action: string,
+    detail: Readonly<Record<string, unknown>>,
+  ): Refusal | null {
+    if (target === null) return this.refused(unknownTarget(action), action, detail);
+    if (OPAQUE_TAGS.includes(target.tag)) {
+      return this.refused(opaqueTarget(target.tag), action, detail);
+    }
+    const verdict = this.classifier.classify(target);
+    return verdict.sensitive
+      ? this.blocked(target, verdict, action, detail)
+      : null;
+  }
+
   private async judge(
     x: number,
     y: number,

@@ -15,7 +15,11 @@ import styles from "./Composer.module.css";
 export type ComposerAction = { label: string; onClick: () => void };
 
 type ComposerProps = {
+  /** The host is gone: nothing can be bought, and the dock says so. */
   blocked: boolean;
+  /** A turn is in flight: the dock waits, but the host is perfectly fine
+   *  and must not be described as absent. */
+  waiting?: boolean;
   onSend: (text: string) => void;
   /** Newest assistant line, for the opt-in read-aloud. */
   speakText?: string;
@@ -61,6 +65,7 @@ type ComposerProps = {
  */
 export function Composer({
   blocked,
+  waiting = false,
   onSend,
   actions,
   choices,
@@ -111,7 +116,7 @@ export function Composer({
 
   function handleSubmit(e: FormEvent): void {
     e.preventDefault();
-    if (blocked) return;
+    if (blocked || waiting) return;
     const combined = [
       ...(choiceGroups ?? []).flatMap((group) =>
         byGroup[group.label] === undefined
@@ -155,7 +160,7 @@ export function Composer({
                       : styles.chip
                   }
                   aria-pressed={byGroup[group.label] === option}
-                  disabled={blocked}
+                  disabled={blocked || waiting}
                   onClick={() => pickInGroup(group.label, option)}
                 >
                   {option}
@@ -176,7 +181,7 @@ export function Composer({
                   : styles.chip
               }
               aria-pressed={picked.includes(choice)}
-              disabled={blocked}
+              disabled={blocked || waiting}
               onClick={() => toggle(choice)}
             >
               {choice}
@@ -191,7 +196,7 @@ export function Composer({
               key={action.label}
               type="button"
               className={styles.chip}
-              disabled={blocked}
+              disabled={blocked || waiting}
               onClick={action.onClick}
             >
               {action.label}
@@ -218,7 +223,7 @@ export function Composer({
             <input
               className={styles.input}
               value={text}
-              disabled={blocked}
+              disabled={blocked || waiting}
               placeholder={
                 blocked
                   ? "Nothing is answering: nothing can be bought"

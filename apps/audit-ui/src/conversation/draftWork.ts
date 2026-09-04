@@ -7,7 +7,6 @@
 // account of what it was doing, and "Amazon's home page did not expose its
 // search box, so I'm opening the results page directly" is exactly what the
 // work strip is for. It lands there, and the bubble is left for the answer.
-import type { Activity } from "./assistantScript.ts";
 import type { ChatEntry } from "./chatEntry.ts";
 
 type AgentEntry = Extract<ChatEntry, { kind: "agent" }>;
@@ -24,29 +23,30 @@ export function supersede(
   const kept = entries.filter((_entry, index) => index !== at);
   const text = held.text.trim();
   if (text === "" || held.streamId === undefined) return kept;
-  const activity: Activity = { id: held.streamId, text, afterMs: 0 };
-  const last = kept[kept.length - 1];
-  if (last?.kind !== "work") {
-    return [...kept, { kind: "work", activities: [activity], done: false }];
-  }
-  return [
-    ...kept.slice(0, -1),
-    { kind: "work", activities: [...last.activities, activity], done: false },
-  ];
+  // DECISION (replacing "it lands in the work strip"): a superseded draft is
+  // THINKING, not work. As a work activity it wore a tick in the step list,
+  // which says "the host did this" - and a live turn that reworded its own
+  // question seven times showed seven ticked pills of the same question, as
+  // if seven things had happened. Nothing had. It goes where the rest of the
+  // working goes: the collapsed block, open to whoever wants it.
+  return [...kept, { kind: "agent", text, thinking: true }];
 }
 
 /**
- * A new round is starting, and the round before left prose standing that the
- * harness never spoke for. That is the same fact as an empty-reason withdrawal
- * — the model wrote past its own preamble — and the live host produces both:
- * one turn withdrew two drafts and settled four more, and all six reached the
- * shopper as one sentence changing its mind. A settled draft a `message` has
- * already claimed carries no `draft` any more; that one is an answer and stays.
+ * A new round is starting over prose the last one left standing.
+ *
+ * DECISION: only a draft still LIVE is taken away here. A settled draft is a
+ * finished utterance waiting for the harness to commit the same words, and
+ * folding it on the next delta raced that commit: the fold won, `speak` then
+ * found nothing to claim and appended a second copy, and every sentence in
+ * the conversation appeared twice - once as thinking, once as itself. Live
+ * prose the model wrote past is genuinely abandoned and still goes.
  */
 export function openDraft(entries: readonly ChatEntry[]): ChatEntry[] {
-  const at = entries.length - 1;
-  const last = entries[at];
-  if (last?.kind !== "agent" || last.draft !== "final" || last.system === true)
-    return [...entries];
-  return supersede(entries, at, last);
+  // Nothing is folded here any more. Folding on the next delta raced the
+  // harness's commit of the same words: the fold won, `speak` found nothing
+  // to claim, and every sentence appeared twice - once as thinking, once as
+  // itself. The commit tidies instead (`settleSpoken`), because only the
+  // commit knows which draft turned out to be the answer.
+  return [...entries];
 }

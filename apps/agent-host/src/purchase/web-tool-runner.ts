@@ -39,6 +39,7 @@ import {
   verifyCall,
 } from "./web-act-calls.js";
 import {
+  deviceCall,
   askCall,
   seeCall,
   stateCall,
@@ -155,7 +156,8 @@ export class WebToolRunner {
       (await stateCall(call, this.state)) ??
       (await askCall(call, this.askVerb)) ??
       (await seeCall(call, this.seeParts)) ??
-      (await glanceCall(call, this.glanceVerbs))
+      (await glanceCall(call, this.glanceVerbs)) ??
+      (await deviceCall(call, this.reach.devices ?? null))
     );
   }
 

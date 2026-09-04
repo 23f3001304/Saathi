@@ -72,12 +72,21 @@ export function readPageDom(): PageDom {
     text: clean(el.textContent),
     href: (el as HTMLAnchorElement).href,
   })).filter((link) => /^https?:|^file:/.test(link.href));
-  const centreOf = (el: Element): { x: number; y: number } => {
+  // A point is only aimable where the window can actually be clicked: these
+  // are viewport coordinates, so a control below the fold reports a y past
+  // the window's height and a click there lands on nothing at all. The live
+  // failure was exactly that - an add-to-cart at y=805 in a 720-tall window,
+  // faithfully aimed at and refused as unreadable. Off-screen controls come
+  // back with no point and say so, and the model scrolls first.
+  const centreOf = (
+    el: Element,
+  ): { x: number; y: number; onscreen: boolean } => {
     const box = el.getBoundingClientRect();
-    return {
-      x: Math.round(box.left + box.width / 2),
-      y: Math.round(box.top + box.height / 2),
-    };
+    const x = Math.round(box.left + box.width / 2);
+    const y = Math.round(box.top + box.height / 2);
+    const onscreen =
+      x >= 0 && y >= 0 && x < window.innerWidth && y < window.innerHeight;
+    return { x, y, onscreen };
   };
   // Document order spent the whole control budget on a marketplace header
   // before the buy box: 40 slots of nav, pickers and carousel arrows, and

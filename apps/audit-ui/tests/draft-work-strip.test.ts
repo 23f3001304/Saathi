@@ -20,13 +20,18 @@ function fold(beats: readonly AgentBeat[]): AssistantSnapshot {
   return reduceSignals(signalsForBeats(beats, 1), emptySnapshot);
 }
 
+/** Bubbles only: thinking is an agent entry too, and it is not a bubble. */
 function agents(state: AssistantSnapshot): ChatEntry[] {
-  return state.entries.filter((entry) => entry.kind === "agent");
+  return state.entries.filter(
+    (entry) => entry.kind === "agent" && entry.thinking !== true,
+  );
 }
 
+/** Superseded prose is thinking now, not a ticked step: a tick says the
+ *  host DID something, and rewriting a sentence is not a thing done. */
 function pills(state: AssistantSnapshot): string[] {
   return state.entries.flatMap((entry) =>
-    entry.kind === "work" ? entry.activities.map((a) => a.text) : [],
+    entry.kind === "agent" && entry.thinking === true ? [entry.text] : [],
   );
 }
 
@@ -48,7 +53,7 @@ const TOUR: readonly AgentBeat[] = [
  * become a search result, six rewrites of one sentence. The superseded prose
  * is a true record of what the run was doing, so it belongs in the work strip.
  */
-describe("a superseded draft moves to the work strip", () => {
+describe("a superseded draft becomes thinking", () => {
   it("leaves one bubble and a list, not six rewrites of one sentence", () => {
     const state = fold([
       ...TOUR,
@@ -65,9 +70,13 @@ describe("a superseded draft moves to the work strip", () => {
     ]);
   });
 
-  it("keeps the record in one strip rather than one strip per round", () => {
-    const work = fold(TOUR).entries.filter((entry) => entry.kind === "work");
-    expect(work).toHaveLength(1);
+  it("keeps the record together rather than one block per round", () => {
+    // Thinking entries are consecutive, which is what the transcript groups
+    // into one collapsed block; the strip is for what the host DID.
+    const thoughts = fold(TOUR).entries.filter(
+      (entry) => entry.kind === "agent" && entry.thinking === true,
+    );
+    expect(thoughts.length).toBeGreaterThan(0);
   });
 });
 
@@ -78,7 +87,7 @@ describe("a superseded draft moves to the work strip", () => {
  * fact as a withdrawn one and is folded the same way.
  */
 describe("a settled draft the next round wrote past", () => {
-  it("goes to the strip too, so the bubble is left for the answer", () => {
+  it("is kept for the answer to claim, not folded away under it", () => {
     const state = fold([
       delta("d5", "I'm opening Amazon, then I'll search its own shop."),
       { offsetMs: 0, kind: "draft-settled", streamId: "d5" },

@@ -40,18 +40,15 @@ import { speakFor } from "./web-errand.js";
  * per-price citations it used to repeat are the cards' to make.
  */
 const SUMMARISE =
-  "You have finished looking. What you write now is the whole of what they " +
-  "see, so say what you would say to a friend who asked: which one you " +
-  "would buy of what you actually read, and why that one.\n" +
-  "You are the expert here. Judge each thing on what matters for THIS " +
-  "product, not on what the page was selling. Name what would bother you " +
-  "if you were paying: a rating nobody should ignore, a discount anchored " +
-  "to a price nobody ever charged, a spec that is not what they asked for. " +
-  "If what you found is an accessory rather than the thing itself, say so " +
-  "and ask which kind of the thing they meant.\n" +
-  "The cards are already on their screen with the prices and the shops on " +
-  "them, so do not read the list back or say where you read a price. Their " +
-  "own words are quoted above; answer in the language they are using.";
+  "You have finished looking. Write the one thing they read: which of these " +
+  "you would buy and why, in your own words, as you would say it to someone " +
+  "who asked.\n" +
+  "Judge on what matters for this product, not on what the page was selling. " +
+  "Say anything that would bother you if you were paying: a rating nobody " +
+  "should ignore, a discount against a price nobody charged, a spec that is " +
+  "not what they asked for.\n" +
+  "Their cards are already on screen with the prices and shops on them. Do " +
+  "not list them back, and do not say where you read a price.\n";
 
 /**
  * What the window was shown, as this host recorded it.

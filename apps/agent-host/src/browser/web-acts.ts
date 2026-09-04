@@ -86,3 +86,26 @@ export async function writeAt(
   if (!typed.ok) return webRefusal(typed);
   return settleAfterAct(session, deps, { wrote: { x, y, chars: text.length } });
 }
+
+/** The keyboard half of the devices: characters to whatever the last click
+ *  focused, and one named key to the same place. Both judged before
+ *  anything reaches the window. */
+export async function typeFocusedIn(
+  session: BrowserSession,
+  deps: ActDeps,
+  text: string,
+): Promise<WebResult> {
+  const typed = await session.points().typeFocused(text);
+  if (!typed.ok) return webRefusal(typed);
+  return settleAfterAct(session, deps, { typed: text.length });
+}
+
+export async function pressKeyIn(
+  session: BrowserSession,
+  deps: ActDeps,
+  name: string,
+): Promise<WebResult> {
+  const pressed = await session.points().pressKey(name);
+  if (!pressed.ok) return webRefusal(pressed);
+  return settleAfterAct(session, deps, { pressed: name });
+}

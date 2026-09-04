@@ -7,6 +7,7 @@ import type { BeatHub } from "../http/beat-hub.js";
 import type { HeadlessReader } from "@covenant/browser-drive";
 import type { WebFindings } from "../browser/web-listing.js";
 import { SignInVerbs } from "../browser/web-sign-in.js";
+import { Devices } from "../browser/devices.js";
 import { GlanceVerbs } from "../browser/web-glance.js";
 import { HandoverMove } from "../browser/web-handover-move.js";
 import { VerifiedReads, VerifyVerbs } from "../browser/web-verify.js";
@@ -93,8 +94,13 @@ export const ADDRESS_RECALL =
 /** The sandbox tools: every move written down for the shopper, and the pin
  *  that keeps a buy errand about the listing they tapped. */
 /** Everything the model may see and do beyond the shopper's own verbs. */
+function glanceOf(deps: DispatchDeps): GlanceVerbs {
+  return new GlanceVerbs(deps.browser, new TimerWaiter());
+}
+
 function reachOf(
   deps: DispatchDeps,
+  shopper: WebShopper,
   reads: VerifiedReads,
   steps: { step(label: string): void },
 ): RunnerReach {
@@ -103,7 +109,8 @@ function reachOf(
       verify: new VerifyVerbs(deps.reader, reads, deps.trail, steps, deps.pin),
       card: new CardVerbs(deps.findings, reads, deps.pin),
     },
-    glance: new GlanceVerbs(deps.browser, new TimerWaiter()),
+    glance: glanceOf(deps),
+    devices: new Devices(shopper, glanceOf(deps)),
     ask: deps.ask,
     see: {
       findings: deps.findings,
@@ -150,7 +157,7 @@ function webRunner(deps: DispatchDeps, shopper: WebShopper): WebToolRunner {
       deps.trail,
       deps.progress,
     ),
-    reachOf(deps, reads, steps),
+    reachOf(deps, shopper, reads, steps),
   );
 
 

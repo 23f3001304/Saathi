@@ -26,7 +26,14 @@ export interface PageControlDom {
   /** Centre of the control's box in viewport pixels — the same space the
    *  hit-test and the pointer use, so an aim taken from a read lands on the
    *  thing that was read. Absent when the reader did not measure. */
-  readonly at?: { readonly x: number; readonly y: number };
+  /** Viewport point, and whether it is inside the window right now. A
+   *  control below the fold cannot be clicked where it says it is: scroll
+   *  to it first. */
+  readonly at?: {
+    readonly x: number;
+    readonly y: number;
+    readonly onscreen: boolean;
+  };
 }
 
 /**

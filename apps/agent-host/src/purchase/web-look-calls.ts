@@ -1,6 +1,8 @@
 import type { ToolCall, ToolOutcome } from "@covenant/agents";
 import {
   APP_STATE_TOOL,
+  KEYBOARD_TOOL,
+  MOUSE_TOOL,
   ASK_SHOPPER_TOOL,
   SEE_CARDS_TOOL,
   SEE_PROFILE_TOOL,
@@ -10,9 +12,10 @@ import type { SeeParts } from "../browser/app-see.js";
 import { seeCards, seeProfile } from "../browser/app-see.js";
 import type { StateParts } from "../browser/app-state.js";
 import { appState } from "../browser/app-state.js";
+import type { Devices } from "../browser/devices.js";
 import type { AskVerb } from "./ask-verb.js";
-import { badArgs, unknown } from "./web-tool-guards.js";
-import { askShopperArgs } from "./web-tools.js";
+import { badArgs, outcomeOf, unknown } from "./web-tool-guards.js";
+import { askShopperArgs, keyboardArgs, mouseArgs } from "./web-tools.js";
 
 /** The calls that only look at this platform, or ask its shopper something.
  *  None of them touches a page. */
@@ -69,4 +72,26 @@ export function stateCall(
     content: JSON.stringify(state),
     isError: false,
   }));
+}
+
+/** The mouse and the keyboard, each answering with a fresh picture. */
+export function deviceCall(
+  call: ToolCall,
+  devices: Devices | null,
+): Promise<ToolOutcome> | null {
+  if (call.tool !== MOUSE_TOOL && call.tool !== KEYBOARD_TOOL) return null;
+  if (devices === null) return Promise.resolve(unknown(call.tool));
+  const parsed =
+    call.tool === MOUSE_TOOL
+      ? mouseArgs.safeParse(call.args)
+      : keyboardArgs.safeParse(call.args);
+  if (!parsed.success) return Promise.resolve(badArgs(parsed.error));
+  const moved =
+    call.tool === MOUSE_TOOL
+      ? devices.mouse(parsed.data as never)
+      : devices.keyboard(parsed.data as never);
+  return moved.then((seen) => {
+    const outcome = outcomeOf(seen.result);
+    return seen.image === null ? outcome : { ...outcome, image: seen.image };
+  });
 }

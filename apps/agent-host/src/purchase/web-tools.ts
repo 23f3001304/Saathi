@@ -23,6 +23,32 @@ export const webScrollArgs = z.object({
 
 /** What a research errand reports: candidates as the source printed them.
  *  Every row is untrusted text and the host re-parses the price itself. */
+/** The mouse: a point to click, or a distance to scroll. */
+export const mouseArgs = z
+  .object({
+    do: z.enum(["click", "scroll"]),
+    x: z.number().int().min(0).optional(),
+    y: z.number().int().min(0).optional(),
+    by: z.number().int().optional(),
+  })
+  .refine(
+    (move) =>
+      move.do === "scroll"
+        ? move.by !== undefined
+        : move.x !== undefined && move.y !== undefined,
+    { message: "click needs x and y; scroll needs by" },
+  );
+
+/** The keyboard: characters, or one named key. Exactly one of them. */
+export const keyboardArgs = z
+  .object({
+    type: z.string().min(1).max(300).optional(),
+    press: z.string().min(1).max(20).optional(),
+  })
+  .refine((move) => (move.type === undefined) !== (move.press === undefined), {
+    message: "give exactly one of type or press",
+  });
+
 export const askShopperArgs = z.object({
   question: z.string().min(1).max(300),
   replies: z.array(z.string().min(1).max(60)).max(6).default([]),

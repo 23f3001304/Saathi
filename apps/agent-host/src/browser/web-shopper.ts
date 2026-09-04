@@ -13,7 +13,14 @@ import { PageRefs, WEB_PROVENANCE } from "./web-page-view.js";
 import type { WebResult } from "./web-result.js";
 import type { WebTrail } from "./web-trail.js";
 import type { ActDeps } from "./web-acts.js";
-import { pressAt, scrollPage, settleAfterAct, writeAt } from "./web-acts.js";
+import {
+  pressAt,
+  pressKeyIn,
+  scrollPage,
+  settleAfterAct,
+  typeFocusedIn,
+  writeAt,
+} from "./web-acts.js";
 import {
   NO_WINDOW,
   pageMoved,
@@ -29,13 +36,10 @@ import {
 const SUBMIT = "\n";
 
 /**
- * Shopping the open web, as the operations the buyer agent can call. Every
- * one goes through `GuardedPage`, so the guarantees are the sandbox's own:
- * the classifier decides what may be typed and clicked, a block moves the
- * wheel to the user, and nothing here can reach anything but a DOM. A read
- * also names what the page looks like — a bot check, a sign-in wall, the
- * payment step — and only names it: acting on that is the model's own move,
- * `web_handover`.
+ * Shopping the open web. Every operation goes through `GuardedPage`, so the
+ * guarantees are the sandbox's own: the classifier decides what may be typed
+ * and clicked. A read names what a page looks like and only names it; acting
+ * on that is the model's move, `web_handover`.
  */
 export class WebShopper {
   private readonly refs = new PageRefs();
@@ -94,13 +98,11 @@ export class WebShopper {
       if (!typed.ok) {
         return webRefusal(typed);
       }
-      // A search navigates too; the act tail records where the window went.
       return settleAfterAct(session, this.acts(), { searched: query });
     });
   }
 
-  /** The ref click, still judged: aimed at a page's own "Place order",
-   *  `FieldClassifier` refuses it — that press is the user's act. */
+  /** The ref click, judged like every other. */
   addToCart(ref: string): Promise<WebResult> {
     return this.onSession(async (session) => {
       const selector = this.refs.selectorOf(ref);
@@ -121,7 +123,14 @@ export class WebShopper {
     });
   }
 
-  /** Aim-by-point, judged at hit-test by the same classifier. */
+  typeHere(text: string): Promise<WebResult> {
+    return this.onSession((s) => typeFocusedIn(s, this.acts(), text));
+  }
+
+  pressKey(name: string): Promise<WebResult> {
+    return this.onSession((s) => pressKeyIn(s, this.acts(), name));
+  }
+
   press(x: number, y: number): Promise<WebResult> {
     return this.onSession((session) => pressAt(session, this.acts(), x, y));
   }

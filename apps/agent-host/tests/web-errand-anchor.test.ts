@@ -79,7 +79,7 @@ describe("what the errand is told to write in", () => {
     const guessed = errandFor("kurta", ["mujhe navy kurti chahiye"], "INR");
     expect(guessed).not.toMatch(/language/i);
     const told = errandFor("kurta", ["mujhe navy kurti chahiye"], "INR", "Hindi");
-    expect(told).toContain("Write your whole answer in Hindi.");
+    expect(told).toContain("Write every word of your answer in Hindi.");
   });
 });
 
@@ -87,8 +87,8 @@ describe("what the errand is told to do with a page it has read", () => {
   const composed = errandFor("1TB SSD", ["a 1TB SSD under 50000"], "INR");
 
   it("hands the reading to the model rather than doing it for it", () => {
-    expect(composed).toContain("the money strings on it with the words");
-    expect(composed).toContain("Read them like a person would.");
+    expect(composed).toContain("the money strings with the words");
+    expect(composed).toContain("Read those like a person");
     expect(composed).toContain("call web_card once");
   });
 

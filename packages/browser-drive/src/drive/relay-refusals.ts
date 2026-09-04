@@ -13,7 +13,14 @@ export function unknownTarget(action: string): Refusal {
     reason: "element_missing",
     category: null,
     rule: "relay_target_unreadable",
-    human: `Nothing identifiable is under that ${action}, so nothing was sent to the window.`,
+    // The commonest cause by far is a point outside the window: read
+    // coordinates are viewport-relative, so a control below the fold reports
+    // a y past the window's height and nothing lives there yet. Saying only
+    // "nothing is there" left the model believing it could not press at all.
+    human:
+      `Nothing is at that ${action}: the point is empty, or outside the ` +
+      "window as it stands. Scroll it into view and aim again, or read the " +
+      "page and use a control whose point is on screen.",
     handoff: null,
     handoffReason: null,
   };
