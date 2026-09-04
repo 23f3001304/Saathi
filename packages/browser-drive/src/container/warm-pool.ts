@@ -1,43 +1,6 @@
-import { randomBytes } from "node:crypto";
-import type { Logger } from "@covenant/domain";
-
-/**
- * The session id every pre-started container carries.
- *
- * `warm_` says at a glance, in `docker ps` and in the container's own label,
- * that this one was started before anybody asked for it. It keeps the name
- * after it is claimed: docker cannot relabel a running container, and a name
- * that lied would be worse than one that reads oddly. The host's log carries
- * the join from the warm name to the session that claimed it.
- */
-export function warmSessionId(): string {
-  return `warm_${randomBytes(6).toString("hex")}`;
-}
-
-/** How often stale warm containers are looked for. Cheap; it is a subtraction. */
-const SWEEP_MS = 30_000;
-
-export interface WarmPoolDeps<T> {
-  /** How many to keep ready. Zero turns the pool into a plain cold start. */
-  readonly size: number;
-  /**
-   * How long one may sit warm before it is replaced. It exists because a
-   * container carries a hard `timeout` of its own: one that waited half an
-   * hour to be claimed would hand its shopper the few minutes it had left.
-   */
-  readonly maxAgeMs: number;
-  readonly start: () => Promise<T>;
-  readonly retire: (held: T) => Promise<void>;
-  readonly now?: () => number;
-  readonly logger?: Logger;
-  /** Names this pool in the log, so two of them read apart. */
-  readonly label?: string;
-}
-
-interface Warm<T> {
-  readonly held: T;
-  readonly bornAt: number;
-}
+import { SWEEP_MS } from "./warm-pool-deps.js";
+import type { Warm, WarmPoolDeps } from "./warm-pool-deps.js";
+export * from "./warm-pool-deps.js";
 
 /**
  * Containers started before anybody asks for one.
@@ -108,12 +71,19 @@ export class WarmContainers<T> {
   private dropStale(): void {
     if (this.drained) return;
     const cutoff = this.clock() - this.deps.maxAgeMs;
-    const stale = this.warm.filter((entry) => entry.bornAt <= cutoff);
-    for (const entry of stale) {
+    for (const entry of [...this.warm]) {
+      const why = this.spent(entry, cutoff);
+      if (why === null) continue;
       this.warm.splice(this.warm.indexOf(entry), 1);
-      this.say("browser.warm.stale", {});
+      this.say("browser.warm.dropped", { why });
       this.track(this.retire(entry.held));
     }
+  }
+
+  /** Why this one may not be handed out, or `null` when it may. */
+  private spent(entry: Warm<T>, cutoff: number): string | null {
+    if (entry.bornAt <= cutoff) return "stale";
+    return this.deps.alive?.(entry.held) === false ? "gone" : null;
   }
 
   /** Everything still held goes, and nothing starts after. */

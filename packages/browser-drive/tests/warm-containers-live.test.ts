@@ -27,7 +27,14 @@ const TEMPLATE = {
   windowHeight: 700,
 } as const;
 
-/** Every warm container still running. Empty is the only pass after a drain. */
+/**
+ * Every warm container still running.
+ *
+ * Read by subtraction rather than asserted empty: a developer machine runs an
+ * agent-host of its own, and that host keeps warm containers on purpose. A test
+ * that demanded `docker ps` be clean would be asserting that nobody is using
+ * the product while its suite runs, and it failed in exactly that way.
+ */
 function liveWarmContainers(): readonly string[] {
   const listed = execFileSync("docker", ["ps", "--format", "{{.Names}}"], {
     stdio: "pipe",
@@ -39,25 +46,38 @@ function liveWarmContainers(): readonly string[] {
     .filter((name) => name.startsWith("covenant-browse-warm_"));
 }
 
+/** What this test left behind, which is the only thing it may assert about. */
+function leftBehind(before: readonly string[]): readonly string[] {
+  const known = new Set(before);
+  return liveWarmContainers().filter((name) => !known.has(name));
+}
+
+/** One batch through a warm reader, and how long the claim itself took. */
+async function claim(warm: WarmReaderBrowsers): Promise<number> {
+  const surface = warm.surface();
+  const began = Date.now();
+  const browser = await surface.open();
+  const took = Date.now() - began;
+  expect(browser.connected).toBe(true);
+  await surface.close();
+  return took;
+}
+
 describe.skipIf(SKIP_REASON !== null)("warm containers, live", () => {
   it(
     "hands a research batch a container it did not wait for",
     async () => {
+      const before = liveWarmContainers();
       const warm = new WarmReaderBrowsers(CONFIG, 1);
       warm.prime();
       // The wait is the point: after it, a claim must not launch anything.
       await new Promise((resolve) => setTimeout(resolve, 15_000));
       expect(warm.ready).toBe(1);
-      const surface = warm.surface();
-      const began = Date.now();
-      const browser = await surface.open();
-      const claimedMs = Date.now() - began;
-      expect(browser.connected).toBe(true);
+      const claimedMs = await claim(warm);
       // A cold container start is seconds; a claim is a shift off an array.
       expect(claimedMs).toBeLessThan(1_000);
-      await surface.close();
       await warm.drain();
-      expect(liveWarmContainers()).toEqual([]);
+      expect(leftBehind(before)).toEqual([]);
     },
     LAUNCH_MS,
   );
@@ -65,6 +85,7 @@ describe.skipIf(SKIP_REASON !== null)("warm containers, live", () => {
   it(
     "never gives two sessions the same window",
     async () => {
+      const before = liveWarmContainers();
       const warm = new WarmWindows(CONFIG, TEMPLATE, 2);
       warm.prime();
       const first = await warm.launcherFor("web_one").launch(TEMPLATE);
@@ -74,7 +95,7 @@ describe.skipIf(SKIP_REASON !== null)("warm containers, live", () => {
       await first.close();
       await second.close();
       await warm.drain();
-      expect(liveWarmContainers()).toEqual([]);
+      expect(leftBehind(before)).toEqual([]);
     },
     LAUNCH_MS,
   );

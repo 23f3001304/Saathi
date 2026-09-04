@@ -1,4 +1,5 @@
 import type { ToolDeclaration } from "./tool-declarations.js";
+import { strictSchema } from "./strict-schema.js";
 import { wireNameOf } from "./tool-declarations.js";
 import type { JsonRecord } from "./wire-json.js";
 
@@ -19,16 +20,25 @@ export interface OpenAiSessionConfig {
   readonly hostedTools?: readonly JsonRecord[];
 }
 
-/** The Responses API's flat declaration, `strict: false` because zod's
- *  nullable ints become `anyOf`, which the strict subset rejects; each tool
- *  verifies its own AM2 envelope, so validity is enforced where it matters. */
+/**
+ * The Responses API's flat declaration.
+ *
+ * DECISION: `strict: true`, which it was not. The old note here said the strict
+ * subset rejects the `anyOf` zod emits for a nullable int. Probed against the
+ * live API, that is false - anyOf is accepted, and so are minLength, pattern,
+ * minItems, minimum and default. What it refuses is three mechanical things
+ * (`strict-schema.ts` names them), and believing otherwise cost this system its
+ * enforcement layer: an advisory schema is one a model may answer with a field
+ * missing or a shape nobody declared, and be told nothing. Each tool still
+ * verifies its own AM2 envelope; this stops the malformed call reaching it.
+ */
 function declarationPayload(declaration: ToolDeclaration): JsonRecord {
   return {
     type: "function",
     name: wireNameOf(declaration),
     description: declaration.description,
-    parameters: declaration.parameters,
-    strict: false,
+    parameters: strictSchema(declaration.parameters) as JsonRecord,
+    strict: true,
   };
 }
 

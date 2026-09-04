@@ -27,11 +27,15 @@ export const DEVICE_TOOL_DECLARATIONS: readonly ToolDeclaration[] = [
       "view before aiming at it. Every move answers with a fresh picture of " +
       "the window. A click on a control that commits money or an account is " +
       "refused, whatever it is aimed at.",
+    // Nullable rather than optional, because strict mode requires every
+    // property and a field the model may omit is one it will omit. `null` is
+    // the honest way to say "not this kind of move": a scroll sends x and y as
+    // null, a click sends by as null, and `mouseArgs` reads either as absent.
     parameters: schemaOf({
       do: z.enum(["click", "scroll"]),
-      x: z.number().int().min(0).optional(),
-      y: z.number().int().min(0).optional(),
-      by: z.number().int().optional(),
+      x: z.number().int().min(0).nullable(),
+      y: z.number().int().min(0).nullable(),
+      by: z.number().int().nullable(),
     }),
   },
   {
@@ -43,8 +47,8 @@ export const DEVICE_TOOL_DECLARATIONS: readonly ToolDeclaration[] = [
       "Enter, Tab or Escape. Click the box first. Passwords are never typed " +
       "this way; web_sign_in does that without showing you anything.",
     parameters: schemaOf({
-      type: z.string().min(1).max(300).optional(),
-      press: z.string().min(1).max(20).optional(),
+      type: z.string().min(1).max(300).nullable(),
+      press: z.string().min(1).max(20).nullable(),
     }),
   },
 ];

@@ -46,6 +46,7 @@ export class WarmWindows {
       maxAgeMs: WARM_WINDOW_MAX_AGE_MS,
       start: () => this.cold(warmSessionId()).launch(this.template),
       retire: (held) => held.close(),
+      alive: (held) => held.connection.connected,
       ...(logger === undefined ? {} : { logger }),
       label: "window",
     });

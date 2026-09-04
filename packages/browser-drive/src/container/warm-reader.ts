@@ -33,6 +33,7 @@ export class WarmReaderBrowsers {
       maxAgeMs: WARM_READER_MAX_AGE_MS,
       start: () => launchReaderContainer(config, warmSessionId()),
       retire: (held) => held.close(),
+      alive: (held) => held.connection.connected,
       ...(logger === undefined ? {} : { logger }),
       label: "reader",
     });

@@ -23,29 +23,36 @@ export const webScrollArgs = z.object({
 
 /** What a research errand reports: candidates as the source printed them.
  *  Every row is untrusted text and the host re-parses the price itself. */
+/** Absent, however the model said it. Strict mode makes every declared field
+ *  required, so "no value here" arrives as `null` rather than as nothing; a
+ *  caller that predates strict still sends nothing at all. Both are absent. */
+function unset(value: unknown): boolean {
+  return value === undefined || value === null;
+}
+
 /** The mouse: a point to click, or a distance to scroll. */
 export const mouseArgs = z
   .object({
     do: z.enum(["click", "scroll"]),
-    x: z.number().int().min(0).optional(),
-    y: z.number().int().min(0).optional(),
-    by: z.number().int().optional(),
+    x: z.number().int().min(0).nullish(),
+    y: z.number().int().min(0).nullish(),
+    by: z.number().int().nullish(),
   })
   .refine(
     (move) =>
       move.do === "scroll"
-        ? move.by !== undefined
-        : move.x !== undefined && move.y !== undefined,
+        ? !unset(move.by)
+        : !unset(move.x) && !unset(move.y),
     { message: "click needs x and y; scroll needs by" },
   );
 
 /** The keyboard: characters, or one named key. Exactly one of them. */
 export const keyboardArgs = z
   .object({
-    type: z.string().min(1).max(300).optional(),
-    press: z.string().min(1).max(20).optional(),
+    type: z.string().min(1).max(300).nullish(),
+    press: z.string().min(1).max(20).nullish(),
   })
-  .refine((move) => (move.type === undefined) !== (move.press === undefined), {
+  .refine((move) => unset(move.type) !== unset(move.press), {
     message: "give exactly one of type or press",
   });
 
