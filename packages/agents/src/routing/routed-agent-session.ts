@@ -103,7 +103,7 @@ export class RoutedAgentSession implements AgentSession {
     groups: DraftGroup[],
   ): AttemptRunner {
     return {
-      run: async (model: CatalogModel) => {
+      run: async (model: CatalogModel, _request, taskClass) => {
         const key = modelKeyOf(model);
         // A repeat of a model already tried is the self-consistency probe, not
         // a second answer. It is scored and thrown away, so streaming it would
@@ -111,7 +111,7 @@ export class RoutedAgentSession implements AgentSession {
         const sink = this.config.sink ?? null;
         const group = new DraftGroup(runs.has(key) ? null : sink);
         groups.push(group);
-        const build = this.factory.build(model, group);
+        const build = this.factory.build(model, group, taskClass);
         const turn = await build.session.turn(input);
         await record(runs, key, { build, group, turn });
         return { text: turn.text, signals: this.signalsOf(turn, build) };

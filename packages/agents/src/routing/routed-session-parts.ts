@@ -8,6 +8,7 @@ import type {
   AgentTurn,
   AgentTurnInput,
 } from "../shared/agent-session.js";
+import type { TaskClass } from "./task-classifier.js";
 import type { CatalogModel } from "./model-catalog.js";
 import type { RoutingRequest } from "./model-router.js";
 
@@ -18,7 +19,11 @@ export interface RoutedSessionBuild {
 }
 
 export interface RoutedSessionFactory {
-  build(model: CatalogModel, drafts: DraftScope | null): RoutedSessionBuild;
+  build(
+    model: CatalogModel,
+    drafts: DraftScope | null,
+    taskClass: TaskClass,
+  ): RoutedSessionBuild;
 }
 
 export interface RoutedSessionConfig {

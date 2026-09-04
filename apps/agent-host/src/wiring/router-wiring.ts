@@ -4,6 +4,7 @@ import type {
   ModelRouter as ModelRouterType,
   PreToolUseHook,
   RoutedSessionBuild,
+  ReasoningEffort,
   RoutedSessionFactory,
   TaskClass,
   ToolDeclaration,
@@ -17,6 +18,7 @@ import {
   HttpModelDiscovery,
   InMemoryRouterStats,
   ModelRouter,
+  effortForClass,
 } from "@covenant/agents";
 import type { Clock } from "@covenant/domain";
 
@@ -25,6 +27,15 @@ import { wireFetch } from "../obs/wire-trace.js";
 import type { ObsParts } from "./obs-wiring.js";
 
 export type Env = Readonly<Record<string, string | undefined>>;
+
+const EFFORTS: ReadonlySet<string> = new Set(["low", "medium", "high"]);
+
+/** The host-wide effort, which the per-class ceiling then lowers or leaves.
+ *  Same variable and same default as the session factory reads on its own. */
+function effortOf(env: Env): ReasoningEffort {
+  const asked = env["COVENANT_OPENAI_REASONING"] ?? "";
+  return EFFORTS.has(asked) ? (asked as ReasoningEffort) : "medium";
+}
 
 export interface RouterDeps {
   readonly config: AgentHostConfig;
@@ -99,8 +110,16 @@ export function wireModelRouter(deps: RouterDeps): ModelRouterType {
  */
 export function wireRoutedSessions(deps: RouterDeps): RoutedSessionFactory {
   return {
-    build(model: CatalogModel, drafts: DraftScope | null): RoutedSessionBuild {
+    build(
+      model: CatalogModel,
+      drafts: DraftScope | null,
+      taskClass: TaskClass,
+    ): RoutedSessionBuild {
       const created = createAgentSession({
+        // What the operator asked for, capped by what this class of turn is
+        // worth: deciding to go and look does not think as hard as drafting a
+        // payment. `createAgentSession` reads the env when this is absent.
+        reasoningEffort: effortForClass(taskClass, effortOf(deps.env)),
         env: deps.env,
         provider: model.provider,
         model: model.id,

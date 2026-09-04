@@ -15,22 +15,18 @@ import type {
   RoutingAttemptRecord,
   RoutingDecision,
 } from "./router-audit.js";
-import type { TaskClass } from "./task-classifier.js";
 import { classifyTask, requirementsFor } from "./task-classifier.js";
-import type { TaskFeatures, TaskInput } from "./task-features.js";
+import type { TaskClass } from "./task-classifier.js";
 import { extractFeatures } from "./task-features.js";
+import type { TaskFeatures } from "./task-features.js";
 
-export type RoutingRequest = TaskInput;
+import type { AttemptRunner, RoutingRequest } from "./attempt-runner.js";
 
-export interface AttemptOutcome {
-  readonly text: string;
-  readonly signals: ConfidenceSignals;
-}
-
-/** One run of one model. The router never builds a session; it asks for one. */
-export interface AttemptRunner {
-  run(model: CatalogModel, request: RoutingRequest): Promise<AttemptOutcome>;
-}
+export type {
+  AttemptOutcome,
+  AttemptRunner,
+  RoutingRequest,
+} from "./attempt-runner.js";
 
 export interface ModelRouterConfig {
   readonly threshold: number;
@@ -173,11 +169,15 @@ export class ModelRouter {
   }
 
   private async trial(model: CatalogModel, climb: Climb): Promise<Trial> {
-    const first = await climb.runner.run(model, climb.request);
+    const first = await climb.runner.run(model, climb.request, climb.taskClass);
     if (!this.wantsSecondSample(climb.taskClass, model)) {
       return { model, text: first.text, score: scoreConfidence(first.signals) };
     }
-    const second = await climb.runner.run(model, climb.request);
+    const second = await climb.runner.run(
+      model,
+      climb.request,
+      climb.taskClass,
+    );
     const signals: ConfidenceSignals = {
       ...first.signals,
       agreement: agreementOf(first.text, second.text),

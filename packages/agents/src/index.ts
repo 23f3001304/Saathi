@@ -71,4 +71,5 @@ export * from "./routing/output-checks.js";
 export * from "./routing/routed-agent-session.js";
 export * from "./routing/router-audit.js";
 export * from "./routing/task-classifier.js";
+export * from "./routing/class-effort.js";
 export * from "./routing/task-features.js";
