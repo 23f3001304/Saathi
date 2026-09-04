@@ -49,6 +49,24 @@ export function capFor(host: HostResources): number {
   return Math.max(1, Math.min(byMemory, byCpu, MAX_SESSIONS));
 }
 
+/**
+ * An operator's own number, when they have one.
+ *
+ * DECISION: an override rather than a smarter formula. `capFor` divides cores
+ * by `CONTAINER_CPUS`, and on a four-core box - an Oracle Ampere A1, the free
+ * tier this is hosted on - that gives two, before anything is kept warm. The
+ * `--cpus 2` a container is given is a ceiling, not a reservation, so three
+ * mostly-idle windows on four cores is a real arrangement the formula cannot
+ * see. Somebody who knows their machine may say so; the derived number stays
+ * the default, and the ceiling still applies, so this widens nothing that
+ * `MAX_SESSIONS` did not already allow.
+ */
+export function capFrom(env: NodeJS.ProcessEnv, derived: number): number {
+  const asked = Number(env["COVENANT_SANDBOX_CAP"] ?? "");
+  if (!Number.isInteger(asked) || asked < 1) return derived;
+  return Math.min(asked, MAX_SESSIONS);
+}
+
 export function queueLimitFor(cap: number): number {
   return Math.ceil(cap * QUEUE_FACTOR);
 }

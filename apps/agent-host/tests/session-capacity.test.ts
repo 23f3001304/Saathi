@@ -5,6 +5,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   capFor,
+  capFrom,
   MAX_SESSIONS,
   queueLimitFor,
 } from "../src/browser/session-capacity.js";
@@ -32,5 +33,26 @@ describe("how many windows this machine holds", () => {
       expect(queue).toBeGreaterThanOrEqual(Math.ceil(cap * 1.5));
       expect(queue).toBeLessThanOrEqual(cap * 2);
     }
+  });
+});
+
+describe("an operator who knows their own machine", () => {
+  it("keeps the derived number when nobody has said otherwise", () => {
+    expect(capFrom({}, 4)).toBe(4);
+    expect(capFrom({ COVENANT_SANDBOX_CAP: "" }, 4)).toBe(4);
+  });
+
+  it("takes the number it is given, up to the ceiling", () => {
+    expect(capFrom({ COVENANT_SANDBOX_CAP: "3" }, 2)).toBe(3);
+    expect(capFrom({ COVENANT_SANDBOX_CAP: "99" }, 2)).toBe(MAX_SESSIONS);
+  });
+
+  /** Nonsense is not an instruction. A cap of zero would be a host that can
+   *  open no window at all, which nobody means to ask for. */
+  it("ignores nonsense rather than acting on it", () => {
+    expect(capFrom({ COVENANT_SANDBOX_CAP: "0" }, 2)).toBe(2);
+    expect(capFrom({ COVENANT_SANDBOX_CAP: "-1" }, 2)).toBe(2);
+    expect(capFrom({ COVENANT_SANDBOX_CAP: "two" }, 2)).toBe(2);
+    expect(capFrom({ COVENANT_SANDBOX_CAP: "2.5" }, 2)).toBe(2);
   });
 });
