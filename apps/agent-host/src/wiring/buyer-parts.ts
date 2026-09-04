@@ -3,6 +3,7 @@ import type { AgentSession, TurnPlanner } from "@covenant/agents";
 import type { Clock, IdGenerator } from "@covenant/domain";
 
 import type { BrowserService } from "../browser/browser-service.js";
+import type { PageIndex } from "../purchase/page-index.js";
 import type { ContextRecorder } from "../purchase/context-record.js";
 import type { WebFindings } from "../browser/web-listing.js";
 import type { WebProgress } from "../browser/web-progress.js";
@@ -73,6 +74,8 @@ export interface BuyerDeps {
   /** The conversation's durable working context — claimed, read and written
    *  by the run; read-only from the errand that starts at a known page. */
   readonly context: ContextRecorder;
+  /** Pages any earlier errand on this host opened, shared across lanes. */
+  readonly pages: PageIndex;
   /** The lane's hold-to-sign gates, built with the lane so the planner's
    *  reads report what is pending on the same pair the runner waits on. */
   readonly gates: LaneGates;

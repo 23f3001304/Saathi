@@ -34,6 +34,7 @@ import { type Lane, type LaneShared, wireLane } from "./wiring/lane-wiring.js";
 import { wireTraitMemory } from "./wiring/memory-wiring.js";
 import type { ContextLog } from "./purchase/context-log.js";
 import { openContextLog } from "./purchase/context-log.js";
+import { openPageIndex } from "./purchase/page-index.js";
 import { type ObsParts, wireObservability } from "./wiring/obs-wiring.js";
 
 /** The assembled service map: everything the transport is allowed to touch.
@@ -132,6 +133,10 @@ function sharedOf(
       parts.clock,
       parts.obs.logger,
     ),
+    // One index for the host, not one per lane: the point of it is that the
+    // second shopper to ask for a thing starts where the first one's errand
+    // finished. Nothing in it is anybody's.
+    pages: openPageIndex(parts.config.dbFile, parts.clock, parts.obs.logger),
     beats: wireBeatLog(parts.config, parts.clock, parts.obs),
   };
 }

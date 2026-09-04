@@ -31,6 +31,7 @@ export function webLookOf(
     deps.pin,
     deps.context,
     { progress: deps.progress, window: deps.browser },
+    deps.pages,
   );
 }
 

@@ -9,6 +9,7 @@ import type { BeatHub } from "../http/beat-hub.js";
 import type { ConversationBeatStore } from "../http/beat-store.js";
 import type { ChatService } from "../http/chat-service.js";
 import { ConfirmationGate } from "../purchase/confirmation-gate.js";
+import type { PageIndex } from "../purchase/page-index.js";
 import type { ContextLog } from "../purchase/context-log.js";
 import { ContextRecorder } from "../purchase/context-record.js";
 import { BeatDraftSink } from "../purchase/draft-beats.js";
@@ -52,6 +53,9 @@ export interface LaneShared {
   /** The host's one headless read-only browser, shared across lanes. */
   readonly reader: HeadlessReader;
   readonly contextLog: ContextLog;
+  /** Host-wide, deliberately: one shopper's find is the next one's head
+   *  start, and nothing filed there belongs to a conversation. */
+  readonly pages: PageIndex;
   readonly beats: BeatLogParts;
 }
 
@@ -80,6 +84,8 @@ interface LaneState {
   readonly gates: LaneGates;
   readonly language: TurnLanguage;
   readonly context: ContextRecorder;
+  /** Shared, not per lane: see `LaneShared.pages`. */
+  readonly pages: PageIndex;
 }
 
 function laneState(shared: LaneShared, window: LaneWindowParts): LaneState {
@@ -90,6 +96,7 @@ function laneState(shared: LaneShared, window: LaneWindowParts): LaneState {
     },
     language: new TurnLanguage(),
     context: new ContextRecorder(shared.contextLog, window, shared.obs.logger),
+    pages: shared.pages,
   };
 }
 

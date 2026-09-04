@@ -5,14 +5,16 @@ import type { WebFindings } from "../browser/web-listing.js";
 import type { WebTrail } from "../browser/web-trail.js";
 import type { BeatHub } from "../http/beat-hub.js";
 import type { ContextView } from "./context-record.js";
-import { knownBlock } from "./context-digest.js";
-import { errandFor } from "./web-errand.js";
-import type {
-  ErrandEnd,
-  ObservedFacts,
-  ProgressView,
-} from "./observed-block.js";
-import { factsFrom, observedBlock, windowOwnerOf } from "./observed-block.js";
+import type { PageIndex } from "./page-index.js";
+import { indexable } from "./seen-block.js";
+import { lookBrief } from "./look-brief.js";
+import { lookFacts } from "./look-facts.js";
+import type { FactParts, LookWatch } from "./look-facts.js";
+
+export type { LookWatch } from "./look-facts.js";
+import type { BriefParts } from "./look-brief.js";
+import type { ErrandEnd } from "./observed-block.js";
+import { observedBlock } from "./observed-block.js";
 import type { PurchaseResult } from "./purchase-result.js";
 import { reportFindings, settleLook } from "./web-look-report.js";
 import type { WebOffered } from "./web-offered.js";
@@ -40,13 +42,6 @@ export interface WebLook {
     stated?: readonly string[],
     replyLanguage?: string | null,
   ): Promise<PurchaseResult>;
-}
-
-/** What a look may read about the window it does not drive: a checkout parked
- *  from an earlier turn is still a fact about their screen. */
-export interface LookWatch {
-  readonly progress: ProgressView;
-  readonly window: { current(): { currentState(): string } | null };
 }
 
 /**
@@ -90,6 +85,9 @@ export class WebLookStep implements WebLook {
     /** The host's record of the window, for the observed block. `null` on a
      *  harness with no window at all. */
     private readonly watch: LookWatch | null = null,
+    /** Pages any earlier errand on this host opened. Optional: a host without
+     *  one searches from scratch, which is what every host did before. */
+    private readonly pages: PageIndex | null = null,
   ) {}
 
   async look(
@@ -109,6 +107,9 @@ export class WebLookStep implements WebLook {
     const wrote = stated.length > 0 ? stated : [base.request];
     const errand = await this.attempt(query, wrote, replyLanguage, seen, from);
     this.offered?.offer(cardedListings(this.findings.since(seen)));
+    // Filed after the errand and only from what was carded: a row that never
+    // reached the shopper's screen is not a page worth sending anyone back to.
+    this.file(query, seen);
     const found = reportFindings(this.hub, {
       errand,
       found: this.findings.since(seen),
@@ -138,56 +139,50 @@ export class WebLookStep implements WebLook {
     /** Where `WebTrail` stood: the pages this errand reached, and no others. */
     from: number,
   ): Promise<ErrandRun> {
-    const look = errandFor(query, asked, this.currency, replyLanguage, this.known());
-    this.logger.debug("chat.reply_language", {
-      at: "web_look",
-      reply_language: replyLanguage,
-      errand: look,
-    });
+    const look = lookBrief(this.briefParts(), query, asked, replyLanguage);
+    // Exactly the rows that will be carded, so the prose and the grid under it
+    // are about the same things.
+    const summarise = (ended: ErrandEnd): string =>
+      summariseFor(
+        asked,
+        replyLanguage,
+        cardedListings(this.findings.since(seen)),
+        observedBlock(lookFacts(this.factParts(), from, seen, ended)),
+      );
     // Held for the length of the errand. Concealed, there is no frame stream
     // to count as a watcher, and the idle sweep would take the window away
     // between two page reads — which it did, on the first live run of this.
     const release = this.stage.hold();
     try {
-      return await runErrand(
-        this.errand,
-        {
-          look,
-          // Exactly the rows that will be carded, so the prose and the grid
-          // under it are about the same things.
-          summarise: (ended: ErrandEnd) =>
-            summariseFor(
-              asked,
-              replyLanguage,
-              cardedListings(this.findings.since(seen)),
-              observedBlock(this.facts(from, seen, ended)),
-            ),
-        },
-        this.logger,
-      );
+      return await runErrand(this.errand, { look, summarise }, this.logger);
     } finally {
       release();
     }
   }
 
-  /** The record's slice for this errand: pages already found, as data. */
-  private known(): string {
-    return knownBlock(this.context?.current() ?? null);
+  private factParts(): FactParts {
+    return { trail: this.trail, findings: this.findings, watch: this.watch };
   }
 
-  /** The host's own record of this errand, for the model to speak from.
-   *  Every read here is optional-chained: this runs on a window that may
-   *  have just gone, and gathering facts must not be what ends the errand. */
-  private facts(from: number, seen: number, ended: ErrandEnd): ObservedFacts {
-    const state = this.watch?.window.current()?.currentState() ?? null;
-    return factsFrom(this.watch?.progress ?? null, {
-      pages: this.trail.since(from),
-      cards: cardedListings(this.findings.since(seen)).length,
-      window: windowOwnerOf(state),
-      expired: ended.expired,
-      failure: ended.failure,
-    });
+  private briefParts(): BriefParts {
+    return {
+      currency: this.currency,
+      logger: this.logger,
+      context: this.context,
+      pages: this.pages,
+    };
   }
+
+  /** Files the pages this errand actually carded, so the next ask for
+   *  something like it starts from URLs already proved to be real. A row that
+   *  never reached the shopper's screen is not one to send anyone back to. */
+  private file(query: string, seen: number): void {
+    this.pages?.remember(
+      query,
+      indexable(cardedListings(this.findings.since(seen))),
+    );
+  }
+
 
   private say(reply: string): readonly string[] {
     if (reply.length === 0) {
