@@ -100,8 +100,13 @@ export class FakePage implements DrivenPage {
     return Promise.resolve();
   }
 
+  /** Set by a test that needs the page to change when a form is submitted -
+   *  an email-first sign-in produces its password step on Enter. */
+  onKey: ((name: string) => void) | null = null;
+
   pressKey(name: string): Promise<void> {
     this.relayed.push({ action: "key", detail: name });
+    this.onKey?.(name);
     return Promise.resolve();
   }
 

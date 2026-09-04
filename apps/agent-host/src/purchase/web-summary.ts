@@ -51,6 +51,30 @@ const SUMMARISE =
   "not list them back, and do not say where you read a price.\n";
 
 /**
+ * DECISION: a different instruction, not the same one with a contradiction
+ * under it.
+ *
+ * `SUMMARISE` asks which of these you would buy, which presupposes there are
+ * some. When there were none the empty `foundBlock` said so underneath, and
+ * lost - exactly as the language rule lost to the match-the-line rule printed
+ * after it. Live, over three read Amazon pages and an empty screen, the agent
+ * wrote "I found 2 TB internal SSD options within your Rs 40,000 limit.
+ * Review the option you prefer", and there was nothing to review.
+ *
+ * A prompt that says two things resolves to one of them. So an errand that
+ * carded nothing is given the instruction for an errand that carded nothing,
+ * and the one about picking a favourite is not printed at all.
+ */
+const FOUND_NOTHING =
+  "You have finished looking and found nothing. There are no cards on their " +
+  "screen, so do not send them to one.\n" +
+  "Write the one thing they read: that you did not find it, what you were " +
+  "looking for, and the one change most likely to help - a higher ceiling, a " +
+  "different capacity, another shop. Two sentences is plenty.\n" +
+  "Name no product and no price. You have none, and a name you did not read " +
+  "off a page this errand opened is one you would be inventing.\n";
+
+/**
  * What the window was shown, as this host recorded it.
  *
  * DECISION: the summary is grounded on the harness's own capture rather than
@@ -92,7 +116,6 @@ export function summariseFor(
   found: readonly WebListingView[] = [],
   observed = "",
 ): string {
-  return (
-    SUMMARISE + foundBlock(found) + observed + speakFor(stated, replyLanguage)
-  );
+  const rule = found.length === 0 ? FOUND_NOTHING : SUMMARISE;
+  return rule + foundBlock(found) + observed + speakFor(stated, replyLanguage);
 }

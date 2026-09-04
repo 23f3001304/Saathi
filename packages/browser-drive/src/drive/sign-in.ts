@@ -1,7 +1,11 @@
-import { isTextEntry } from "../field/element-descriptor.js";
 import type { FieldClassifier } from "../field/field-classifier.js";
+import {
+  codeField,
+  passwordField,
+  usernameField,
+} from "./sign-in-fields.js";
 import type { Journal } from "../journal.js";
-import type { DrivenPage, FieldSnapshot } from "../ports.js";
+import type { DrivenPage, FieldSnapshot, Waiter } from "../ports.js";
 import type { SessionStateMachine } from "../session-state.js";
 
 /** Values straight from the host's vault. No model composes or reads this
@@ -35,23 +39,77 @@ export interface SignInReport {
  * A login form that does not submit on Enter is rare; a button search that
  * clicks the wrong control on a busy page is not.
  */
+/** How many times the page is read before this gives up, and how long a
+ *  submitted step is given to become the next one. Amazon's takes a
+ *  navigation; a slow one still lands inside this, and a form that never
+ *  produces a password box is answered rather than waited on forever. */
+const STEP_TRIES = 12;
+const STEP_MS = 500;
+
 export class SignInDrive {
   constructor(
     private readonly page: DrivenPage,
     private readonly classifier: FieldClassifier,
     private readonly state: SessionStateMachine,
     private readonly journal: Journal,
+    private readonly waiter: Waiter = { sleep: () => Promise.resolve() },
   ) {}
 
+  /**
+   * DECISION: read the page, then decide - never a script of steps.
+   *
+   * This required a password box on the page it was called on, and Amazon,
+   * the shop it exists for, asks for the email first and shows the password
+   * only after Continue. The obvious repair was to hardcode "fill email,
+   * submit, wait for password", which would have been this shell knowing what
+   * Amazon's form looks like - and wrong the first time a shop asked in a
+   * different order, or in three steps, or put both boxes on one page.
+   *
+   * So each pass looks at what is actually on the page and does the one thing
+   * that follows from it: a password box is filled and submitted, a username
+   * box that has not been filled yet is filled and submitted, and a page with
+   * neither is answered rather than waited on. A one-page form finishes on the
+   * first pass, Amazon's on the second, and a form nobody has seen yet on
+   * whichever pass its password box appears.
+   *
+   * The vault's values still cross only through this call, the journal still
+   * records `{protected: true}` and not one character, and every box is aimed
+   * at and hit-tested before a key is sent.
+   */
   async into(creds: SignInCreds): Promise<SignInReport> {
     this.state.assertAgentMayAct("sign_in");
-    const fields = await this.page.snapshotFields();
-    const secret = passwordField(fields, this.classifier);
-    if (secret === null) {
-      return { state: "no_password_field", named: false };
+    let named = false;
+    for (let pass = 0; pass < STEP_TRIES; pass += 1) {
+      const fields = await this.page.snapshotFields();
+      const secret = passwordField(fields, this.classifier);
+      if (secret !== null) {
+        const also = named ? null : usernameField(fields, this.classifier);
+        return await this.submit(secret, creds, also, named);
+      }
+      if (named) {
+        // The username is in and sent; this page is on its way to the next.
+        await this.waiter.sleep(STEP_MS);
+        continue;
+      }
+      if (!(await this.name(fields, creds))) {
+        return { state: "no_password_field", named };
+      }
+      named = true;
     }
-    const name = usernameField(fields, this.classifier);
-    const named = name === null ? false : await this.fill(name, creds.username);
+    return { state: "no_password_field", named };
+  }
+
+  /** The password half: fill the box that is here, and send the form. A
+   *  username box standing beside it is filled first, which is how a one-page
+   *  form finishes on the first pass. */
+  private async submit(
+    secret: FieldSnapshot,
+    creds: SignInCreds,
+    name: FieldSnapshot | null,
+    already = false,
+  ): Promise<SignInReport> {
+    const named =
+      name === null ? already : await this.fill(name, creds.username);
     if (!(await this.fill(secret, creds.password))) {
       // The point the password box occupied is not the password box any more.
       // Nothing has been typed, and nothing is submitted.
@@ -60,6 +118,20 @@ export class SignInDrive {
     this.protectedLine({ sign_in: true, named });
     await this.page.pressKey("Enter");
     return { state: "signed", named };
+  }
+
+  /** The username half of a form that asks in two: filled and sent, so the
+   *  next pass sees whatever the shop shows next. */
+  private async name(
+    fields: readonly FieldSnapshot[],
+    creds: SignInCreds,
+  ): Promise<boolean> {
+    const box = usernameField(fields, this.classifier);
+    if (box === null || !(await this.fill(box, creds.username))) return false;
+    this.protectedLine({ sign_in: true, named: true, step: "username" });
+    await this.page.pressKey("Enter");
+    await this.waiter.sleep(STEP_MS);
+    return true;
   }
 
   /**
@@ -94,11 +166,7 @@ export class SignInDrive {
    *  box again. Read after the navigation settles. */
   async challenge(): Promise<"code" | "password" | null> {
     const fields = await this.page.snapshotFields();
-    for (const field of fields) {
-      if (this.classifier.classify(field.descriptor).category === "otp") {
-        return "code";
-      }
-    }
+    if (codeField(fields, this.classifier) !== null) return "code";
     return passwordField(fields, this.classifier) === null ? null : "password";
   }
 
@@ -107,14 +175,10 @@ export class SignInDrive {
   async enterCode(code: string): Promise<boolean> {
     this.state.assertAgentMayAct("enter_code");
     const fields = await this.page.snapshotFields();
-    const box =
-      fields.find(
-        (field) =>
-          onScreen(field) &&
-          this.classifier.classify(field.descriptor).category === "otp",
-      ) ?? null;
-    if (box === null) return false;
-    await this.page.typeInto(box.descriptor.selector, code);
+    const box = codeField(fields, this.classifier);
+    // Aimed and hit-tested like the password: a code box that is not on the
+    // page is not one to type a shopper's code into either.
+    if (box === null || !(await this.fill(box, code))) return false;
     this.protectedLine({ code_entry: true });
     await this.page.pressKey("Enter");
     return true;
@@ -131,50 +195,3 @@ export class SignInDrive {
     );
   }
 }
-
-/**
- * A box that is actually on the page.
- *
- * DECISION: geometry, not the DOM's word for it. A sign-in page routinely
- * carries a hidden password input the shopper never sees - Amazon's
- * email-first step does - and `page.type` focuses its target and then sends
- * keystrokes: focusing an element with no box silently does nothing, so the
- * keys went to whatever still had focus. Live, that was the email box that had
- * just been filled, and the shopper's password was typed into it in plain
- * sight, appended to their address. A field with no box is not a field this
- * may type into.
- */
-function onScreen(field: FieldSnapshot): boolean {
-  return field.rect.width > 0 && field.rect.height > 0;
-}
-
-function passwordField(
-  fields: readonly FieldSnapshot[],
-  classifier: FieldClassifier,
-): FieldSnapshot | null {
-  return (
-    fields.find(
-      (field) =>
-        onScreen(field) &&
-        classifier.classify(field.descriptor).category === "password",
-    ) ?? null
-  );
-}
-
-/** The plain text or email entry standing beside the password: not itself
- *  sensitive beyond login context, and not the password box. */
-function usernameField(
-  fields: readonly FieldSnapshot[],
-  classifier: FieldClassifier,
-): FieldSnapshot | null {
-  return (
-    fields.find((field) => {
-      const held = field.descriptor;
-      if (!onScreen(field)) return false;
-      if (!isTextEntry(held) || held.inputType === "password") return false;
-      const category = classifier.classify(held).category;
-      return category === null || category === "login_context";
-    }) ?? null
-  );
-}
-

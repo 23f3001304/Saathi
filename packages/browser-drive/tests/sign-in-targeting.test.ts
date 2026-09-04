@@ -77,18 +77,39 @@ function typedInto(page: FakePage): readonly string[] {
  * whatever still had focus - live, that was the email field, and the shopper's
  * password went into it in plain sight, appended to their own address.
  */
-describe("a sign-in page whose password box is not on it", () => {
-  it("types nothing at all", async () => {
+describe("an email-first sign-in", () => {
+  /** The page it exists for asks the email first, so requiring a password box
+   *  up front made the one shop that matters the one it could not sign in to. */
+  it("fills the email, submits, and waits for the password step", async () => {
     const page = new FakePage({
       url: PAGE,
       fields: [
         { descriptor: EMAIL, rect: box(10, 10) },
         { descriptor: PASSWORD, rect: box(0, 0, 0, 0) },
       ],
+      points: { "110,25": EMAIL, "140,115": PASSWORD },
+    });
+    // The password step arrives after the email is submitted, as it does live.
+    page.onKey = () => {
+      page.setFields([{ descriptor: PASSWORD, rect: box(40, 100) }]);
+    };
+    const report = await driveOver(page).into(CREDS);
+    expect(report.state).toBe("signed");
+    expect(typedInto(page)).toEqual(["shopper@example.com", "hunter2"]);
+  });
+
+  it("types no password when the step never comes", async () => {
+    const page = new FakePage({
+      url: PAGE,
+      fields: [
+        { descriptor: EMAIL, rect: box(10, 10) },
+        { descriptor: PASSWORD, rect: box(0, 0, 0, 0) },
+      ],
+      points: { "110,25": EMAIL },
     });
     const report = await driveOver(page).into(CREDS);
     expect(report.state).toBe("no_password_field");
-    expect(typedInto(page)).toEqual([]);
+    expect(typedInto(page)).toEqual(["shopper@example.com"]);
   });
 });
 

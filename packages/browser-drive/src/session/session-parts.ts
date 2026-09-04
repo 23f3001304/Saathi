@@ -114,6 +114,20 @@ function castOf(
   };
 }
 
+function signInFor(
+  deps: SessionDeps,
+  state: SessionStateMachine,
+  driven: DrivenPage,
+): SignInDrive {
+  return new SignInDrive(
+    driven,
+    deps.classifier,
+    state,
+    deps.journal,
+    deps.waiter,
+  );
+}
+
 function pointsFor(
   deps: SessionDeps,
   state: SessionStateMachine,
@@ -163,7 +177,7 @@ export function assembleLive(
     page: guardedFor(deps, state, driven, handoff),
     input: relayFor(deps, state, browser, driven),
     points: pointsFor(deps, state, driven, handoff),
-    signIn: new SignInDrive(driven, deps.classifier, state, deps.journal),
+    signIn: signInFor(deps, state, driven),
     frames: new FrameCapture(driven, deps.classifier, () => state.current()),
     cast: castOf(driven, deps, state),
     review: new FinalReview(
