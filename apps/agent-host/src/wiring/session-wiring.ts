@@ -42,13 +42,13 @@ export function wireSession(deps: SessionDeps): AgentSession {
       systemPrompt: BUYER_SYSTEM_PROMPT,
       dispatcher: deps.dispatch.dispatcher,
       structured: false,
-      // DECISION: the buyer does not stream either, completing "one
-      // utterance, one emitter". Its turns reach the screen through the
-      // narrator's replay and the answer step, both shell-emitted and both
-      // gated; a streamed draft of the same prose arrived first, worded
-      // slightly differently, and folded into the strip as a pill above
-      // the very bubble it duplicated.
-      speaks: false,
+      // DECISION, restored: the buyer streams. It went silent to stop a
+      // duplicate, and the duplicate was never the streaming - it was the
+      // claim missing a draft that had not settled yet, which `lastSettled`
+      // now catches live as well as final. A shopper watching nothing
+      // happen for forty seconds is the worse bug, and thinking that
+      // appears as it is written is the whole feel of the thing.
+      speaks: true,
       decidesByTool: false,
     });
   }
@@ -152,13 +152,9 @@ export function wireTurnPlanner(
     // The move IS the answer here: the prose is an argument to the tool that
     // records it, so a turn that called nothing has not answered at all.
     decidesByTool: true,
-    // DECISION: the planner does not stream. Every sentence the shopper
-    // reads is emitted by the shell from the recorded plan - the answer
-    // line, the ask, the look announce - so a streamed planner draft was a
-    // second copy of each of them arriving first: the repeated questions
-    // and the pill-plus-bubble pairs, at their actual source. One
-    // utterance, one emitter.
-    speaks: false,
+    // The planner streams: its prose IS the turn's answer, and the shell's
+    // commit of the same text claims the draft rather than repeating it.
+    speaks: true,
   });
   return {
     planner: new SessionTurnPlanner(session, collector, deps.obs.logger),

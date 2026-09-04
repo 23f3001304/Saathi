@@ -46,6 +46,36 @@ function shortTitle(title: string): string {
   return cut.length > 64 ? `${cut.slice(0, 61)}…` : cut;
 }
 
+/** Consecutive thinking lines are one block, so the transcript shows a
+ *  single closed "Thinking" rather than a column of them. */
+function grouped(entries: readonly ChatEntry[]): ChatEntry[] {
+  const out: ChatEntry[] = [];
+  for (const entry of entries) {
+    const last = out[out.length - 1];
+    const isThought = entry.kind === "agent" && entry.thinking === true;
+    const heldThought = last?.kind === "agent" && last.thinking === true;
+    if (isThought && heldThought && last.kind === "agent") {
+      out[out.length - 1] = { ...last, text: `${last.text}\n${entry.text}` };
+      continue;
+    }
+    out.push(entry);
+  }
+  return out;
+}
+
+function Thinking({ text }: { text: string }): JSX.Element {
+  return (
+    <details className={styles.thinkingBlock}>
+      <summary className={styles.thinkingHead}>Thinking</summary>
+      {text.split("\n").map((line, at) => (
+        <p key={at} className={styles.thinkingLine}>
+          {line}
+        </p>
+      ))}
+    </details>
+  );
+}
+
 function Bubble({
   entry,
 }: {
@@ -54,8 +84,13 @@ function Bubble({
   if (entry.kind === "buyer") {
     return <p className={`${styles.bubble} ${styles.buyer}`}>{entry.text}</p>;
   }
+  // A draft still arriving is the agent thinking out loud, and it reads as
+  // that: quieter than an answer, because it is not one yet. When the turn
+  // commits, the same bubble becomes the answer in full colour (`speak`
+  // claims the draft rather than printing a second copy under it).
+  const thinking = entry.draft === "live";
   return (
-    <p className={styles.bubble}>
+    <p className={thinking ? `${styles.bubble} ${styles.thinking}` : styles.bubble}>
       <StreamText text={entry.text} />
     </p>
   );
@@ -319,6 +354,9 @@ export function ChatSession({
     awaiting === "intent" ? "intent" : question !== null ? "ask" : stage;
 
   function renderEntry(entry: ChatEntry, i: number): JSX.Element {
+    if (entry.kind === "agent" && entry.thinking === true) {
+      return <Thinking key={i} text={entry.text} />;
+    }
     if (entry.kind === "work") {
       return (
         <ActivityStream
@@ -403,7 +441,7 @@ export function ChatSession({
               <Openers onPick={answer} />
             </>
           )}
-          {entries.map(renderEntry)}
+          {grouped(entries).map(renderEntry)}
           {stage === "confirm" && picked !== undefined && (
             <p className={styles.bubble}>
               <StreamText

@@ -13,6 +13,7 @@ import type { OptionRowData } from "./chatScript.ts";
 import type { AssistantSignal } from "./assistantTransport.ts";
 import type { AssistantSnapshot } from "./assistantSnapshot.ts";
 import { applyFieldSignal } from "./fieldSignals.ts";
+import { dropEcho } from "./entryEcho.ts";
 
 export type { ChatEntry, DraftPhase } from "./chatEntry.ts";
 
@@ -78,24 +79,6 @@ function withOffer(
 }
 
 /**
- * A superseded round left the very sentence being asked in the work strip —
- * the planner wrote the question twice and the first copy became a pill. A
- * pill that repeats the composer verbatim records nothing; it goes, and a
- * strip it leaves empty goes with it.
- */
-function dropEcho(entries: readonly ChatEntry[], text: string): ChatEntry[] {
-  const at = entries.length - 1;
-  const last = entries[at];
-  if (last?.kind !== "work") return [...entries];
-  const kept = last.activities.filter(
-    (activity) => activity.text.trim() !== text.trim(),
-  );
-  if (kept.length === last.activities.length) return [...entries];
-  if (kept.length === 0) return entries.slice(0, at);
-  return [...entries.slice(0, at), { ...last, activities: kept }];
-}
-
-/**
  * A live question renders at the composer and nowhere else — that is the
  * product rule, and printing it as a bubble too was the repeat the shopper
  * called out. The draft the question was streamed as is claimed off the
@@ -122,7 +105,43 @@ function spoken(
   signal: Extract<AssistantSignal, { kind: "say" }>,
 ): ChatEntry[] {
   const held = dropEcho(closeWork([...entries]), signal.text);
+  // Thinking is appended, never claimed onto the streamed draft: the draft
+  // is where the ANSWER will land, and a working note taking its place
+  // would leave the turn's conclusion with nowhere to go.
+  if (signal.thinking === true) {
+    return [...held, { kind: "agent", text: signal.text, thinking: true }];
+  }
   return speak(held, signal.text, signal.system);
+}
+
+/** Their sentence starts the next turn: the answered question becomes
+ *  history above it, and the last answer's cards are retired with it. */
+function answered(
+  state: AssistantSnapshot,
+  signal: Extract<AssistantSignal, { kind: "buyer" }>,
+): AssistantSnapshot {
+    // The answered question becomes history: it was never a transcript
+    // entry while live, so it is written in now, above the answer it got.
+    const past = closeDrafts(state.entries);
+    // A parked turn with nothing to ask is a real shape (§6.2): the composer
+    // simply waits. Written in as history it was an empty bubble.
+    const asked: ChatEntry[] =
+      state.question === null || state.question.prompt.trim() === ""
+        ? []
+        : [{ kind: "agent", text: state.question.prompt }];
+    return {
+      ...state,
+      question: null,
+      running: true,
+      // A new sentence retires the last answer's cards. They belonged to a
+      // question that has been superseded: left standing they were offered
+      // as choices for a search that had moved on, and the shelf's one
+      // kurta sat under "I am checking the open web" as if it were a find.
+      options: [],
+      offering: false,
+      entries: [...past, ...asked, { kind: "buyer", text: signal.text }],
+    };
+  
 }
 
 function applyEntrySignal(
@@ -134,29 +153,8 @@ function applyEntrySignal(
       return applyAsk(state, signal);
     case "say":
       return { ...state, entries: spoken(state.entries, signal) };
-    case "buyer": {
-      // The answered question becomes history: it was never a transcript
-      // entry while live, so it is written in now, above the answer it got.
-      const past = closeDrafts(state.entries);
-      // A parked turn with nothing to ask is a real shape (§6.2): the composer
-      // simply waits. Written in as history it was an empty bubble.
-      const asked: ChatEntry[] =
-        state.question === null || state.question.prompt.trim() === ""
-          ? []
-          : [{ kind: "agent", text: state.question.prompt }];
-      return {
-        ...state,
-        question: null,
-        running: true,
-        // A new sentence retires the last answer's cards. They belonged to a
-        // question that has been superseded: left standing they were offered
-        // as choices for a search that had moved on, and the shelf's one
-        // kurta sat under "I am checking the open web" as if it were a find.
-        options: [],
-        offering: false,
-        entries: [...past, ...asked, { kind: "buyer", text: signal.text }],
-      };
-    }
+    case "buyer":
+      return answered(state, signal);
     case "activity":
       return {
         ...state,

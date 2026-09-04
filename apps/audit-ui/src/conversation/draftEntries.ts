@@ -85,14 +85,24 @@ function withdrawDraft(
  * the judged text belongs in the bubble the shopper was reading, not under the
  * notice explaining that a different bubble went.
  */
+/** A bubble an answer may land on: the agent's own streamed draft, never a
+ *  working note and never the harness's own voice. */
+function claimable(entry: ChatEntry | undefined): boolean {
+  return (
+    entry?.kind === "agent" &&
+    entry.thinking !== true &&
+    entry.draft !== undefined &&
+    entry.system !== true
+  );
+}
+
 function lastSettled(entries: readonly ChatEntry[]): number {
   for (let at = entries.length - 1; at >= 0; at -= 1) {
     const entry = entries[at];
     if (entry === undefined || entry.kind === "buyer") return -1;
     // "live" claims too: a question that lands before its draft settles is
     // the same sentence, and leaving the live copy rendered it twice.
-    if (entry.kind === "agent" && entry.draft !== undefined && !entry.system)
-      return at;
+    if (claimable(entry)) return at;
   }
   return -1;
 }

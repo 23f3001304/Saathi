@@ -36,7 +36,12 @@ export type AgentBeat =
       capPaise: number;
       thumbprint: string;
     }
-  | { offsetMs: number; kind: "message"; text: string; variant?: "system" }
+  | {
+      offsetMs: number;
+      kind: "message";
+      text: string;
+      variant?: "system" | "thinking";
+    }
   | {
       offsetMs: number;
       kind: "amendment";

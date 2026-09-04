@@ -88,7 +88,9 @@ export type ChatBeat =
       readonly offsetMs: number;
       readonly kind: "message";
       readonly text: string;
-      readonly variant?: "system";
+      /** "system" is the harness's own voice; "thinking" is the agent
+       *  working, which the shopper can open but is not shown by default. */
+      readonly variant?: "system" | "thinking";
     }
   | {
       readonly offsetMs: number;

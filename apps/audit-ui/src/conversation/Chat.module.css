@@ -339,3 +339,38 @@
   font-size: var(--t-body-s-size);
   color: var(--ink-62);
 }
+
+/* Thinking, not answering: the words are there to watch, not to weigh. */
+.thinking {
+  color: var(--ink-soft, #6b6255);
+  opacity: 0.72;
+  font-style: italic;
+}
+
+/* Collapsed by default: the working is there for whoever wants it. */
+.thinkingBlock {
+  margin: var(--sp-2, 8px) 0;
+}
+
+.thinkingHead {
+  cursor: pointer;
+  font-size: 0.8125rem;
+  color: var(--ink-soft, #6b6255);
+  opacity: 0.8;
+  list-style: none;
+}
+
+.thinkingHead::before {
+  content: "› ";
+}
+
+.thinkingBlock[open] .thinkingHead::before {
+  content: "⌄ ";
+}
+
+.thinkingLine {
+  font-size: 0.875rem;
+  color: var(--ink-soft, #6b6255);
+  opacity: 0.75;
+  margin: 4px 0 0 12px;
+}

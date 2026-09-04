@@ -31,15 +31,25 @@ function signedSignals(
 }
 
 /** What the agent said, and the two gates it stops at. */
+/** One spoken beat, in whichever of the three voices it carries. */
+function saidBy(
+  beat: Extract<AgentBeat, { kind: "message" }>,
+): AssistantSignal {
+  return {
+    kind: "say",
+    text: beat.text,
+    system: beat.variant === "system",
+    thinking: beat.variant === "thinking",
+  };
+}
+
 function conversationSignals(
   beat: AgentBeat,
   index: number,
 ): AssistantSignal[] | null {
   switch (beat.kind) {
     case "message":
-      return [
-        { kind: "say", text: beat.text, system: beat.variant === "system" },
-      ];
+      return [saidBy(beat)];
     case "intent-draft":
       return [
         { kind: "say", text: `Here is what I would sign: ${beat.description}` },

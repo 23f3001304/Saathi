@@ -12,6 +12,8 @@ export type ChatEntry =
       kind: "agent";
       text: string;
       system?: boolean;
+      /** The agent working rather than answering: collapsed by default. */
+      thinking?: boolean;
       /** Present while this bubble is a streamed answer; see draftEntries.ts. */
       streamId?: string;
       draft?: DraftPhase;

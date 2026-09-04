@@ -28,7 +28,7 @@ export type TransportStatus =
  * behind, and a withdrawn draft leaves rather than being quietly rewritten.
  */
 export type AssistantSignal =
-  | { kind: "say"; text: string; system?: boolean }
+  | { kind: "say"; text: string; system?: boolean; thinking?: boolean }
   | { kind: "delta"; streamId: string; text: string }
   | { kind: "draft-settled"; streamId: string }
   | { kind: "draft-withdrawn"; streamId: string; reason: string }

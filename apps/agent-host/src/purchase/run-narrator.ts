@@ -34,14 +34,20 @@ export class RunNarrator {
    * turn ends on, which goes out as a `question` beat, not as a bubble.
    */
   replay(conversation: ConversationResult, held: string | null = null): void {
-    // Every prose turn the model wrote goes out as it wrote it. The filters
-    // that lived here (restated-row suppression, per-line language checks)
-    // second-guessed output the prompt already shapes; what the shopper
-    // reads is the model's, whole.
-    for (const text of conversation.transcript.filter(isProse)) {
-      if (text.trim() === held) continue;
-      this.hub.emit({ kind: "message", text });
-    }
+    // What it decided is the answer; how it got there is thinking. Every
+    // prose turn but the last goes out marked `thinking`, which the shopper
+    // can open and does not have to read: the rejected listing, the shop
+    // that would not load, the reason it changed its mind. Nothing is
+    // dropped, and the reply is one sentence again rather than nine.
+    const prose = conversation.transcript
+      .filter(isProse)
+      .filter((text) => text.trim() !== held);
+    prose.forEach((text, at) => {
+      const last = at === prose.length - 1;
+      this.hub.emit(
+        last ? { kind: "message", text } : { kind: "message", text, variant: "thinking" },
+      );
+    });
     this.replayMemory();
     this.replayBlocked();
   }
