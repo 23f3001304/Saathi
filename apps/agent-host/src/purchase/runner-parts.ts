@@ -1,3 +1,4 @@
+import type { AskRequest } from "./ask-verb.js";
 import type {
   BuyerAgent,
   GatewayClient,
@@ -61,6 +62,8 @@ export interface RunnerParts {
   readonly conversation: ConversationMemory;
   readonly traits: TraitMemory;
   readonly intents: IntentFlow;
+  /** What the model asked this turn through `ask_shopper`, if anything. */
+  readonly ask?: { readonly asked: AskRequest | null; reset(): void };
   readonly buyer: BuyerAgent;
   readonly webLook: WebLook;
   /** A checkout parked mid-flight, so the next sentence resumes it. */

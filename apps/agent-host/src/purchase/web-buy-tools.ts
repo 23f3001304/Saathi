@@ -1,6 +1,5 @@
 import type { JsonSchemaObject, ToolDeclaration } from "@covenant/agents";
 import {
-  APP_STATE_TOOL,
   WEB_ADD_TO_CART_TOOL,
   WEB_CART_TOOL,
   WEB_ENTER_CODE_TOOL,
@@ -18,6 +17,8 @@ import {
 } from "@covenant/agents";
 import { z } from "zod";
 
+import { SHARED_TOOL_DECLARATIONS } from "./web-shared-tools.js";
+
 /** Shared with `web-research-tools.ts`, which declares the other half of this
  *  surface and must describe its arguments the same way. */
 export function schemaOf(shape: z.ZodRawShape): JsonSchemaObject {
@@ -32,19 +33,7 @@ export const UNTRUSTED =
 const point = { x: z.number().int().min(0), y: z.number().int().min(0) };
 
 export const WEB_TOOL_DECLARATIONS: readonly ToolDeclaration[] = [
-  {
-    tool: APP_STATE_TOOL,
-    server: WEB_TOOL_SERVER,
-    description:
-      "See where things actually stand right now: whether a window is open " +
-      "and who is driving it, whether a covenant is signed and its ceiling, " +
-      "how many cards are on the shopper's screen, whether a basket or a " +
-      "delivery form has been seen, whether a checkout is parked, and " +
-      "whether a sign-in is stored for this shop (whether, never what). " +
-      "Call it whenever you are unsure what has already happened, rather " +
-      "than assuming or asking the shopper to repeat themselves.",
-    parameters: schemaOf({}),
-  },
+  ...SHARED_TOOL_DECLARATIONS,
   {
     tool: WEB_OPEN_TOOL,
     server: WEB_TOOL_SERVER,

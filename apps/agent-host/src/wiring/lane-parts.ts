@@ -1,3 +1,4 @@
+import { AskVerb } from "../purchase/ask-verb.js";
 import type { AgentSession } from "@covenant/agents";
 
 import type { BrowserRegistry } from "../browser/browser-registry.js";
@@ -19,6 +20,8 @@ export interface LaneWindowParts {
   readonly park: WebPickPark;
   readonly offered: WebOffered;
   readonly pin: WebPin;
+  /** Where an `ask_shopper` call is held until the turn closes. */
+  readonly ask: AskVerb;
   readonly traits: TraitMemory;
 }
 
@@ -36,6 +39,8 @@ export function laneWindowParts(traits: TraitMemory): LaneWindowParts {
     park: new WebPickPark(),
     offered: new WebOffered(),
     pin: new WebPin(),
+    // Where an `ask_shopper` call is recorded until the turn closes.
+    ask: new AskVerb(),
     traits,
   };
 }

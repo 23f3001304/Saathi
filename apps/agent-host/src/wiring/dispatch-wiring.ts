@@ -1,3 +1,4 @@
+import type { AskVerb } from "../purchase/ask-verb.js";
 import { TimerWaiter } from "@covenant/browser-drive";
 import type { Clock, IdGenerator } from "@covenant/domain";
 
@@ -51,6 +52,8 @@ export interface DispatchDeps {
   readonly pin: WebPin;
   /** Whether a checkout is parked, so the model can read it. */
   readonly park: { readonly parked: boolean; readonly reason: string };
+  /** Where an `ask_shopper` call is recorded for the step that closes. */
+  readonly ask: AskVerb;
   /** What the shopper stated about themselves — the only source a delivery
    *  form is ever filled from. */
   readonly traits: TraitMemory;
@@ -101,6 +104,7 @@ function reachOf(
       card: new CardVerbs(deps.findings, reads, deps.pin),
     },
     glance: new GlanceVerbs(deps.browser, new TimerWaiter()),
+    ask: deps.ask,
     state: {
       browser: deps.browser,
       findings: deps.findings,

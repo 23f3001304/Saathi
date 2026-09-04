@@ -22,6 +22,7 @@ import type { HandoverMove } from "../browser/web-handover-move.js";
 import type { WebFindings } from "../browser/web-listing.js";
 import type { WebShopper } from "../browser/web-shopper.js";
 import type { SignInVerbs } from "../browser/web-sign-in.js";
+import type { AskVerb } from "./ask-verb.js";
 import type { StateParts } from "../browser/app-state.js";
 import { cartCall, openCall } from "./web-open-calls.js";
 import type { GlanceVerbs } from "../browser/web-glance.js";
@@ -31,6 +32,7 @@ import type { WebPin } from "./web-pin.js";
 import type { StepSink } from "./web-steps.js";
 import { stepLabel } from "./web-steps.js";
 import {
+  askCall,
   actCall,
   cardCall,
   foundCall,
@@ -63,6 +65,9 @@ export function isWebTool(tool: string): boolean {
  */
 export interface RunnerReach {
   readonly research?: { verify: VerifyVerbs | null; card: CardVerbs | null };
+  /** How the model asks the shopper something; `null` where nobody is
+   *  listening (a research probe with no conversation behind it). */
+  readonly ask?: AskVerb | null;
   readonly glance?: GlanceVerbs | null;
   readonly state?: StateParts | null;
 }
@@ -102,6 +107,9 @@ export class WebToolRunner {
   }
   private get state(): StateParts | null {
     return this.reach.state ?? null;
+  }
+  private get askVerb(): AskVerb | null {
+    return this.reach.ask ?? null;
   }
 
   async run(call: ToolCall): Promise<ToolOutcome> {
@@ -143,6 +151,7 @@ export class WebToolRunner {
   private async reachCall(call: ToolCall): Promise<ToolOutcome | null> {
     return (
       (await stateCall(call, this.state)) ??
+      (await askCall(call, this.askVerb)) ??
       verifyCall(call, this.research.verify) ??
       cardCall(call, this.research.card) ??
       (await glanceCall(call, this.glanceVerbs)) ??

@@ -23,6 +23,20 @@ export const webScrollArgs = z.object({
 
 /** What a research errand reports: candidates as the source printed them.
  *  Every row is untrusted text and the host re-parses the price itself. */
+export const askShopperArgs = z.object({
+  question: z.string().min(1).max(300),
+  replies: z.array(z.string().min(1).max(60)).max(6).default([]),
+  groups: z
+    .array(
+      z.object({
+        label: z.string().min(1).max(24),
+        options: z.array(z.string().min(1).max(40)).min(2).max(5),
+      }),
+    )
+    .max(4)
+    .default([]),
+});
+
 export const webVerifyArgs = z.object({
   urls: z.array(z.url()).min(1).max(6),
 });

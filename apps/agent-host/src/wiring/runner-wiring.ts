@@ -151,6 +151,15 @@ function merchantParts(deps: BuyerDeps) {
   };
 }
 
+function fallbackOf(
+  deps: BuyerDeps,
+  dispatcher: AgentToolDispatcher,
+  log: ToolLog,
+): MerchantToolFallback {
+  const { hook } = deps.gateway;
+  return new MerchantToolFallback(hook, dispatcher, log, deps.obs.logger);
+}
+
 export function wireRunner(
   deps: BuyerDeps,
   log: ToolLog,
@@ -165,12 +174,8 @@ export function wireRunner(
       cartGate: shared.cartGate,
       ...loopParts(deps, dispatcher),
       intents: shared.intents,
-      fallback: new MerchantToolFallback(
-        deps.gateway.hook,
-        dispatcher,
-        log,
-        deps.obs.logger,
-      ),
+      ask: deps.ask,
+      fallback: fallbackOf(deps, dispatcher, log),
       gateway: deps.gateway.client,
       carts: new CartBuilder(deps.keys.carts, deps.clock, deps.ids),
       settlement: new CheckoutStep(

@@ -1,9 +1,8 @@
 import type { CatalogSku } from "@covenant/agents";
 
-import { asks, askTurn } from "./ask-step.js";
+import { askTurn } from "./ask-step.js";
 import { listingFor } from "./intent-listing.js";
 import { observedFrom } from "./observation.js";
-import { lastSentence } from "./prose.js";
 import { proposeCart, retrieveForCart } from "./propose-step.js";
 import { speakFor } from "./web-errand.js";
 import type { PurchaseResult } from "./purchase-result.js";
@@ -34,12 +33,12 @@ export async function buyThrough(
   const conversation = await parts.buyer.converse(
     `${stated.join("\n")}\n\n${speakFor(stated, replyLanguage)}`,
   );
-  const asked = lastSentence(conversation.transcript);
-  if (asks(asked)) {
-    parts.narrator.replay(conversation, asked);
-    return askTurn(parts, base, asked);
-  }
+  // Asking is a move the model makes, never a shape read out of its prose.
+  const asked = parts.ask?.asked ?? null;
   parts.narrator.replay(conversation);
+  if (asked !== null) {
+    return askTurn(parts, base, asked.question, asked.replies, asked.groups);
+  }
   const sku = listingFor(parts.shelf.current(), intent);
   const quote = await parts.fallback.ensureQuote(
     sku,

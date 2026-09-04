@@ -1,11 +1,12 @@
 import type { ToolDeclaration } from "@covenant/agents";
 import {
-  APP_STATE_TOOL,
   WEB_CARD_TOOL,
   WEB_TOOL_SERVER,
   WEB_VERIFY_TOOL,
 } from "@covenant/agents";
 import { z } from "zod";
+
+import { SHARED_TOOL_DECLARATIONS } from "./web-shared-tools.js";
 
 import { schemaOf, UNTRUSTED } from "./web-buy-tools.js";
 
@@ -26,19 +27,7 @@ const cardRow = z.object({
  * that touches the window does.
  */
 export const RESEARCH_TOOL_DECLARATIONS: readonly ToolDeclaration[] = [
-  {
-    tool: APP_STATE_TOOL,
-    server: WEB_TOOL_SERVER,
-    description:
-      "See where things actually stand right now: whether a window is open " +
-      "and who is driving it, whether a covenant is signed and its ceiling, " +
-      "how many cards are on the shopper's screen, whether a basket or a " +
-      "delivery form has been seen, whether a checkout is parked, and " +
-      "whether a sign-in is stored for this shop (whether, never what). " +
-      "Call it whenever you are unsure what has already happened, rather " +
-      "than assuming or asking the shopper to repeat themselves.",
-    parameters: schemaOf({}),
-  },
+  ...SHARED_TOOL_DECLARATIONS,
   {
     tool: WEB_VERIFY_TOOL,
     server: WEB_TOOL_SERVER,

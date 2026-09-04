@@ -148,6 +148,12 @@ function applyEntrySignal(
         ...state,
         question: null,
         running: true,
+        // A new sentence retires the last answer's cards. They belonged to a
+        // question that has been superseded: left standing they were offered
+        // as choices for a search that had moved on, and the shelf's one
+        // kurta sat under "I am checking the open web" as if it were a find.
+        options: [],
+        offering: false,
         entries: [...past, ...asked, { kind: "buyer", text: signal.text }],
       };
     }

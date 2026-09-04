@@ -1,3 +1,4 @@
+import type { AskVerb } from "../purchase/ask-verb.js";
 import type { AgentSession, TurnPlanner } from "@covenant/agents";
 import type { Clock, IdGenerator } from "@covenant/domain";
 
@@ -68,6 +69,7 @@ export interface BuyerDeps {
   readonly offered: WebOffered;
   /** The one product a buy errand may open; released by every look. */
   readonly pin: WebPin;
+  readonly ask: AskVerb;
   /** The conversation's durable working context — claimed, read and written
    *  by the run; read-only from the errand that starts at a known page. */
   readonly context: ContextRecorder;

@@ -120,6 +120,14 @@ export function ChatSession({
     chat.running &&
     chat.sandbox === null &&
     chat.awaiting === null;
+  // While a turn is in flight there is nobody reading: the dock waits.
+  // Two exceptions, both of them the shopper's own turn - a gate waiting on
+  // a signature, and a window handed to them to drive.
+  const working =
+    chat.running &&
+    chat.awaiting === null &&
+    question === null &&
+    attention !== "handoff";
   const [signed, setSigned] = useState(false);
   const [billOpen, setBillOpen] = useState(false);
   // A reload of a settled purchase must not re-arm the signing flow: the
@@ -244,7 +252,14 @@ export function ChatSession({
 
   // The live set sits in the dock; the transcript keeps the evidence line.
   const optionsLive =
-    options.length > 0 && !signed && !webLaunched && question === null;
+    options.length > 0 &&
+    !signed &&
+    !webLaunched &&
+    question === null &&
+    // A set from the last answer is not the live one while the next answer
+    // is being written: offering "cheaper" over cards the agent has already
+    // moved past was the complaint.
+    !chat.running;
 
   /** Every reply ends in something tappable. A question always carries "You
    *  decide" so the agent's judgement is one tap away; a live option set
@@ -450,7 +465,7 @@ export function ChatSession({
       )}
       <Composer
         voiceStage={voiceStage}
-        blocked={offline || launching}
+        blocked={offline || launching || working}
         onSend={answer}
         speakText={spokenLine}
         actions={replies}
@@ -460,7 +475,9 @@ export function ChatSession({
         prompt={askPrompt}
 
         placeholder={
-          launching
+          working
+            ? "Working. I will come back to you."
+            : launching
             ? "Opening the shop's window…"
             : question === null
               ? undefined
