@@ -179,7 +179,7 @@ export function BillCard({
       ) : (
         <div className={styles.signRow}>
           <HoldToBuy
-            label={busy ? "Signing…" : "Hold to sign"}
+            label={busy ? "One moment…" : "Hold to buy"}
             busy={busy}
             onComplete={() => void handleSigned()}
           />

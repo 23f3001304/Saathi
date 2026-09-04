@@ -1,3 +1,5 @@
+import type { RunnerReach } from "./runner-reach.js";
+export type { RunnerReach } from "./runner-reach.js";
 import type { ToolCall, ToolOutcome } from "@covenant/agents";
 
 import {
@@ -22,8 +24,6 @@ import type { HandoverMove } from "../browser/web-handover-move.js";
 import type { WebFindings } from "../browser/web-listing.js";
 import type { WebShopper } from "../browser/web-shopper.js";
 import type { SignInVerbs } from "../browser/web-sign-in.js";
-import type { AskVerb } from "./ask-verb.js";
-import type { StateParts } from "../browser/app-state.js";
 import { cartCall, openCall } from "./web-open-calls.js";
 import type { GlanceVerbs } from "../browser/web-glance.js";
 import type { VerifyVerbs } from "../browser/web-verify.js";
@@ -32,14 +32,17 @@ import type { WebPin } from "./web-pin.js";
 import type { StepSink } from "./web-steps.js";
 import { stepLabel } from "./web-steps.js";
 import {
-  askCall,
   actCall,
   cardCall,
   foundCall,
   vaultCall,
   verifyCall,
-  stateCall,
 } from "./web-act-calls.js";
+import {
+  askCall,
+  seeCall,
+  stateCall,
+} from "./web-look-calls.js";
 import { glanceCall, withPicture } from "./web-picture-call.js";
 import { webHandoverArgs } from "./web-tools.js";
 
@@ -56,22 +59,6 @@ export function isWebTool(tool: string): boolean {
  * file re-decides whether a call was allowed, and nothing in it can reach a
  * payment rail — the only egress it knows is a DOM behind `GuardedPage`.
  */
-/**
- * The optional half of a runner's world. One object because they are one
- * idea, and because a tail of eight optional positionals had stopped
- * reading as anything. `research` arrives as a pair: `web_verify` fills the
- * table `web_card` is checked against, and a host wiring one without the
- * other would card rows off pages nobody opened.
- */
-export interface RunnerReach {
-  readonly research?: { verify: VerifyVerbs | null; card: CardVerbs | null };
-  /** How the model asks the shopper something; `null` where nobody is
-   *  listening (a research probe with no conversation behind it). */
-  readonly ask?: AskVerb | null;
-  readonly glance?: GlanceVerbs | null;
-  readonly state?: StateParts | null;
-}
-
 export class WebToolRunner {
   constructor(
     private readonly shopper: WebShopper,
@@ -105,11 +92,14 @@ export class WebToolRunner {
   private get glanceVerbs(): GlanceVerbs | null {
     return this.reach.glance ?? null;
   }
-  private get state(): StateParts | null {
+  private get state(): NonNullable<RunnerReach["state"]> | null {
     return this.reach.state ?? null;
   }
-  private get askVerb(): AskVerb | null {
+  private get askVerb(): NonNullable<RunnerReach["ask"]> | null {
     return this.reach.ask ?? null;
+  }
+  private get seeParts(): NonNullable<RunnerReach["see"]> | null {
+    return this.reach.see ?? null;
   }
 
   async run(call: ToolCall): Promise<ToolOutcome> {
@@ -150,14 +140,22 @@ export class WebToolRunner {
   /** The stateless lookups, tried in order; `null` means "not mine". */
   private async reachCall(call: ToolCall): Promise<ToolOutcome | null> {
     return (
-      (await stateCall(call, this.state)) ??
-      (await askCall(call, this.askVerb)) ??
+      (await this.lookCall(call)) ??
       verifyCall(call, this.research.verify) ??
       cardCall(call, this.research.card) ??
-      (await glanceCall(call, this.glanceVerbs)) ??
       foundCall(call, this.findings) ??
       (await actCall(call, this.shopper)) ??
       (await vaultCall(call, this.vaultVerbs))
+    );
+  }
+
+  /** The four that only look, or only ask: no page changes behind any. */
+  private async lookCall(call: ToolCall): Promise<ToolOutcome | null> {
+    return (
+      (await stateCall(call, this.state)) ??
+      (await askCall(call, this.askVerb)) ??
+      (await seeCall(call, this.seeParts)) ??
+      (await glanceCall(call, this.glanceVerbs))
     );
   }
 

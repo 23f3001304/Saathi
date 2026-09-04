@@ -17,13 +17,20 @@ describe("the sandbox plan", () => {
     );
   });
 
-  it("refuses to run without a container, rather than downgrading", async () => {
+  it("resolves to a container, or refuses; never to this machine", async () => {
     const logger = new RecordingLogger();
-    // No env can ask for the host's own Chrome any more: a purchase window
-    // is a container or it does not open. On a machine with Docker and the
-    // image built this resolves; anywhere else it throws, saying so.
-    await expect(
-      resolvePlan({ COVENANT_BROWSER_SANDBOX: "in-process" }, logger),
-    ).rejects.toThrow(/container/i);
+    // No env can ask for the host's own Chrome any more. With Docker and the
+    // image present this resolves to a container; anywhere else it throws
+    // saying so. What it must never do is quietly run a browser here.
+    const plan = await resolvePlan(
+      { COVENANT_BROWSER_SANDBOX: "in-process" },
+      logger,
+    ).catch((error: unknown) => error as Error);
+    if (plan instanceof Error) {
+      expect(plan.message).toMatch(/container/i);
+      return;
+    }
+    expect(plan.surface).toBe("container");
+    expect(plan.readerBrowser()).toBeInstanceOf(ContainerReaderBrowser);
   });
 });

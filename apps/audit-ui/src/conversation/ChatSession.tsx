@@ -334,7 +334,7 @@ export function ChatSession({
   const fromWeb = options.some((option) => option.sourceUrl !== undefined);
   const askPrompt =
     awaiting === "intent"
-      ? "Nothing has been searched for yet: that starts when you sign."
+      ? "I have not looked yet. Agree to this and I will go."
       : (question?.prompt ??
         (webChosen !== undefined && !webLaunched
           ? `${shortTitle(webChosen.title)}: ${rupeesRounded(webChosen.pricePaise)} on ${webChosen.merchant}. Go and put it in that shop's basket?`
@@ -525,7 +525,7 @@ export function ChatSession({
         primary={
           awaiting === "intent" ? (
             <HoldToBuy
-              label="Hold to sign your limits"
+              label="Hold to agree"
               busy={false}
               onComplete={() => void sign("intent")}
             />

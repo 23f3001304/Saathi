@@ -72,12 +72,14 @@ describe("what the errand is told to write in", () => {
     expect(composed).toContain("50,000rs");
   });
 
-  it("points at those lines rather than naming a language", () => {
-    const composed = errandFor("kurta", ["mujhe navy kurti chahiye"], "INR");
-    // Context, not a rule table: the errand ends by pointing back at the
-    // shopper's own quoted words, and never names a language itself.
-    expect(composed.trimEnd()).toMatch(/language they are writing in/i);
-    expect(composed).not.toMatch(/answer in (english|hindi)/i);
+  it("names the language only when the app was told one", () => {
+    // Agnostic by construction: with no setting the prompt says nothing
+    // about language at all, so nothing is inferred from their sentence or
+    // from the pages just read. With a setting it says it once, plainly.
+    const guessed = errandFor("kurta", ["mujhe navy kurti chahiye"], "INR");
+    expect(guessed).not.toMatch(/language/i);
+    const told = errandFor("kurta", ["mujhe navy kurti chahiye"], "INR", "Hindi");
+    expect(told).toContain("Write your whole answer in Hindi.");
   });
 });
 

@@ -1,5 +1,7 @@
 import type { JsonSchemaObject, ToolDeclaration } from "@covenant/agents";
-import { APP_STATE_TOOL, ASK_SHOPPER_TOOL, WEB_TOOL_SERVER } from "@covenant/agents";
+import {
+  SEE_CARDS_TOOL,
+  SEE_PROFILE_TOOL, APP_STATE_TOOL, ASK_SHOPPER_TOOL, WEB_TOOL_SERVER } from "@covenant/agents";
 import { z } from "zod";
 
 function schemaOf(shape: z.ZodRawShape): JsonSchemaObject {
@@ -12,6 +14,26 @@ function schemaOf(shape: z.ZodRawShape): JsonSchemaObject {
  *  things stand, and ask the person. Declared once so the buy surface and
  *  the research surface cannot drift apart on them. */
 export const SHARED_TOOL_DECLARATIONS: readonly ToolDeclaration[] = [
+  {
+    tool: SEE_CARDS_TOOL,
+    server: WEB_TOOL_SERVER,
+    description:
+      "Look at the cards the shopper has on screen right now, with the ref " +
+      "that names each one. Call it before you talk about what you showed " +
+      "them, or when they mention one and you need to know which.",
+    parameters: schemaOf({}),
+  },
+  {
+    tool: SEE_PROFILE_TOOL,
+    server: WEB_TOOL_SERVER,
+    description:
+      "Look at what this app knows about the shopper: the delivery facts " +
+      "they themselves gave it. web_fill_address types exactly these and " +
+      "nothing else, so read this before deciding whether a form can be " +
+      "filled, and ask them for anything missing rather than inventing it. " +
+      "Passwords are never here; app_state says whether one is stored.",
+    parameters: schemaOf({}),
+  },
   {
     tool: ASK_SHOPPER_TOOL,
     server: WEB_TOOL_SERVER,

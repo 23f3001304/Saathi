@@ -37,21 +37,17 @@ export function speakFor(
   stated: readonly string[],
   replyLanguage: string | null = null,
 ): string {
-  const setting =
-    replyLanguage === null
-      ? ""
-      : `They set the app's reply language to ${replyLanguage}, which is a ` +
-        "standing instruction. ";
-  // Context, not a lecture. The old copy spent five sentences legislating
-  // scripts and halves, which is a rule to obey rather than a person to
-  // answer; a model reading the shopper's own words needs to be pointed at
-  // them, once. Everything they have said this conversation is quoted above
-  // this line already.
-  return (
-    setting +
-    "Everything above in THEY WROTE THIS is theirs, in their own words. " +
-    "Answer them in the language they are writing in, all the way through."
-  );
+  // DECISION: the language is a setting, not a reading. Quoting the
+  // shopper's lines and asking the model to match them made every answer
+  // depend on an inference - about their sentence, and about the pages it
+  // had just read - and that inference is what put a Hindi paragraph in an
+  // English conversation. When the app has been told a language, it says so
+  // plainly; when it has not, this says nothing at all and the conversation
+  // carries itself. The language actually used is recorded as a pill.
+  void stated;
+  return replyLanguage === null
+    ? ""
+    : `Write your whole answer in ${replyLanguage}.`;
 }
 
 /**

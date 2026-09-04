@@ -2,7 +2,7 @@ import type { Logger } from "@covenant/domain";
 
 import type { KnownAddress } from "../browser/web-address-fill.js";
 import type { IntentFlow } from "./intent-flow.js";
-import { covenantFirst, profileOf } from "./web-buy-covenant.js";
+import { covenantFirst } from "./web-buy-covenant.js";
 import type { ResumeParts } from "./web-buy-resume.js";
 import { resumePick } from "./web-buy-resume.js";
 import type { WebFindings } from "../browser/web-listing.js";
@@ -109,9 +109,8 @@ export class WebBuyStep {
     }
     showWindow(this.hub, this.sandbox);
     this.progress.reset();
-    const home = await profileOf(this.address);
     const said = await this.errand(
-      buyErrandFor(listing, stated, this.currency, replyLanguage, home),
+      buyErrandFor(listing, stated, this.currency, replyLanguage),
       { stated, replyLanguage, from, holds: listing.title },
     );
     this.logger.info("purchase.web_pick", { ref, url: listing.url });

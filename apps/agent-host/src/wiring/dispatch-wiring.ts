@@ -105,6 +105,10 @@ function reachOf(
     },
     glance: new GlanceVerbs(deps.browser, new TimerWaiter()),
     ask: deps.ask,
+    see: {
+      findings: deps.findings,
+      address: { lookup: () => deps.traits.known(ADDRESS_RECALL) },
+    },
     state: {
       browser: deps.browser,
       findings: deps.findings,

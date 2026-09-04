@@ -24,7 +24,7 @@ function signedSignals(
     { kind: "covenant", capPaise: beat.capPaise, thumbprint: beat.thumbprint },
     pill(
       `intent-signed-${index}`,
-      `You signed · nothing above ${rupeesRounded(beat.capPaise)} · ${beat.thumbprint}`,
+      `Agreed · nothing above ${rupeesRounded(beat.capPaise)} · ${beat.thumbprint}`,
     ),
     { kind: "signed", scope: "intent" },
   ];
@@ -52,7 +52,7 @@ function conversationSignals(
       return [saidBy(beat)];
     case "intent-draft":
       return [
-        { kind: "say", text: `Here is what I would sign: ${beat.description}` },
+        { kind: "say", text: `Before I go: ${beat.description}` },
       ];
     case "signing-required":
       return [{ kind: "await-sign", scope: "intent" }];

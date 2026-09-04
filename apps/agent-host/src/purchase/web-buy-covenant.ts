@@ -1,4 +1,3 @@
-import type { KnownAddress } from "../browser/web-address-fill.js";
 import type { WebListingView } from "../browser/web-listing.js";
 import type { IntentFlow } from "./intent-flow.js";
 
@@ -17,14 +16,6 @@ export async function covenantFirst(
   });
 }
 
-/** One line per stated fact, empty when nothing is known. */
-export async function profileOf(
-  address: KnownAddress | null,
-): Promise<string> {
-  if (address === null) return "";
-  const facts = await address.lookup();
-  return facts.map((fact) => `${fact.key}: ${fact.value}`).join("\n");
-}
 
 function merchantOf(url: string): string {
   try {

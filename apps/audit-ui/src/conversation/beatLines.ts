@@ -10,7 +10,7 @@ export const OUTCOME_TEXT: Record<string, string> = {
   cooloff_parked: "Held for your cool-off. No money has moved.",
   awaiting_user: "This needs your signature before anything is charged.",
   rejected: "That cart was refused.",
-  bounded: "Stopped by a rule you signed.",
+  bounded: "Stopped by what you agreed to.",
   failed: "That did not finish.",
 };
 

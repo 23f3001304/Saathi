@@ -1,7 +1,5 @@
 import type { ToolCall, ToolOutcome } from "@covenant/agents";
 import {
-  APP_STATE_TOOL,
-  ASK_SHOPPER_TOOL,
   WEB_CARD_TOOL,
   WEB_ENTER_CODE_TOOL,
   WEB_FOUND_TOOL,
@@ -15,9 +13,6 @@ import {
 import type { z } from "zod";
 
 import type { WebShopper } from "../browser/web-shopper.js";
-import type { AskVerb } from "./ask-verb.js";
-import type { StateParts } from "../browser/app-state.js";
-import { appState } from "../browser/app-state.js";
 import type { SignInVerbs } from "../browser/web-sign-in.js";
 import type { VerifyVerbs } from "../browser/web-verify.js";
 import type { CardVerbs } from "../browser/web-card.js";
@@ -25,7 +20,6 @@ import type { WebFindings } from "../browser/web-listing.js";
 import type { WebResult } from "../browser/web-result.js";
 import { badArgs, outcomeOf, unknown } from "./web-tool-guards.js";
 import {
-  askShopperArgs,
   webCardArgs,
   webEnterCodeArgs,
   webFoundArgs,
@@ -154,38 +148,4 @@ export function cardCall(
   return parsed.success
     ? outcomeOf(verbs.card(parsed.data.rows))
     : badArgs(parsed.error);
-}
-
-/** Where things actually stand, as the model's own read. */
-export function stateCall(
-  call: ToolCall,
-  parts: StateParts | null,
-): Promise<ToolOutcome> | null {
-  if (call.tool !== APP_STATE_TOOL) return null;
-  if (parts === null) return Promise.resolve(unknown(call.tool));
-  return appState(parts).then((state) => ({
-    content: JSON.stringify(state),
-    isError: false,
-  }));
-}
-
-/** Asking, as the model's own move. The harness parks the run; the words,
- *  the chips and the decision to ask at all are the model's. */
-export function askCall(
-  call: ToolCall,
-  verb: AskVerb | null,
-): Promise<ToolOutcome> | null {
-  if (call.tool !== ASK_SHOPPER_TOOL) return null;
-  if (verb === null) return Promise.resolve(unknown(call.tool));
-  const parsed = askShopperArgs.safeParse(call.args);
-  if (!parsed.success) return Promise.resolve(badArgs(parsed.error));
-  verb.ask(parsed.data);
-  return Promise.resolve({
-    content: JSON.stringify({
-      ok: true,
-      asked: true,
-      next: "Stop here. Say nothing more; their answer starts the next turn.",
-    }),
-    isError: false,
-  });
 }
