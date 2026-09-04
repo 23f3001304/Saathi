@@ -1,0 +1,54 @@
+.panel,
+.panelWaiting {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: 1rem 1.15rem;
+  border-radius: 10px;
+  background: var(--surface, rgba(255, 255, 255, 0.06));
+  border: 1px solid var(--rule, rgba(255, 255, 255, 0.14));
+  max-width: 32rem;
+  text-align: left;
+}
+
+/* The one state a listener has to act on gets the only colour on the stage. */
+.panelWaiting {
+  border-color: var(--attention, #c2703f);
+}
+
+.state {
+  margin: 0;
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  opacity: 0.7;
+}
+
+.shop {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.page {
+  margin: 0;
+  font-size: 0.9rem;
+  opacity: 0.8;
+  overflow-wrap: anywhere;
+}
+
+.moves {
+  margin: 0.35rem 0 0;
+  padding-left: 1.1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  font-size: 0.86rem;
+  opacity: 0.75;
+}
+
+.asks {
+  margin: 0.4rem 0 0;
+  font-size: 0.95rem;
+  color: var(--attention, #c2703f);
+}

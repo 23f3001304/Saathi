@@ -6,6 +6,7 @@ import { WORK_NARRATION } from "./assistantScript.ts";
 import { useAssistant, type ChatEntry } from "./useAssistant.ts";
 import { useAssistantTransport } from "./useAssistantTransport.ts";
 import { WindowStrip } from "./WindowStrip.tsx";
+import { VoiceWindow } from "../voice/VoiceWindow.tsx";
 import type { AttentionKind } from "../api/lanes.ts";
 import { ActivityStream, type ThinkingMode } from "./ActivityStream.tsx";
 import { Greeting } from "./Greeting.tsx";
@@ -275,8 +276,21 @@ export function ChatSession({
    * Signing is deliberately absent — a signature is a held gesture, never a
    * spoken one, so voice can bring you to the bill and your hand still signs it.
    */
+  const liveWindow =
+    chat.sandbox !== null && chat.sandbox.state !== "closed"
+      ? chat.sandbox
+      : null;
   const voiceStage =
-    options.length > 0 && !signed ? (
+    // A driving window outranks the cards: once one is open the cards are what
+    // was chosen FROM, and what a listening shopper needs is where the agent
+    // has got to. Before this the stage went empty the moment a card was
+    // tapped, which is the whole of the errand.
+    liveWindow !== null ? (
+      <VoiceWindow
+        session={liveWindow}
+        recent={liveWindow.actions.slice(-3).map((move) => move.label)}
+      />
+    ) : options.length > 0 && !signed ? (
       <OptionSet
         options={options}
         capPaise={chat.covenant?.capPaise}
