@@ -75,11 +75,22 @@ describe("what the errand is told to write in", () => {
   it("names the language only when the app was told one", () => {
     // Agnostic by construction: with no setting the prompt says nothing
     // about language at all, so nothing is inferred from their sentence or
-    // from the pages just read. With a setting it says it once, plainly.
+    // from the pages just read.
     const guessed = errandFor("kurta", ["mujhe navy kurti chahiye"], "INR");
     expect(guessed).not.toMatch(/language/i);
     const told = errandFor("kurta", ["mujhe navy kurti chahiye"], "INR", "Hindi");
-    expect(told).toContain("Write every word of your answer in Hindi.");
+    expect(told).toContain("Hindi");
+    expect(told).toMatch(/every word of your answer in that language/i);
+  });
+
+  /** The setting is the shopper's standing instruction, so the errand is told
+   *  to ignore the two things that were beating it: their own quoted lines and
+   *  the pages it just read. One terse sentence naming a tag was a whisper
+   *  against a page of Hindi, and lost live. */
+  it("tells the errand the setting outranks their words and the pages", () => {
+    const told = errandFor("ssd", ["mujhe ssd chahiye"], "INR", "en-IN");
+    expect(told).toMatch(/whatever language they themselves wrote in/i);
+    expect(told).toMatch(/whatever language the pages you read are in/i);
   });
 });
 

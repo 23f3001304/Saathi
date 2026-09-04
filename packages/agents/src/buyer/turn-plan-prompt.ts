@@ -117,14 +117,42 @@ export const TURN_PLAN_PROMPT =
  * turns; quoting it verbatim at the end is the same rule with nothing left
  * to go and find. Still no language named anywhere: the line is the rule.
  */
-/** The app's language picker is the shopper's explicit instruction; when it
- *  names a language, matching the line is no longer a judgement call. */
-function languageSetting(replyLanguage: string | null): string {
-  if (replyLanguage === null) return "";
+/**
+ * Which language rule this turn gets. Exactly one of them, never both.
+ *
+ * DECISION: exclusive, not layered. The setting used to be stated first and
+ * the match-the-line rule printed straight after it, so the model read "the
+ * setting outranks matching" and then several lines insisting it write in the
+ * quoted line's language - longer, later and more specific, and it won every
+ * time. Live, with the picker on en-IN, a Hindi sentence got two Hindi
+ * replies. A prompt that says two things resolves to one of them, so it now
+ * says one.
+ *
+ * The setting is deliberately agnostic to what the shopper typed: a picker
+ * that followed their sentence would not be a picker.
+ */
+function languageRule(replyLanguage: string | null, quoted: string): string {
+  if (replyLanguage !== null) {
+    return (
+      "First, language. In the app they set the reply language to " +
+      `«${replyLanguage}» (an IETF language tag). Write every word ` +
+      "of your reply in that language, whatever language they themselves " +
+      "wrote in, and whatever language the pages or these instructions are " +
+      "in. It is a standing instruction and does not change when they switch " +
+      "language. The whole reply is in it, first word to last: never change " +
+      "language inside one reply.\n"
+    );
+  }
   return (
-    `In the app they set the reply language to: ${replyLanguage}. ` +
-    "That setting is their standing instruction and outranks matching " +
-    "the quoted line, until they change it. "
+    "First, language. This is the line you are answering, exactly as they " +
+    `wrote it:\n«${quoted}»\n` +
+    "Write every word of your reply in that line's own language - not the " +
+    "language of earlier lines, not your own last reply's, and not the " +
+    "language these instructions are written in. Latin letters carrying " +
+    "Hindi are Hindi, and you answer in kind. If a [them] line names a " +
+    "language to answer in, that instruction outranks matching, most " +
+    "recent wins. Whichever wins, the whole reply is in it, first word " +
+    "to last: never change language inside one reply.\n"
   );
 }
 
@@ -134,17 +162,8 @@ export function turnPlanClosing(
 ): string {
   const quoted = lastThem.trim().slice(0, 300);
   return (
-    languageSetting(replyLanguage) +
     "TWO THINGS DECIDE THIS TURN.\n" +
-    "First, language. This is the line you are answering, exactly as they " +
-    `wrote it:\n«${quoted}»\n` +
-    "Write every word of your reply in that line's own language - not the " +
-    "language of earlier lines, not your own last reply's, and not the " +
-    "language these instructions are written in. Latin letters carrying " +
-    "Hindi are Hindi, and you answer in kind. If a [them] line names a " +
-    "language to answer in, that instruction outranks matching, most " +
-    "recent wins. Whichever wins, the whole reply is in it, first word " +
-    "to last: never change language inside one reply.\n" +
+    languageRule(replyLanguage, quoted) +
     moveRule()
   );
 }

@@ -42,9 +42,19 @@ export function speakFor(
   // and when it does not the system prompt's own default (English) stands.
   // Nothing here reads their words, and nothing reads a page.
   void stated;
-  return replyLanguage === null
-    ? ""
-    : `Write every word of your answer in ${replyLanguage}.`;
+  if (replyLanguage === null) return "";
+  // Emphatic on purpose, and it says what to ignore. One terse sentence naming
+  // a tag lost to the data around it: the shopper's own lines are quoted just
+  // above and the pages just read are in the errand's context, so "answer in
+  // en-IN" was a whisper against a page of Hindi. Live, with the picker on
+  // en-IN, a Hindi sentence came back Hindi twice.
+  return (
+    `LANGUAGE: they set the app's reply language to «${replyLanguage}» (an ` +
+    "IETF language tag). Write every word of your answer in that language, " +
+    "whatever language they themselves wrote in above, whatever language the " +
+    "pages you read are in, and whatever language these instructions are in. " +
+    "The whole answer is in it, first word to last."
+  );
 }
 
 /**

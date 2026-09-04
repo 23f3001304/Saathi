@@ -18,11 +18,11 @@ import { assertBound, specOf } from "./container-spec.js";
 import type { ContainerLauncherConfig } from "./container-spec.js";
 import {
   createNetwork,
-  DockerUnavailableError,
   removeContainer,
   removeNetwork,
 } from "./docker-cli.js";
 import { ContainerPipe } from "./pipe-transport.js";
+import { withTimeout } from "./launch-timeout.js";
 
 /**
  * A launched container whose puppeteer connection is reachable. The shopper's
@@ -33,11 +33,6 @@ import { ContainerPipe } from "./pipe-transport.js";
 export interface ConnectedBrowser extends LaunchedBrowser {
   readonly connection: Browser;
 }
-
-/** Chrome inside a cold container needs a moment before it answers CDP. */
-const HANDSHAKE_TIMEOUT_MS = 45_000;
-/** Enough of docker's own complaint to name the cause, never a whole log. */
-const STDERR_KEPT = 600;
 
 /**
  * One browser session, one container, reached over one pipe.
@@ -56,15 +51,23 @@ export class ContainerLauncher implements BrowserLauncher {
     assertSurface(request.surface, "container");
     const spec = specOf(this.config);
     // A leftover from a session that died badly is destroyed, never joined: a
-    // network this process did not create is one it cannot vouch for.
-    await removeContainer(spec.containerName);
-    await removeNetwork(spec.networkName);
+    // network this process did not create is one it cannot vouch for. Both
+    // removals still happen and both are still awaited - they simply happen at
+    // once, because a container and a network are independent objects and
+    // proving each is absent took 412ms of a 1150ms launch, one after the
+    // other, for a session id that has never existed before.
+    await Promise.all([
+      removeContainer(spec.containerName),
+      removeNetwork(spec.networkName),
+    ]);
     await createNetwork(spec.networkName);
     try {
       return await this.start(spec, request);
     } catch (cause) {
-      await removeContainer(spec.containerName);
-      await removeNetwork(spec.networkName);
+      await Promise.all([
+        removeContainer(spec.containerName),
+        removeNetwork(spec.networkName),
+      ]);
       throw cause;
     }
   }
@@ -86,8 +89,14 @@ export class ContainerLauncher implements BrowserLauncher {
       connect({ transport: pipe, protocolTimeout: PROTOCOL_TIMEOUT_MS }),
       child,
     );
-    await assertBound(spec);
-    const page = await firstPage(browser, request);
+    // Both are awaited before anything is handed back, so the binding check is
+    // exactly as binding as it was: nothing reaches a caller until it passes.
+    // It reads the container's label over the docker CLI while the viewport is
+    // set over CDP, and neither waits on the other.
+    const [, page] = await Promise.all([
+      assertBound(spec),
+      firstPage(browser, request),
+    ]);
     const driven = await PuppeteerPage.open(page);
     return new ContainerBrowser(spec, child, browser, driven);
   }
@@ -106,36 +115,6 @@ export class ContainerLauncher implements BrowserLauncher {
  * watching.
  */
 const PROTOCOL_TIMEOUT_MS = 60_000;
-
-/**
- * A container that never comes up fails as a timeout on the pipe, which on its
- * own says nothing useful. Docker's own complaint arrives on stderr, so it is
- * kept and handed back as the reason — the difference between "it hung" and
- * "the image is not built here".
- */
-function withTimeout(
-  pending: Promise<Browser>,
-  child: ChildProcess,
-): Promise<Browser> {
-  let noise = "";
-  child.stderr?.on("data", (chunk: Buffer) => {
-    noise = `${noise}${chunk.toString("utf8")}`.slice(-STDERR_KEPT);
-  });
-  const failed = new Promise<never>((_resolve, reject) => {
-    const fail = (why: string): void => {
-      reject(new DockerUnavailableError(`${why}: ${noise.trim()}`));
-    };
-    const timer = setTimeout(() => {
-      fail("Chrome in the container never answered on the pipe");
-    }, HANDSHAKE_TIMEOUT_MS);
-    timer.unref();
-    child.once("close", (code) => {
-      clearTimeout(timer);
-      fail(`the container exited with code ${String(code)}`);
-    });
-  });
-  return Promise.race([pending, failed]);
-}
 
 /**
  * Headless has no window to size, so the viewport is set explicitly. The frame
