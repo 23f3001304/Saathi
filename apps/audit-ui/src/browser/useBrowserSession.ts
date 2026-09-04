@@ -28,6 +28,8 @@ export type BrowserSession = {
   readonly refusal: RelayRefusal | null;
   /** Tears the stream down and reattaches: the way out of a wedged view. */
   readonly reconnect: () => void;
+  /** Opens the window again on the page it was last on. */
+  readonly restart: (url: string) => void;
   readonly resume: () => void;
   readonly takeover: () => void;
   readonly relay: (input: RelayInput) => void;
@@ -160,6 +162,10 @@ export function useBrowserSession(
     status,
     refusal,
     reconnect,
+    restart: (url: string) => {
+      setRefusal(null);
+      void transport.current?.restart(url);
+    },
     relay,
     resume: () => {
       setRefusal(null);

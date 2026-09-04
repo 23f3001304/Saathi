@@ -85,6 +85,10 @@ export interface BrowserTransport {
    * in their own browser — for passkeys and anything else bound to the device.
    */
   front: () => Promise<boolean>;
+  /** Opens a window again on a page it was last on. The profile behind it
+   *  is the same one - cookies, sign-in - so a reaped window comes back
+   *  where it stood rather than as a stranger. */
+  restart: (url: string) => Promise<void>;
 }
 
 export const SANDBOX_REFUSED =

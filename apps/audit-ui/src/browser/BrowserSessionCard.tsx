@@ -25,6 +25,9 @@ type BrowserSessionCardProps = {
   /** Tears the view's stream down and reattaches; the shopper's own way
    *  out of a frozen picture. */
   onReconnect?: () => void;
+  /** Opens the window again where it left off, after the idle watch has
+   *  closed it. Absent where there is nothing to reopen. */
+  onRestart?: () => void;
 };
 
 const HANDOFF_TITLE: Record<string, string> = {
@@ -154,6 +157,7 @@ export function BrowserSessionCard({
   refusal,
   onFront,
   onReconnect,
+  onRestart,
 }: BrowserSessionCardProps): JSX.Element {
   const handoff = session.handoff;
   // "You can always take over" was true of the host and invisible on screen:
@@ -181,8 +185,13 @@ export function BrowserSessionCard({
 
       <Chrome session={session} idleAgent={idleAgent} />
 
-      {onReconnect !== undefined && !undriven(session) && (
-        <div className={styles.viewTools}>
+      <div className={styles.viewTools}>
+        {onRestart !== undefined && undriven(session) && (
+          <button type="button" className={styles.viewTool} onClick={onRestart}>
+            Open this window again
+          </button>
+        )}
+        {onReconnect !== undefined && !undriven(session) && (
           <button
             type="button"
             className={styles.viewTool}
@@ -190,8 +199,8 @@ export function BrowserSessionCard({
           >
             Reconnect view
           </button>
-        </div>
-      )}
+        )}
+      </div>
 
       {session.notice !== undefined && (
         <div className={styles.refusal} role="alert">

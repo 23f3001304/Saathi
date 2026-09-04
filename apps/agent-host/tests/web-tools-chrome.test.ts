@@ -18,6 +18,7 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import { BrowserService } from "../src/browser/browser-service.js";
 import { buildFixtureShopSession } from "../src/browser/sandbox-factory.js";
+import { resolvePlan } from "../src/browser/sandbox-plan.js";
 import { HandoverMove } from "../src/browser/web-handover-move.js";
 import { WebToolRunner } from "../src/purchase/web-tool-runner.js";
 import { SilentLogger, StepClock } from "./support/fakes.js";
@@ -54,7 +55,18 @@ async function probeChrome(): Promise<string | null> {
   }
 }
 
-const SKIP = await probeChrome();
+/** The window is a container now, so this suite needs one: probing Chrome
+ *  alone left it failing on machines where the plan itself cannot resolve. */
+async function probeSandbox(): Promise<string | null> {
+  try {
+    await resolvePlan(process.env, new SilentLogger());
+    return null;
+  } catch (error) {
+    return String(error).slice(0, 200);
+  }
+}
+
+const SKIP = (await probeChrome()) ?? (await probeSandbox());
 if (SKIP !== null) {
   console.warn(`[agent-host] real-Chrome web-tool suite SKIPPED: ${SKIP}`);
 }

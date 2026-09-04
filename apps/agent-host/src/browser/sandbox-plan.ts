@@ -38,10 +38,6 @@ export interface SandboxPlan {
   readonly readerBrowser: () => ReaderBrowser;
 }
 
-function modeOf(raw: string | undefined): SandboxMode {
-  if (raw === "container" || raw === "in-process") return raw;
-  return "auto";
-}
 
 /** The container half of the two plans, exported so the surface a reader gets
  *  can be asserted on a machine with no Docker daemon to probe. */
@@ -97,26 +93,28 @@ export async function resolvePlan(
   return chosen;
 }
 
+/**
+ * DECISION: containers or nothing. The in-process window ran a real Chrome
+ * on the shopper's own machine, and a checkout an agent drives is exactly
+ * where "sandboxed by Chrome alone" stops being good enough. Falling back
+ * silently also made the weaker surface the one that ran most often, since
+ * it needed nothing installed. A missing Docker is now a startup error
+ * naming what to install, not a quiet downgrade of the boundary.
+ */
 async function choosePlan(
   env: NodeJS.ProcessEnv,
   logger: Logger,
 ): Promise<SandboxPlan> {
-  const mode = modeOf(env["COVENANT_BROWSER_SANDBOX"]);
-  if (mode === "in-process") {
-    return inProcessPlan("COVENANT_BROWSER_SANDBOX=in-process was asked for");
-  }
+  void env;
   const missing = await dockerSandboxReady(SANDBOX_IMAGE);
   if (missing === null) {
     return containerPlan("Docker is here and the sandbox image is built");
   }
-  if (mode === "container") {
-    throw new Error(
-      `COVENANT_BROWSER_SANDBOX=container was asked for and cannot be honoured: ${missing}.`,
-    );
-  }
-  logger.warn("browser.sandbox.in_process", { reason: missing });
-  return inProcessPlan(
-    `no containerised sandbox available here (${missing}). This window runs on your own machine instead.`,
+  logger.error("browser.sandbox.unavailable", { reason: missing });
+  throw new Error(
+    "This host opens purchase windows in a container and nowhere else, and " +
+      `one cannot be started here: ${missing}. Start Docker and build the ` +
+      "sandbox image, then start the host again.",
   );
 }
 

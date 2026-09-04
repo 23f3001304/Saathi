@@ -104,6 +104,22 @@ function startWatch(
   };
 }
 
+/** `/browser/open` relaunches when nothing is open, which is what a reaped
+ *  window needs; it comes back under the lane's own id, so the persistent
+ *  profile - cookies, the sign-in - comes back with it. */
+async function reopen(
+  base: string,
+  lane: (path: string) => string,
+  conversation: string | null,
+  hold: { wire: Wire | null },
+  url: string,
+): Promise<void> {
+  await post(base, lane("/browser/open"), { url }, conversation).catch(
+    () => null,
+  );
+  if (hold.wire !== null) await readState(hold.wire);
+}
+
 export function liveBrowser(
   base: string,
   conversation: string | null = null,
@@ -136,6 +152,7 @@ export function liveBrowser(
       await post(base, lane("/browser/takeover"), {}, conversation).catch(() => null);
       if (hold.wire !== null) await readState(hold.wire);
     },
+    restart: (url: string) => reopen(base, lane, conversation, hold, url),
     front: async () => {
       const body = await post(base, lane("/browser/front"), {}, conversation)
         .catch(() => null);

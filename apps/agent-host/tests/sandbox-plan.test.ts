@@ -1,14 +1,7 @@
-import {
-  ContainerReaderBrowser,
-  NativeReaderBrowser,
-} from "@covenant/browser-drive";
+import { ContainerReaderBrowser } from "@covenant/browser-drive";
 import { describe, expect, it } from "vitest";
 
-import {
-  containerPlan,
-  inProcessPlan,
-  resolvePlan,
-} from "../src/browser/sandbox-plan.js";
+import { containerPlan, resolvePlan } from "../src/browser/sandbox-plan.js";
 import { RecordingLogger } from "./support/fakes.js";
 
 /**
@@ -18,31 +11,19 @@ import { RecordingLogger } from "./support/fakes.js";
  * a browser on the machine the container exists to keep clean.
  */
 describe("the sandbox plan", () => {
-  it("reads on this host when the window is on this host", () => {
-    expect(inProcessPlan("asked for").readerBrowser()).toBeInstanceOf(
-      NativeReaderBrowser,
-    );
-  });
-
   it("reads in a container when the window is in a container", () => {
     expect(containerPlan("Docker is here").readerBrowser()).toBeInstanceOf(
       ContainerReaderBrowser,
     );
   });
 
-  it("names the surface of both browsers once, at boot", async () => {
+  it("refuses to run without a container, rather than downgrading", async () => {
     const logger = new RecordingLogger();
-    const plan = await resolvePlan(
-      { COVENANT_BROWSER_SANDBOX: "in-process" },
-      logger,
-    );
-    expect(plan.surface).toBe("native-window");
-    expect(plan.readerBrowser()).toBeInstanceOf(NativeReaderBrowser);
-    const said = logger.lines.filter((line) => line.evt === "browser.surface");
-    expect(said).toHaveLength(1);
-    expect(said[0]?.fields).toMatchObject({
-      window: "native-window",
-      reader: "native-window",
-    });
+    // No env can ask for the host's own Chrome any more: a purchase window
+    // is a container or it does not open. On a machine with Docker and the
+    // image built this resolves; anywhere else it throws, saying so.
+    await expect(
+      resolvePlan({ COVENANT_BROWSER_SANDBOX: "in-process" }, logger),
+    ).rejects.toThrow(/container/i);
   });
 });

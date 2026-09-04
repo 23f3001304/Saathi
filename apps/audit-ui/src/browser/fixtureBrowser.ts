@@ -41,6 +41,7 @@ export function fixtureBrowser(): BrowserTransport {
       emitResume?.();
       return Promise.resolve();
     },
+    restart: () => Promise.resolve(),
     front: () => Promise.resolve(false),
   };
 }
