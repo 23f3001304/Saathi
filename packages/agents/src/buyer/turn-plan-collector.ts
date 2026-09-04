@@ -75,15 +75,32 @@ export class TurnPlanCollector implements ToolDispatcher {
     }
   }
 
+  /**
+   * DECISION: an accepted move ends the turn, and says so.
+   *
+   * The planner's whole contract is that it picks ONE move, so a recorded move
+   * is the answer and there is nothing left for the round to do. It used to
+   * come back as an ordinary success, and `runGuardedTurn` only stops on a
+   * terminal result or a repeat - so the model read "recorded", was not told
+   * the turn was over, and helpfully improved its question. Rewording it each
+   * time meant `RepeatGuard` saw no repeat, so it spent the whole iteration
+   * budget: observed live as fifteen versions of one sentence, none of which
+   * reached the shopper.
+   *
+   * A REFUSED move is deliberately not terminal - that is the model being told
+   * its sku is not on the shelf or its ceiling is above the cap, and calling
+   * again in the same turn is exactly what it should do.
+   */
   private recordMove(call: ToolCall): ToolOutcome {
     const recorded = movePlan(call.tool, call.args, this.bounds);
     if (recorded === null) {
       return refused("not_a_turn_tool");
     }
-    if (recorded.ok) {
-      this.choose(recorded.plan);
+    if (!recorded.ok) {
+      return recorded.outcome;
     }
-    return recorded.outcome;
+    this.choose(recorded.plan);
+    return { ...recorded.outcome, terminal: true };
   }
 
   /** Parallel tool calls arrive occasionally, and last-write-wins let a
