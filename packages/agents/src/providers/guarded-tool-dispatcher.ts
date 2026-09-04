@@ -29,6 +29,13 @@ export class GuardedToolDispatcher {
     private readonly hook: PreToolUseHook,
     private readonly dispatcher: ToolDispatcher,
     private readonly txnId: string | null,
+    /**
+     * The tools that may run beside another, by name. Empty by default, so a
+     * dispatcher told nothing behaves exactly as it always did: every call in
+     * order, one at a time. A tool earns a place here by declaring itself
+     * `concurrency: "parallel"`, which only a read with no shared state may do.
+     */
+    private readonly parallel: ReadonlySet<string> = new Set(),
   ) {}
 
   /** Every call the hook refused, in order. The demo reads this out loud. */
@@ -70,15 +77,53 @@ export class GuardedToolDispatcher {
     };
   }
 
-  /** Sequential on purpose: a model may emit parallel calls, but money-affecting
-   *  work is ordered, and the ledger has to read back in the order it happened. */
+  /**
+   * A turn's calls, in the order the model asked for them.
+   *
+   * DECISION: consecutive read-only calls go out together; anything else is a
+   * barrier. This was strictly sequential, on the grounds that money-affecting
+   * work is ordered and the ledger has to read back in the order it happened -
+   * which is still true, and is exactly what the barrier preserves. What was
+   * being paid for that guarantee was every unrelated read waiting its turn: a
+   * model that asks to check the shelf, the window and six product pages at
+   * once was served one after another for no reason any ledger cares about.
+   *
+   * Nothing here decides what a tool may do. Every call still goes through
+   * `dispatch`, so `PreToolUseHook` judges each one exactly as before, and the
+   * results come back in the order asked whatever order they finished in.
+   */
   async dispatchAll(
     requests: readonly AgentToolRequest[],
   ): Promise<readonly AgentToolResult[]> {
     const results: AgentToolResult[] = [];
-    for (const request of requests) {
-      results.push(await this.dispatch(request));
+    for (const group of this.grouped(requests)) {
+      const done =
+        group.length === 1 && group[0] !== undefined
+          ? [await this.dispatch(group[0])]
+          : await Promise.all(group.map((call) => this.dispatch(call)));
+      results.push(...done);
     }
     return results;
+  }
+
+  /**
+   * Runs of calls that may go out together, in order. A serial call is a group
+   * of one, which is what makes it a barrier: the group before it is awaited,
+   * and the group after it has not started.
+   */
+  private grouped(
+    requests: readonly AgentToolRequest[],
+  ): readonly (readonly AgentToolRequest[])[] {
+    const groups: AgentToolRequest[][] = [];
+    for (const request of requests) {
+      const last = groups[groups.length - 1];
+      const beside =
+        this.parallel.has(request.tool) &&
+        last !== undefined &&
+        last.every((held) => this.parallel.has(held.tool));
+      if (beside && last !== undefined) last.push(request);
+      else groups.push([request]);
+    }
+    return groups;
   }
 }

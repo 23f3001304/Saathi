@@ -1,6 +1,7 @@
 import type { PreToolUseHook } from "../buyer/pre-tool-use-hook.js";
 import type { AgentSession, ToolDispatcher } from "../shared/agent-session.js";
 import { GuardedToolDispatcher } from "./guarded-tool-dispatcher.js";
+import { parallelToolNames } from "./tool-declarations.js";
 import type { OpenAiSessionConfig, ReasoningEffort } from "./openai-request.js";
 import { OpenAiAgentSession } from "./openai-agent-session.js";
 import type { AgentProviderId, Env } from "./provider-config.js";
@@ -101,6 +102,7 @@ export function createAgentSession(
     request.hook,
     request.dispatcher,
     request.txnId,
+    parallelToolNames(request.tools ?? COVENANT_TOOL_DECLARATIONS),
   );
   const transport = new JsonTransport(request.fetchImpl ?? fetch, {
     provider: id,

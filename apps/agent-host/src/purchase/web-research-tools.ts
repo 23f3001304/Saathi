@@ -31,6 +31,9 @@ export const RESEARCH_TOOL_DECLARATIONS: readonly ToolDeclaration[] = [
   {
     tool: WEB_VERIFY_TOOL,
     server: WEB_TOOL_SERVER,
+    // Headless, read-only, and a browser of its own per batch - it shares
+    // nothing with the shopper's window or with another batch.
+    concurrency: "parallel",
     description:
       "Read up to six product page URLs at once, in parallel, headless and " +
       "read-only. You get what each page printed: its title, its heading, " +

@@ -18,6 +18,9 @@ export const SHARED_TOOL_DECLARATIONS: readonly ToolDeclaration[] = [
   {
     tool: SEE_CARDS_TOOL,
     server: WEB_TOOL_SERVER,
+    // Host-held facts, read and not recorded: nothing in the turn can change
+    // what this returns, so two of these are the same as one.
+    concurrency: "parallel",
     description:
       "Look at the cards the shopper has on screen right now, with the ref " +
       "that names each one. Call it before you talk about what you showed " +
@@ -27,6 +30,9 @@ export const SHARED_TOOL_DECLARATIONS: readonly ToolDeclaration[] = [
   {
     tool: SEE_PROFILE_TOOL,
     server: WEB_TOOL_SERVER,
+    // Host-held facts, read and not recorded: nothing in the turn can change
+    // what this returns, so two of these are the same as one.
+    concurrency: "parallel",
     description:
       "Look at what this app knows about the shopper: the delivery facts " +
       "they themselves gave it. web_fill_address types exactly these and " +
@@ -66,6 +72,9 @@ export const SHARED_TOOL_DECLARATIONS: readonly ToolDeclaration[] = [
   {
     tool: APP_STATE_TOOL,
     server: WEB_TOOL_SERVER,
+    // Host-held facts, read and not recorded: nothing in the turn can change
+    // what this returns, so two of these are the same as one.
+    concurrency: "parallel",
     description:
       "See where things actually stand right now: whether a window is open " +
       "and who is driving it, whether a covenant is signed and its ceiling, " +

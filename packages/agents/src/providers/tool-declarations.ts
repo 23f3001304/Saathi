@@ -17,6 +17,30 @@ export interface ToolDeclaration {
   readonly server: string;
   readonly description: string;
   readonly parameters: JsonSchemaObject;
+  /**
+   * Whether this tool may run beside another in the same turn. Absent means
+   * `serial`, which is the only safe default: a tool nobody has thought about
+   * is one that might touch the window, the shelf or the ledger.
+   *
+   * `parallel` is a claim about two things at once - that the tool only reads,
+   * and that what it reads is not shared mutable state something else in the
+   * turn could be changing. The window fails the second test even for a read,
+   * because a read of a page another call is navigating is a read of neither
+   * page. It is declared here, beside the schema, because that is where what a
+   * tool IS gets written down.
+   */
+  readonly concurrency?: "parallel" | "serial";
+}
+
+/** The tools in a set that may go out together. */
+export function parallelToolNames(
+  declarations: readonly ToolDeclaration[],
+): ReadonlySet<string> {
+  return new Set(
+    declarations
+      .filter((declaration) => declaration.concurrency === "parallel")
+      .map((declaration) => declaration.tool),
+  );
 }
 
 /** A tool with no `mcp__` prefix comes from the harness itself, not from a
