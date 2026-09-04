@@ -136,6 +136,23 @@ export const NON_MONEY_TOOLS: readonly string[] = [
   "see_shelf",
   "see_state",
   ...WEB_SHOP_TOOLS,
+  // The errand's own reads and its question. Each was declared to the model
+  // without being named here, so the registry's fail-closed default called
+  // them money tools and the hook refused all six with a sentence about moving
+  // money - which is why the coordinate devices had never once worked live.
+  //
+  // None of them can reach a rail. `app_state`, `see_cards` and `see_profile`
+  // return host-held facts and record nothing. `ask_shopper` produces a
+  // question and stops the turn. `mouse` and `keyboard` carry a viewport point
+  // and a distance, nothing else: every point is judged by `FieldClassifier`
+  // at hit-test before anything happens, which is the same boundary that
+  // refuses a page's own "Place order" for the selector-aimed tools above.
+  APP_STATE_TOOL,
+  SEE_CARDS_TOOL,
+  SEE_PROFILE_TOOL,
+  ASK_SHOPPER_TOOL,
+  MOUSE_TOOL,
+  KEYBOARD_TOOL,
 ];
 
 export interface MoneyToolRegistryConfig {
