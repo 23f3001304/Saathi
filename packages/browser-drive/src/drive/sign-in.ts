@@ -51,13 +51,43 @@ export class SignInDrive {
       return { state: "no_password_field", named: false };
     }
     const name = usernameField(fields, this.classifier);
-    if (name !== null) {
-      await this.page.typeInto(name.descriptor.selector, creds.username);
+    const named = name === null ? false : await this.fill(name, creds.username);
+    if (!(await this.fill(secret, creds.password))) {
+      // The point the password box occupied is not the password box any more.
+      // Nothing has been typed, and nothing is submitted.
+      return { state: "no_password_field", named };
     }
-    await this.page.typeInto(secret.descriptor.selector, creds.password);
-    this.protectedLine({ sign_in: true, named: name !== null });
+    this.protectedLine({ sign_in: true, named });
     await this.page.pressKey("Enter");
-    return { state: "signed", named: name !== null };
+    return { state: "signed", named };
+  }
+
+  /**
+   * A click at the box, then keystrokes into that focus - the same two moves
+   * `PointActions.type` makes, and for the same reason.
+   *
+   * DECISION: a point and a hit-test, never a selector handed to
+   * `page.type`. That helper focuses its target and then sends keys, so
+   * focusing an element with no box does nothing and the keys land on
+   * whatever still had focus. On Amazon's email-first sign-in - a hidden
+   * password input beside a visible email box - that was the shopper's
+   * password, typed in plain sight into the email field, appended to their
+   * own address. Aiming at a point cannot do that: the keys go where the
+   * click went, and the click went where the pixels are.
+   *
+   * The hit-test is the same rule the agent's own aim answers to. What is
+   * under the point has to be the box this was aimed at, or nothing is typed.
+   */
+  private async fill(field: FieldSnapshot, value: string): Promise<boolean> {
+    const x = Math.round(field.rect.x + field.rect.width / 2);
+    const y = Math.round(field.rect.y + field.rect.height / 2);
+    const under = await this.page.describeAt(x, y);
+    if (under === null || under.selector !== field.descriptor.selector) {
+      return false;
+    }
+    await this.page.clickAt(x, y);
+    await this.page.typeText(value);
+    return true;
   }
 
   /** Whether the settled page still challenges: a code box, or the password
@@ -80,6 +110,7 @@ export class SignInDrive {
     const box =
       fields.find(
         (field) =>
+          onScreen(field) &&
           this.classifier.classify(field.descriptor).category === "otp",
       ) ?? null;
     if (box === null) return false;
@@ -101,6 +132,22 @@ export class SignInDrive {
   }
 }
 
+/**
+ * A box that is actually on the page.
+ *
+ * DECISION: geometry, not the DOM's word for it. A sign-in page routinely
+ * carries a hidden password input the shopper never sees - Amazon's
+ * email-first step does - and `page.type` focuses its target and then sends
+ * keystrokes: focusing an element with no box silently does nothing, so the
+ * keys went to whatever still had focus. Live, that was the email box that had
+ * just been filled, and the shopper's password was typed into it in plain
+ * sight, appended to their address. A field with no box is not a field this
+ * may type into.
+ */
+function onScreen(field: FieldSnapshot): boolean {
+  return field.rect.width > 0 && field.rect.height > 0;
+}
+
 function passwordField(
   fields: readonly FieldSnapshot[],
   classifier: FieldClassifier,
@@ -108,6 +155,7 @@ function passwordField(
   return (
     fields.find(
       (field) =>
+        onScreen(field) &&
         classifier.classify(field.descriptor).category === "password",
     ) ?? null
   );
@@ -122,6 +170,7 @@ function usernameField(
   return (
     fields.find((field) => {
       const held = field.descriptor;
+      if (!onScreen(field)) return false;
       if (!isTextEntry(held) || held.inputType === "password") return false;
       const category = classifier.classify(held).category;
       return category === null || category === "login_context";

@@ -165,25 +165,19 @@ container("the cast after a pushState", () => {
     // frames of that page keep being served. Counting *served* B frames is
     // the whole claim - a same-document navigation read as a new document
     // would call every one of these stale and paint nothing from here on.
+    //
+    // DECISION: served frames, not "no stale frames". `filtered` is read from
+    // the URL when a frame is handed on, never when its pixels were taken, so
+    // a frame captured under the previous document and delivered just after
+    // the next one committed and pushStated is filtered and stale and
+    // correctly so. Demanding none flaked about one run in three. Nor can the
+    // shade rescue it: this walk visits cast-b twice, so B pixels alone do not
+    // say which of the two loads they came from. That every mis-stamped frame
+    // IS recognised is asserted above, where the pixels and the count can
+    // actually disagree.
     expect(
       after.filter((shot) => !shot.stale && shot.shade === "B").length,
     ).toBeGreaterThan(0);
   });
 
-  /**
-   * DECISION: what may not happen is a frame of THIS page being called stale.
-   * Asserting no filtered frame is stale at all was too strong and flaked
-   * about one run in three: `filtered` is read from the URL when the frame is
-   * handed on, so a frame captured under the *previous* document and delivered
-   * a few milliseconds after the new one committed and pushStated is filtered,
-   * stale, and correctly so - it really is a picture of the page they left.
-   * The rule is about which page the pixels show, never about when they
-   * arrived.
-   */
-  it("calls stale only the frames of a page it had left", () => {
-    const wronglyStale = shots.filter(
-      (shot) => shot.filtered && shot.stale && shot.shade === "B",
-    );
-    expect(wronglyStale).toEqual([]);
-  });
 });
