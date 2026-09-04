@@ -1,3 +1,4 @@
+import { askedBudget, MAX_AXES } from "@covenant/agents";
 import { z } from "zod";
 
 export const webOpenArgs = z.object({ url: z.url() });
@@ -66,9 +67,24 @@ export const askShopperArgs = z.object({
         options: z.array(z.string().min(1).max(40)).min(2).max(5),
       }),
     )
-    .max(4)
+    .max(MAX_AXES)
     .default([]),
+  /** Its bands each carry a ceiling; see `askedBudget`. The host keeps the
+   *  band texts and nothing else, so a question stays a question. */
+  budget: askedBudget.nullish(),
 });
+
+/** Every axis the shopper is shown, budget last, where a form puts it. */
+export function askedAxes(
+  asked: z.infer<typeof askShopperArgs>,
+): readonly { label: string; options: readonly string[] }[] {
+  const bands = asked.budget;
+  if (bands === null || bands === undefined) return asked.groups;
+  return [
+    ...asked.groups,
+    { label: bands.label, options: bands.bands.map((band) => band.text) },
+  ];
+}
 
 export const webVerifyArgs = z.object({
   urls: z.array(z.url()).min(1).max(6),

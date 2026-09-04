@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { askedBudget } from "./turn-plan-budget.js";
+
 import type { ToolDeclaration } from "../providers/tool-declarations.js";
 import { AMENDMENT_ARGS_SHAPE } from "./amendment-schema.js";
 import { amendableVocabulary } from "./covenant-amendment.js";
@@ -42,6 +44,20 @@ import {
  * it is optional. The agent asks what it actually needs to bound an intent; a
  * fixed question would be a script pretending to be a conversation.
  */
+/**
+ * How many axes one question may carry.
+ *
+ * DECISION: six, not four. The instruction beside it is "ask everything you
+ * need in ONE question, never a second one next turn", and four made that
+ * impossible to obey for ordinary things: a gaming laptop wants performance,
+ * screen, budget and a must-have before anyone has asked about RAM, and an SSD
+ * that has spent its four on use, type, capacity and budget has nowhere left
+ * to ask NVMe or SATA - the axis that decides whether the drive fits the
+ * machine at all. A cap that forces a second question contradicts the rule
+ * that forbids one.
+ */
+export const MAX_AXES = 6;
+
 const MOVES: readonly ToolDeclaration[] = [
   declareTool(
     ANSWER_TOOL,
@@ -58,6 +74,9 @@ const MOVES: readonly ToolDeclaration[] = [
       "the one thing you cannot find out by looking; if you cannot name one, " +
       "this is the wrong move and you should be looking instead. Ask " +
       "everything you need in ONE question, never a second one next turn. " +
+      "The axes to name are the ones two otherwise-matching candidates would " +
+      "differ on for THIS thing - what would make you hand someone the wrong " +
+      "one if you guessed it. " +
       "An answer that fills only some axes is complete: the axes they " +
       "skipped are theirs to skip, so take them as you-decide and act - " +
       "re-asking an axis you already asked once is the one question too " +
@@ -76,20 +95,18 @@ const MOVES: readonly ToolDeclaration[] = [
             options: z.array(z.string().min(1).max(40)).min(2).max(5),
           }),
         )
-        .max(4)
+        .max(MAX_AXES)
         .nullable()
         .describe(
           "For a compound question only: one group per axis you asked " +
             "(label is the axis, options are its answers). EVERY axis your " +
-            "question names must have its group - asking about budget in " +
-            "prose with no BUDGET group leaves the person typing what they " +
-            "should tap. For a budget axis, offer three or four rupee " +
-            "bands you judge sensible for this product class (for example " +
-            "Under ₹5,000 / ₹5,000-10,000 / ₹10,000-20,000); the text box " +
-            "beside the groups takes an exact figure. The person picks one " +
-            "per group and answers everything in one send. Use INSTEAD of " +
-            "replies when you ask about more than one axis.",
+            "question names must have its group - naming an axis in prose " +
+            "with no group leaves the person typing what they should tap. " +
+            "The person picks one per group and answers everything in one " +
+            "send. Use INSTEAD of replies when you ask about more than one " +
+            "axis. Budget is NOT one of these: it has its own field.",
         ),
+      budget: askedBudget,
       blocked_by: z.string().min(1).max(200),
     },
   ),

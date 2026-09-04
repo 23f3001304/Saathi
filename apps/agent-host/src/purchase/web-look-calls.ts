@@ -15,7 +15,12 @@ import { appState } from "../browser/app-state.js";
 import type { Devices } from "../browser/devices.js";
 import type { AskVerb } from "./ask-verb.js";
 import { badArgs, outcomeOf, unknown } from "./web-tool-guards.js";
-import { askShopperArgs, keyboardArgs, mouseArgs } from "./web-tools.js";
+import {
+  askedAxes,
+  askShopperArgs,
+  keyboardArgs,
+  mouseArgs,
+} from "./web-tools.js";
 
 /** The calls that only look at this platform, or ask its shopper something.
  *  None of them touches a page. */
@@ -30,7 +35,13 @@ export function askCall(
   if (verb === null) return Promise.resolve(unknown(call.tool));
   const parsed = askShopperArgs.safeParse(call.args);
   if (!parsed.success) return Promise.resolve(badArgs(parsed.error));
-  verb.ask(parsed.data);
+  // Budget arrives as its own typed field and joins the axes here, so the
+  // verb, the beat and the composer all keep the one shape they had.
+  verb.ask({
+    question: parsed.data.question,
+    replies: parsed.data.replies,
+    groups: askedAxes(parsed.data),
+  });
   return Promise.resolve({
     content: JSON.stringify({
       ok: true,

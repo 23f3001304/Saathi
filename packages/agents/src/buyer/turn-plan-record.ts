@@ -1,6 +1,12 @@
 import type { ToolOutcome } from "../shared/agent-session.js";
 import type { ToolArgs } from "../shared/tool-envelope.js";
-import { groupsAt, repliesAt, stringsAt, textAt } from "./turn-plan-args.js";
+import {
+  askedBudget,
+  groupsAt,
+  repliesAt,
+  stringsAt,
+  textAt,
+} from "./turn-plan-args.js";
 import type { DraftBounds } from "./turn-plan-draft.js";
 import { draftOf } from "./turn-plan-draft.js";
 import { answeredOutcome, browsedOutcome } from "./turn-plan-guidance.js";
@@ -50,7 +56,9 @@ function planOf(action: TurnAction, args: ToolArgs): TurnPlan {
     reply,
     question: question.length > 0 && !reply.endsWith("?") ? question : null,
     replies: repliesAt(args, "replies"),
-    choiceGroups: groupsAt(args),
+    // Budget comes last, where a form puts it: every other axis narrows what
+    // the thing is, and the price is the question you answer once you know.
+    choiceGroups: [...groupsAt(args), ...askedBudget(args)],
     query: textAt(args, "query") || null,
     shop: textAt(args, "shop") || null,
     amendment: null,

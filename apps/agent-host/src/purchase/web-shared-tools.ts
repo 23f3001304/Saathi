@@ -2,6 +2,7 @@ import type { JsonSchemaObject, ToolDeclaration } from "@covenant/agents";
 import {
   SEE_CARDS_TOOL,
   SEE_PROFILE_TOOL, APP_STATE_TOOL, ASK_SHOPPER_TOOL, WEB_TOOL_SERVER } from "@covenant/agents";
+import { askedBudget, MAX_AXES } from "@covenant/agents";
 import { z } from "zod";
 
 function schemaOf(shape: z.ZodRawShape): JsonSchemaObject {
@@ -42,8 +43,11 @@ export const SHARED_TOOL_DECLARATIONS: readonly ToolDeclaration[] = [
       "ONLY way to ask: a question mark in your prose is prose, and reaches " +
       "them as a sentence nobody can answer. Give `replies` for a single " +
       "choice, or `groups` for a compound one (one group per axis you ask " +
-      "about, and every axis you name needs its group). Ask everything you " +
-      "need in one call, and only for what looking cannot tell you.",
+      "about, and every axis you name needs its group). The axes to name are " +
+      "the ones two otherwise-matching candidates would differ on for THIS " +
+      "thing - what would hand someone the wrong one if you guessed it. Ask " +
+      "everything you need in one call, and only for what looking cannot " +
+      "tell you. Budget is not a group: it has its own field.",
     parameters: schemaOf({
       question: z.string().min(1).max(300),
       replies: z.array(z.string().min(1).max(60)).max(6).default([]),
@@ -54,8 +58,9 @@ export const SHARED_TOOL_DECLARATIONS: readonly ToolDeclaration[] = [
             options: z.array(z.string().min(1).max(40)).min(2).max(5),
           }),
         )
-        .max(4)
+        .max(MAX_AXES)
         .default([]),
+      budget: askedBudget.nullable(),
     }),
   },
   {
