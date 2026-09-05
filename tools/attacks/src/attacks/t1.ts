@@ -84,9 +84,12 @@ async function proveQuarantine(harness: Harness, tx: Transcript): Promise<void> 
 async function proveBounded(harness: Harness, tx: Transcript): Promise<AttackStep> {
   // A run-unique envelope category: spend accumulates per (tenant, user,
   // category), so a re-run must not inherit the previous run's burn-down.
+  // The memory namespace is run-unique too (T-31's pattern): a day of chat
+  // fills the shared demo user with preferences, and the cart-construction
+  // slice must still carry this run's P2 quote or the cart is a mismatch.
   const category = `t1-over-${randomUUID().slice(0, 8)}`;
   const over = await preparePurchase(harness, {
-    userId: harness.userIss,
+    userId: `${harness.userIss}#${category}`,
     cart: demoCart({ id: category, category, unitPaise: poison.POISON_AMOUNT_PAISE }),
     bounds: demoBounds({
       merchantIss: harness.merchantIss,
@@ -114,7 +117,7 @@ async function proveBounded(harness: Harness, tx: Transcript): Promise<AttackSte
 async function proveHonestPurchaseStillWorks(harness: Harness, tx: Transcript): Promise<boolean> {
   const category = `t1-ok-${randomUUID().slice(0, 8)}`;
   const honest = await preparePurchase(harness, {
-    userId: harness.userIss,
+    userId: `${harness.userIss}#${category}`,
     cart: demoCart({ id: category, category }),
     bounds: demoBounds({ merchantIss: harness.merchantIss, category }),
     description: "Buy one pair of running shoes under Rs 2,000, refundable, from Kolam Run.",
@@ -122,6 +125,9 @@ async function proveHonestPurchaseStillWorks(harness: Harness, tx: Transcript): 
   const verdict = await verifyCart(harness, honest.body);
   tx.step("And the honest INR 1,899.00 cart still goes through.");
   tx.detail("decision", verdict.decision);
+  if (verdict.decision !== "approve") {
+    tx.answer(verdict.reasonCode, verdict.human);
+  }
   tx.seals(verdict.seals);
   tx.note("The defence costs the user nothing: the purchase they actually asked for completes.");
   return verdict.decision === "approve";

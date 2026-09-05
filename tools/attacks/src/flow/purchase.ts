@@ -124,11 +124,14 @@ export async function preparePurchase(
   now: Date = new Date(),
 ): Promise<Prepared> {
   const quote = await seedQuote(harness, spec, now);
+  // Queried with the evidence, as the agent-host does: the gateway resolves
+  // the P2 quote from the entries this cart names, and a sentence about the
+  // item ranks conversation above the one fact the cart depends on.
   const retrieval = await retrieveMemory(
     harness,
     spec.userId,
     "cart-construction",
-    "the item this user is buying",
+    `${spec.cart.lines[0]?.sku ?? ""} ${quote.quote_jti}`,
   );
   const intent = issueIntent(harness.ring, {
     tenantId: harness.tenantId,
