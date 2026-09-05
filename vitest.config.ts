@@ -12,7 +12,7 @@ const workspacePackages = [
   "browser-drive",
 ];
 
-const apps = ["gateway-svc", "audit-ui", "merchant-ui", "agent-host"];
+const apps = ["gateway-svc", "audit-ui", "merchant-ui", "agent-host", "landing"];
 
 export default defineConfig({
   test: {

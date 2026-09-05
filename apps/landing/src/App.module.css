@@ -1,42 +1,8 @@
+/* One screen wide, whatever the show hangs over it: nothing an overlay
+   does may give the page a sideways scroll. */
 .page {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-}
-
-.holding {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: var(--sp-6);
-  padding: var(--sp-13) var(--page-pad);
-  text-align: center;
-}
-
-.name {
-  font-size: clamp(72px, 11vw, 180px);
-  line-height: 0.94;
-  letter-spacing: -0.02em;
-}
-
-.promise {
-  max-width: 44ch;
-  font-size: var(--t-body-l);
-  line-height: var(--t-body-l-line);
-  color: var(--ink-70);
-}
-
-.doors {
-  display: flex;
-  gap: var(--sp-8);
-}
-
-.doors a {
-  font-family: var(--font-data);
-  font-size: var(--t-label);
-  letter-spacing: var(--t-label-tracking);
-  text-transform: uppercase;
-  color: var(--indigo);
+  overflow-x: clip;
 }

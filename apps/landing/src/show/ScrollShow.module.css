@@ -1,0 +1,86 @@
+/* One picture, fixed, with paper over it. Everything except the spacer is
+   pinned to the viewport; the spacer is the only thing with height, and
+   scrolling it is what runs the show. */
+.plate,
+.canvas {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+}
+
+/* The printed stage: what the page shows before the picture is built, and
+   what it shows for good with JavaScript switched off. */
+.plate {
+  display: grid;
+  place-items: center;
+  background: #e9dfc9;
+}
+
+.plate[hidden] {
+  display: none;
+}
+
+.printed {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  touch-action: pan-y;
+}
+
+/* The name, in the upper third, for the first breath of the page only. */
+.name {
+  position: fixed;
+  left: 50%;
+  top: 24vh;
+  translate: -50% 0;
+  z-index: 2;
+  pointer-events: none;
+  font-size: var(--t-wordmark);
+  line-height: 0.94;
+  text-align: center;
+  /* No transition here: the runtime writes this element's opacity every
+     frame from the scroll position, and a transition would make the name
+     lag the page instead of leaving with it. */
+}
+
+/* The gesture, low and centred, only while the word is being given. */
+.seal {
+  position: fixed;
+  left: 50%;
+  bottom: 12vh;
+  translate: -50% 0;
+  z-index: 3;
+  display: flex;
+  justify-content: center;
+}
+
+.seal[hidden] {
+  display: none;
+}
+
+/* The page's height, and nothing else. */
+.scroll {
+  flex: none;
+  width: 100%;
+  pointer-events: none;
+}
+
+/* The story in words, for a reader with no picture: screen readers, and
+   the page as it is served before any JavaScript runs. */
+.visuallyHidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}

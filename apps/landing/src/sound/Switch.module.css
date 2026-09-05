@@ -1,0 +1,42 @@
+/* Small, and down in the left corner, where it never sits on a subtitle. */
+.switch {
+  position: fixed;
+  left: var(--sp-8);
+  bottom: var(--sp-8);
+  z-index: 20;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-3);
+  padding: 6px 10px;
+  font-size: 11px;
+  background: #e6d9bf;
+  color: var(--ink);
+  border: 1px solid var(--ink-24);
+  border-radius: var(--r-1);
+  box-shadow: 0 2px 0 var(--ink-12);
+  cursor: pointer;
+}
+.switch:focus-visible {
+  outline: 2px solid var(--indigo);
+  outline-offset: 4px;
+}
+.flame {
+  width: 8px;
+  height: 11px;
+  border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+  background: var(--ink-24);
+  transition:
+    background var(--d-hover) var(--ease-out),
+    transform var(--d-hover) var(--ease-out);
+}
+.switch[aria-pressed="true"] .flame {
+  background: var(--marigold);
+  transform: scale(1.15);
+}
+.text {
+  font-family: var(--font-data);
+  font-size: 11px;
+  line-height: var(--t-label-line);
+  letter-spacing: var(--t-label-tracking);
+  text-transform: uppercase;
+}

@@ -1,0 +1,50 @@
+/* The invitation: one piece of kraft under the name, on the closed
+   curtain, up for the first breath of the page and gone after it. Its top
+   tracks the name's own box, so it sits under the wordmark at every size. */
+.begin {
+  position: fixed;
+  left: 50%;
+  top: calc(24vh + var(--t-wordmark) * 0.94 + var(--sp-9));
+  translate: -50% 0;
+  z-index: 3;
+  display: grid;
+  justify-items: center;
+  gap: var(--sp-5);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 200ms var(--ease-out);
+}
+
+.begin[data-on="true"] {
+  opacity: 1;
+}
+
+.begin[data-on="true"] .button {
+  pointer-events: auto;
+}
+
+.button {
+  padding: 12px 22px;
+  background: #e9dfc9;
+  color: var(--ink);
+  border-radius: 2px;
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-variation-settings:
+    "opsz" 72,
+    "wght" 400;
+  font-size: 18px;
+  line-height: 1.1;
+  white-space: nowrap;
+}
+
+.under {
+  font-family: var(--font-data);
+  font-size: 11px;
+  line-height: var(--t-label-line);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #f1ebe0;
+  text-shadow: 0 2px 10px rgb(0 0 0 / 0.6);
+  white-space: nowrap;
+}

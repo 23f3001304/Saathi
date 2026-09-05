@@ -1,43 +1,52 @@
-# Landing page handover (state as of 2026-09-04)
+# Landing page handover (state as of 2026-09-05, night)
 
-## STOP. Read this first.
+You are taking over the landing page for Saathi at apps/landing (Vite +
+React + TS, port 5199: `pnpm --filter @covenant/landing dev`, or the
+Browser pane's "landing" entry in .claude/launch.json; build:
+`pnpm --filter @covenant/landing build`, which bakes a no-JS prerender).
+Gates: `npx tsc -b && npx eslint . --max-warnings 0 && npx depcruise apps
+packages tools && npx vitest run` (the landing tests are the `landing`
+vitest project).
 
-Eight full drafts have now been designed and struck, across two days.
-Every one was deleted at the founder's request. Do NOT open this file and
-start a ninth draft. The pattern across all eight is unambiguous: drafts
-where Claude chose the direction were rejected on sight; the only rounds
-that moved were the ones where the founder supplied a concrete reference
-or a single named defect ("the font is bad", "those spots", "it is
-repeated"). Working this way costs hours per rejection and has produced
-nothing shippable.
+## CURRENT STATE: the katputli show, one scroll, one picture
 
-If the page is picked up again, do exactly one of these, and nothing else:
-- Fix ONE named element the founder points at, show it, stop.
-- Port ONE specific reference page's fold, faithfully, after capturing it.
-- Ship the holding page as-is for the submission. It is presentable and
-  every gate is green.
+The page is a cardboard puppet show that the scroll performs. Everything
+lives under `src/show` (runtime), `src/film` (the picture as a scrubbed
+video), `src/webgl` (the picture as a three.js cardboard theatre, the
+fallback when no film is present), `src/sound` (voices and the switch).
+Spec: docs/superpowers/specs/2026-09-05-katputli-show-design.md (its
+revision section is the current shape). Plan and history:
+docs/superpowers/plans/2026-09-05-katputli-show.md.
 
+- `src/show/script.ts` is the story: Saathi narrates in English (Sarvam
+  bulbul:v3, voice kabir, en-IN), the puppets speak Hindi (ishita, anand,
+  shubh) with an English gloss in a paper bubble. MP3s under public/voice.
+  `seconds` per line is measured with ffprobe and times the lip flap.
+- `src/show/choreography*.ts` is the cardboard stage's timeline (used by the
+  WebGL fallback only). `src/film/remap.ts` maps the script's `at` values
+  onto the film's five equal scenes.
+- The film is `public/stage/film.mp4`: five 8 s scenes, 1280 wide, a
+  keyframe every 8 frames so seeks land instantly, no audio. Build it with
+  the scratch script `build-film.sh` (five clips in order) and the trailer
+  with `build-trailer.sh`; both live in the 2026-09-05 session scratchpad
+  under `trailer/`, with the narration bed and end card beside them. The
+  file shipped at the time of writing is provisional (Omni clips, scenes 2
+  and 4 doubled); the Veo 3.1 Lite rerun, referenced to the founder's
+  chosen clip "Cardboard puppet waving on stage", replaces it.
+- Sound starts only from the "begin the show" click (browser autoplay
+  rules); lines play exactly inside their scroll window and stop when the
+  reader leaves it; the switch bottom-left mutes. `public/audio/loop.mp3`
+  is optional (Flow Music, "Paper Puppet Theatre Loop 1", not yet
+  downloaded); the page runs without it.
+- Cutout assets (`public/stage/*.webp`, mouth-open variants
+  `<name>-open.webp`) are baked by `scripts/pieces.py` from the session's
+  gpt-image-2 PNGs.
 
-You are taking over the landing page for Saathi, an agentic-shopping product
-built for the Razorpay AI Buildathon, in the repo at
-C:\Users\coehe\Razorpay\covenant. The page lives at apps/landing (Vite +
-React + TS workspace app, port 5199: `cd apps/landing && npx vite --port
-5199`; build: `pnpm --filter @covenant/landing build`, which also bakes a
-no-JS prerender). Repo gates that must stay green: `npx tsc -b`,
-`npx eslint . --max-warnings 0`, `npx depcruise apps packages tools`.
-Do not touch any other app in the repo.
-
-## CURRENT STATE: all landing work deleted, twice (09-02, then 09-04)
-
-Eight drafts across two days; every one struck. The page shows only the
-minimal holding screen (wordmark, one promise line, two links, footer).
-All gates pass and the prerendered no-JS build works. The brand files
-were restored to the product's own settings on 09-04 after the draft
-rounds had changed them: Fraunces display / General Sans body in
-index.html and tokens.css, the sunrise bar in base.css, and the app's
-2px radius. Real screenshots of the running product can be re-captured
-from :5173 in minutes (continue as demo user, hold the seal ~1.3s, then
-screenshot Chat / Windows / Ledger).
+What the founder rejected on sight today, so nobody rebuilds it: acts as
+boxes in a column (not immersive), a theatre that does not fill the screen,
+subtitles on kraft cards, sound queued behind the scroll instead of locked
+to it, and any generated video with writing in it (video models garble
+text; every slip and scroll in a shot must be blank, words go on as HTML).
 
 ## What the product is (the story you are selling)
 

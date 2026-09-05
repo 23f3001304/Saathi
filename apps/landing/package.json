@@ -6,15 +6,18 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build && vite build --ssr src/prerender.tsx --outDir node_modules/.prerender && node scripts/prerender.mjs",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test": "vitest run"
   },
   "dependencies": {
     "react": "^18.3.1",
-    "react-dom": "^18.3.1"
+    "react-dom": "^18.3.1",
+    "three": "0.182.0"
   },
   "devDependencies": {
     "@types/react": "^18.3.31",
     "@types/react-dom": "^18.3.7",
+    "@types/three": "0.182.0",
     "@vitejs/plugin-react": "^6.1.1",
     "vite": "^8.2.2"
   }

@@ -22,3 +22,6 @@ dump.json
 
 # subagent-driven-development scratch (ledger, briefs, review packages)
 .superpowers/
+
+# runtime logs from local service launches
+.run/

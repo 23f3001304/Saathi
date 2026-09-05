@@ -1,0 +1,146 @@
+/* The three surfaces over the picture. All of them are always in the DOM;
+   [data-on] is the only thing that changes, so a line can leave while the
+   next one is already written behind it. Every fade is the same: opacity
+   and a 6px rise, 180ms in, 120ms out, and nothing else moves. */
+.caption,
+.bubble,
+.title {
+  position: fixed;
+  z-index: 2;
+  pointer-events: none;
+  opacity: 0;
+}
+
+/* The two centred surfaces own their own transform, so the rise rides in
+   it alongside the centring. */
+.caption,
+.title {
+  left: 50%;
+  transform: translate(-50%, 6px);
+  transition:
+    opacity 120ms var(--ease-out),
+    transform 120ms var(--ease-out);
+}
+
+.caption[data-on="true"],
+.title[data-on="true"] {
+  opacity: 1;
+  transform: translate(-50%, 0);
+  transition-duration: 180ms;
+}
+
+/* The narrator speaks on the dark itself: no card, no border, no ground.
+   A shadow is what keeps it readable over a lit stage. */
+.caption {
+  bottom: clamp(24px, 6vh, 64px);
+  /* 56ch, but never wider than the frame: an overlay may not add width. */
+  max-width: min(56ch, calc(100vw - 2 * var(--page-pad)));
+  text-align: center;
+}
+
+.captionText {
+  font-family: var(--font-display);
+  font-weight: 300;
+  font-variation-settings:
+    "opsz" 72,
+    "wght" 300;
+  font-size: clamp(20px, 2.2vw, 30px);
+  line-height: 1.35;
+  letter-spacing: 0.005em;
+  color: #f1ebe0;
+  text-shadow: 0 2px 14px rgb(0 0 0 / 0.75);
+  text-wrap: balance;
+}
+
+/* The speech card: small paper, hung over its puppet. The runtime owns
+   `transform` and writes it every frame, so the rise rides on `translate`
+   instead; a transition on the transform would leave the card trailing the
+   puppet by a tenth of a second. */
+.bubble {
+  left: 0;
+  top: 0;
+  /* Parked centre stage until the runtime has a puppet to hang it on, so a
+     page with no picture still puts the words somewhere sensible. */
+  transform: translate(50vw, 62vh);
+  translate: 0 6px;
+  transition:
+    opacity 120ms var(--ease-out),
+    translate 120ms var(--ease-out);
+  max-width: min(34ch, 42vw);
+  padding: 12px 16px;
+  background: #faf7f2;
+  color: #1e1e1e;
+  border-radius: 6px;
+  box-shadow: 0 3px 0 rgb(0 0 0 / 0.35);
+}
+
+.bubble[data-on="true"] {
+  opacity: 1;
+  translate: 0 0;
+  transition-duration: 180ms;
+}
+
+/* The tail: the same paper, turned on its corner, at the bottom left. Its
+   tip is what the runtime aims at the speaker's head. */
+.bubble::after {
+  content: "";
+  position: absolute;
+  left: 22px;
+  bottom: -6px;
+  width: 12px;
+  height: 12px;
+  rotate: 45deg;
+  background: #faf7f2;
+}
+
+.hindi {
+  font-family: var(--font-accent);
+  font-size: clamp(16px, 1.6vw, 22px);
+  line-height: 1.35;
+}
+
+.gloss {
+  margin-top: 4px;
+  font-family: var(--font-body);
+  font-size: 13px;
+  line-height: var(--t-data-m-line);
+  color: #6b665f;
+}
+
+/* The title card, upper third, on the dark like the subtitle. */
+.title {
+  top: 22vh;
+  width: min(22ch, calc(100vw - 2 * var(--page-pad)));
+  text-align: center;
+}
+
+.titleText {
+  font-family: var(--font-display);
+  font-weight: 300;
+  font-variation-settings:
+    "opsz" 144,
+    "wght" 300;
+  font-size: clamp(40px, 6vw, 84px);
+  line-height: 1.05;
+  letter-spacing: -0.015em;
+  color: #f1ebe0;
+  text-shadow: 0 2px 14px rgb(0 0 0 / 0.75);
+  text-wrap: balance;
+}
+
+.doors {
+  display: flex;
+  justify-content: center;
+  gap: var(--sp-8);
+  margin-top: var(--sp-7);
+}
+
+.doors a {
+  pointer-events: auto;
+  font-family: var(--font-data);
+  font-size: var(--t-label);
+  letter-spacing: var(--t-label-tracking);
+  text-transform: uppercase;
+  color: #f1ebe0;
+  text-shadow: 0 2px 10px rgb(0 0 0 / 0.7);
+}
