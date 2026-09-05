@@ -61,3 +61,25 @@ export function codeField(
     ) ?? null
   );
 }
+
+/**
+ * What form this is, as a string that changes when the form does.
+ *
+ * DECISION: the on-screen boxes name the step. After a password is submitted
+ * the loop looks again, and it has to tell two cases apart from one snapshot:
+ * a shop that took the email and swapped in the real password step, and a page
+ * that simply has not navigated yet. Re-typing a password into the second is
+ * how an account gets locked, so a password box standing over an unchanged
+ * form is treated as the same ask, not a new one, and waited on.
+ *
+ * Only the visible boxes count, because those are the step: Amazon's email
+ * page and its password page differ in exactly that and share their hidden
+ * inputs.
+ */
+export function formShape(fields: readonly FieldSnapshot[]): string {
+  return fields
+    .filter(onScreen)
+    .map((field) => field.descriptor.selector)
+    .sort()
+    .join("|");
+}

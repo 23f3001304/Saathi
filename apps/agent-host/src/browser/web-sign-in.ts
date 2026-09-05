@@ -6,6 +6,7 @@ import type { WebProgress } from "./web-progress.js";
 import type { WebResult } from "./web-result.js";
 import type { WebTrail } from "./web-trail.js";
 import { NO_WINDOW, pageMoved, webFailure, webOk } from "./web-result.js";
+import { nextAfter } from "./sign-in-next.js";
 
 /** What the sign-in verbs may know of the vault: a lookup by page URL. The
  *  entry crosses straight into the drive's own hands; nothing here logs,
@@ -80,16 +81,15 @@ export class SignInVerbs {
     this.trail.record(dom.url);
     const challenge = await session.signIn().challenge();
     this.progress.recordSignedIn(challenge);
+    const done = challenge === null;
     return webOk({
-      signed_in_as: username,
+      signed_in: done,
+      // Named only when the shop let us in. A page that is still challenging
+      // is not an account you are on.
+      signed_in_as: done ? username : null,
       challenge,
       url: dom.url,
-      next:
-        challenge === "code"
-          ? "The shop wants a one-time code only the shopper has. Stop and " +
-            "ask them for it in your answer; they can also take the wheel " +
-            "and type it themselves."
-          : "Read the page and carry on.",
+      next: nextAfter(challenge),
     });
   }
 
