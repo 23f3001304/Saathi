@@ -4,6 +4,9 @@ Razorpay AI Buildathon, Track 01 (Agentic Commerce). One speaker, one take
 if you can, five minutes. Talk to the judges like a builder showing another
 builder something that works. Contractions, short sentences, breathe.
 
+The recorded take went its own way; the cleaned transcript, a claims check
+and a submission blurb are in `demo-transcript.md`.
+
 Before you press record:
 
 - audit UI on `localhost:5173`, a fresh chat open (`+ New chat`)
