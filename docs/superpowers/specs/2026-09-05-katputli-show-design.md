@@ -133,3 +133,30 @@ social cut, never page footage.
 Other reply languages for the voices; a CMS; analytics; anything that reads
 the visitor's data. The music loop's licence is checked before the page is
 public; until then the switch plays voices only.
+
+## Revision, 2026-09-05 evening: one scroll, one stage, WebGL
+
+The founder rejected the first build on sight: acts as boxes in a column
+read as "a page with pictures of a show". The design above stands for the
+story, the cast, the script and the interactions; the page structure is
+replaced by this:
+
+- One fixed full-viewport WebGL canvas (three.js) draws the cardboard
+  theatre in real depth: cutout planes with alpha-tested shadows, a warm
+  key light, footlight spot, a backlit night rig, a camera that leans with
+  the pointer. Puppets stand on stick meshes and rotate about their base.
+- The whole story is scrubbed by scrolling: the page is `SCROLL_VH`
+  viewport heights tall; `evaluate(CHOREOGRAPHY, progress)` produces a pose
+  for every object each frame; scrolling back plays it backward. There are
+  no sections.
+- The script is Saathi narrating its own show in English, with the puppets
+  speaking Hindi lines under paper speech bubbles anchored to their heads,
+  glossed in English. Narrator lines are subtitles. Every character line
+  flaps the puppet's mouth (a second texture with the mouth open) for the
+  line's recorded length, with the sound on or off.
+- Files: `src/show/contract.ts` (shared types and stage space),
+  `script.ts`, `choreography.ts` + `choreography-set.ts`, `evaluate.ts`,
+  `useScrollProgress.ts`, `ScrollShow.tsx` and overlays; `src/webgl/*` for
+  the scene. The DOM theatre (`stage/Theatre`, `Cast`, `acts/*`) is deleted.
+- Veo clips are not on the page (visible watermark in this region); they
+  remain the trailer's material.
