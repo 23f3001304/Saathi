@@ -1,33 +1,42 @@
 .page {
   min-height: 100vh;
-  overflow-x: clip;
+  display: flex;
+  flex-direction: column;
 }
 
-/* The toran: the five pigments blooming along the whole top edge of the
-   page and dissolving into the paper, the way Sarvam lets one colour field
-   be the entire hero atmosphere. Full-bleed on purpose: an arch clipped to
-   a content column is a stain, not a welcome. Painted once, never moved. */
-.page::before {
-  content: "";
-  position: absolute;
-  inset: 0 0 auto 0;
-  height: 64vh;
-  pointer-events: none;
-  z-index: 0;
-  background:
-    radial-gradient(48vw 44vh at 4% -8%, color-mix(in oklab, var(--pigment-1) 21%, transparent), transparent 70%),
-    radial-gradient(44vw 40vh at 28% -10%, color-mix(in oklab, var(--saffron) 19%, transparent), transparent 70%),
-    radial-gradient(50vw 42vh at 52% -10%, color-mix(in oklab, var(--pigment-5) 12%, transparent), transparent 72%),
-    radial-gradient(46vw 40vh at 76% -10%, color-mix(in oklab, var(--pigment-4) 15%, transparent), transparent 70%),
-    radial-gradient(40vw 38vh at 100% -8%, color-mix(in oklab, var(--pigment-2) 14%, transparent), transparent 72%);
+.holding {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-6);
+  padding: var(--sp-13) var(--page-pad);
+  text-align: center;
 }
 
-.deed {
-  position: relative;
+.name {
+  font-size: clamp(72px, 11vw, 180px);
+  line-height: 0.94;
+  letter-spacing: -0.02em;
 }
 
-@media (min-width: 980px) {
-  .deed {
-    padding-left: var(--rail);
-  }
+.promise {
+  max-width: 44ch;
+  font-size: var(--t-body-l);
+  line-height: var(--t-body-l-line);
+  color: var(--ink-70);
+}
+
+.doors {
+  display: flex;
+  gap: var(--sp-8);
+}
+
+.doors a {
+  font-family: var(--font-data);
+  font-size: var(--t-label);
+  letter-spacing: var(--t-label-tracking);
+  text-transform: uppercase;
+  color: var(--indigo);
 }

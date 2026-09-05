@@ -14,10 +14,9 @@ import styles from "./Footer.module.css";
  * words.
  */
 const INDEX = [
-  { href: "#worry", text: "the worry" },
-  { href: "#promise", text: "your word" },
-  { href: "#shopping", text: "the shopping" },
-  { href: "#hisaab", text: "hisaab" },
+  { href: "#window", text: "the window" },
+  { href: "#refusals", text: "refusals" },
+  { href: "#hisaab", text: "the hisaab" },
   { href: "#top", text: "back to the top" },
 ];
 
@@ -31,7 +30,7 @@ export function Footer(): JSX.Element {
   return (
     <footer className={styles.footer}>
       <div className={styles.inner}>
-        <p className={styles.mark} aria-hidden="true" data-reveal>
+        <p className={styles.mark} aria-hidden="true" data-s>
           <SaathiMark size={34} />
         </p>
         <p className={styles.wordmarkRow}>

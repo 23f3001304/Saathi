@@ -105,32 +105,57 @@ button {
     "lnum" 1;
 }
 
-/* Reveal choreography. Elements are hidden only when JavaScript has raised
-   its hand (html[data-js]) AND the reader has not asked for stillness, so
-   the no-JS page and the reduced-motion page are both simply settled. */
+/* Reveal choreography, one system for the whole show. Elements are hidden
+   only when JavaScript has raised its hand (html[data-js]) AND the reader
+   has not asked for stillness, so the no-JS page and the reduced-motion
+   page are both simply settled. useInView flips each [data-s] to .in the
+   first time it crosses the fold; --i staggers the entrance. */
 @media (prefers-reduced-motion: no-preference) {
-  html[data-js] [data-reveal] {
+  html[data-js] [data-s]:not([data-pop]) {
     opacity: 0;
-    transform: translateY(16px);
+    transform: translateY(10px);
+    transition:
+      opacity 0.5s var(--ease-out),
+      transform 0.5s var(--ease-out);
+    transition-delay: calc(var(--i, 0) * 70ms);
   }
-  html[data-js] [data-reveal="in"] {
+  html[data-js] [data-s].in {
     opacity: 1;
     transform: none;
-    transition:
-      opacity var(--d-enter) var(--ease-out),
-      transform var(--d-enter) var(--ease-out);
-    transition-delay: calc(var(--i, 0) * var(--stagger));
+  }
+
+  /* [data-mask] elements reveal from the inside (their lines rise out of a
+     clip), so the wrapper itself must never fade. This has to sit AFTER
+     the .in rule and carry the same specificity to win the tie: adding a
+     :not([data-mask]) to the hidden rule above instead would outrank .in
+     and leave every revealed element invisible. */
+  html[data-js] [data-s][data-mask] {
+    opacity: 1;
+    transform: none;
+  }
+
+  /* A puppet's entrance is not a fade: inside a [data-pop] wrapper, the
+     inner piece rises over the booth edge with an overshoot, the way a
+     hand lifts a stick puppet into view. The wrapper itself never moves,
+     so the observer can always see it coming. */
+  html[data-js] [data-s][data-pop] > * {
+    transform: translateY(118%);
+    transition: transform 0.9s cubic-bezier(0.3, 1.35, 0.55, 1);
+    transition-delay: calc(var(--i, 0) * 170ms);
+  }
+  html[data-js] [data-s][data-pop].in > * {
+    transform: translateY(0);
   }
 
   /* The toran arrives the way an arch is raised: tile by tile, each one
      landing with the stamp ease, wherever a mark sits inside a reveal. */
-  html[data-js] [data-reveal] .saathi-tile {
+  html[data-js] [data-s] .saathi-tile {
     opacity: 0;
     transform: scale(0);
     transform-box: fill-box;
     transform-origin: center;
   }
-  html[data-js] [data-reveal="in"] .saathi-tile {
+  html[data-js] [data-s].in .saathi-tile {
     opacity: 1;
     transform: scale(1);
     transition:

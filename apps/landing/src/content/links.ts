@@ -6,5 +6,5 @@
  * button to the shopping fragment, the build button to the hisaab. Swap
  * these two constants before publishing; nothing else changes.
  */
-export const DEMO_URL = "#shopping";
+export const DEMO_URL = "#window";
 export const BUILD_URL = "#hisaab";

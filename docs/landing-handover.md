@@ -1,4 +1,22 @@
-# Landing page handover (state as of 2026-09-02, evening)
+# Landing page handover (state as of 2026-09-04)
+
+## STOP. Read this first.
+
+Eight full drafts have now been designed and struck, across two days.
+Every one was deleted at the founder's request. Do NOT open this file and
+start a ninth draft. The pattern across all eight is unambiguous: drafts
+where Claude chose the direction were rejected on sight; the only rounds
+that moved were the ones where the founder supplied a concrete reference
+or a single named defect ("the font is bad", "those spots", "it is
+repeated"). Working this way costs hours per rejection and has produced
+nothing shippable.
+
+If the page is picked up again, do exactly one of these, and nothing else:
+- Fix ONE named element the founder points at, show it, stop.
+- Port ONE specific reference page's fold, faithfully, after capturing it.
+- Ship the holding page as-is for the submission. It is presentable and
+  every gate is green.
+
 
 You are taking over the landing page for Saathi, an agentic-shopping product
 built for the Razorpay AI Buildathon, in the repo at
@@ -9,20 +27,17 @@ no-JS prerender). Repo gates that must stay green: `npx tsc -b`,
 `npx eslint . --max-warnings 0`, `npx depcruise apps packages tools`.
 Do not touch any other app in the repo.
 
-## CURRENT STATE: all landing work deleted at founder's request (09-02, late evening)
+## CURRENT STATE: all landing work deleted, twice (09-02, then 09-04)
 
-Five complete drafts were staged and struck in one day. After the fifth
-the founder said to delete the landing work entirely, and it is deleted.
-The page shows only the minimal holding screen (wordmark, one promise
-line, two links, footer). All gates pass; the prerendered no-JS build
-works. Do NOT design a sixth draft unprompted. If this page is picked
-up again, the realistic paths are: the founder steers micro-edits live,
-one at a time, while looking at the page; or the founder supplies one
-specific reference page to port faithfully; or the holding page ships
-as-is for the submission (it is presentable). Real screenshots of the
-running product were captured and liked in principle ("the real thing,
-not a mockup"); re-capture from :5173 in minutes (continue as demo
-user, hold the seal, then screenshot Chat / Ledger / the refused chip).
+Eight drafts across two days; every one struck. The page shows only the
+minimal holding screen (wordmark, one promise line, two links, footer).
+All gates pass and the prerendered no-JS build works. The brand files
+were restored to the product's own settings on 09-04 after the draft
+rounds had changed them: Fraunces display / General Sans body in
+index.html and tokens.css, the sunrise bar in base.css, and the app's
+2px radius. Real screenshots of the running product can be re-captured
+from :5173 in minutes (continue as demo user, hold the seal ~1.3s, then
+screenshot Chat / Windows / Ledger).
 
 ## What the product is (the story you are selling)
 
@@ -34,7 +49,7 @@ hold for 600ms; every rupee lands in a readable ledger (the hisaab). No
 technical vocabulary on the page ever: no covenant/mandate/ledger/AP2 words.
 NO EM DASHES in any copy (hard rule).
 
-## The taste map: five struck drafts and why they died
+## The taste map: eight struck drafts and why they died
 
 1. Photo-editorial draft (multiple sections, product-UI mockups):
    rejected as fussy and generic SaaS.
@@ -64,6 +79,37 @@ NO EM DASHES in any copy (hard rule).
    band, editorial spent-list): still hated ("font is very bad", "I hate
    your every generation"). A six-option type specimen went unanswered;
    then the delete order came. Deleted.
+6. RiskSentinel port (founder reference risksentinel-x.vercel.app):
+   light cream ground, alternating split sections, product cards on
+   gradient pads, indigo closing band. Rejected as "still looks bad" and
+   "don't exactly copy the feel" - a faithful port of a cool blue fintech
+   page read as a clone, not as Saathi.
+7. Same page rebuilt warm (Cabinet Grotesk + Switzer display type, saffron
+   accents, sunrise closing band, masked line reveals, 100svh fold).
+   Two real findings from this round, worth keeping:
+   - Fontshare SILENTLY DROPS families from a combined f[] request. That
+     is how the page shipped a headline in fallback serif while claiming
+     Switzer. Always one family per <link>, and verify with document.fonts.
+   - Cabinet Grotesk has no italic, and <em> is italic by browser default,
+     so every accent word was being synthetically slanted. Accent with
+     colour, not slope.
+8. Sandbox hero: the agent driving a live shop window on a 15s CSS-only
+   timeline (cursor path, pre-ticked extras being unticked, refused chips,
+   odometer price roll, the wheel passing back to the reader, a 600ms hold
+   fill). Rejected: "looks bad and is repeated" - the window was rendered
+   twice (hero and section), the cursor path was expressed in percentages
+   of its own box so it never reached the checkboxes it appeared to click,
+   and the product image was the app's Truchet ProductPlate, which reads
+   as wallpaper rather than a product.
+   The founder then asked for "an actual amazon page photo". Not done, and
+   worth flagging before anyone does it: baking a screenshot of Amazon's
+   product page into a public marketing site means publishing their page
+   design, their product photography and their trademark, and is a real
+   legal exposure for a repo that is about to go public. The repo already
+   ships its OWN demo storefront at packages/browser-drive/fixtures/shop/
+   (product.html, checkout.html, cart.html and friends). Screenshotting
+   that is real, is ours, and carries no third-party rights problem. That
+   is the route to take if a realistic shop page is needed.
 
 Standing founder rules distilled across all three rejections:
 - The page must BE a live show, not a page about a show.
@@ -110,6 +156,7 @@ list (Rs 18,999 headphones / Rs 1,29,000 laptop / Rs 42,350 flights,
 "no one asked"); "Sab theek hai."; "Every agent dances for someone."
 survived all three drafts as the core line and is still true for rod
 puppets.
+
 
 ## Hard performance rules (each was violated once and froze the page)
 

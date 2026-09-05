@@ -22,7 +22,10 @@ export function useInView(): void {
           e.target.classList.add("in");
         }
       },
-      { rootMargin: "0px 0px -8% 0px", threshold: 0.05 },
+      // The margin extends BELOW the viewport so content settles just
+      // before it scrolls into sight; a reader (or a screenshot) never
+      // catches a section blank.
+      { rootMargin: "0px 0px 18% 0px", threshold: 0 },
     );
     for (const el of nodes) io.observe(el);
     return () => io.disconnect();

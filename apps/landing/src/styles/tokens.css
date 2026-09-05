@@ -39,6 +39,7 @@
     var(--indigo) 78%
   );
 
+
   --rule: 1px solid var(--ink-12);
   --rule-strong: 1px solid var(--ink-24);
   --r-1: 2px;

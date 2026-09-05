@@ -3,7 +3,7 @@
   font-family: var(--font-display);
   font-variation-settings:
     "opsz" 144,
-    "wght" 540;
+    "wght" 500;
   letter-spacing: -0.03em;
   line-height: 0.94;
   white-space: nowrap;
@@ -21,7 +21,7 @@
   .hero .letter {
     opacity: 0;
     animation: letterIn 0.62s var(--ease-out) both;
-    animation-delay: calc(var(--i) * 76ms + 120ms);
+    animation-delay: calc(var(--i) * 76ms + var(--wordmark-delay, 120ms));
   }
 }
 
@@ -54,8 +54,9 @@
 }
 
 /* One pigment survives the drying: the tittle-bearing last letter settles
-   to indigo instead of ink, a permanent memory of the arrival. Small
-   enough to read as a signature, not a decoration. */
+   to a pigment instead of ink, a permanent memory of the arrival. Small
+   enough to read as a signature, not a decoration. Hosts set the memory
+   pigment to whatever survives against their ground (marigold on night). */
 .hero .letter:last-child {
-  color: var(--indigo);
+  color: var(--wordmark-memory, var(--indigo));
 }
