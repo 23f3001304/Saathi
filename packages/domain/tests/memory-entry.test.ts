@@ -73,6 +73,12 @@ describe("covenant-md-1 field discipline", () => {
     expect(toCanonicalForm(memoryEntry).tier).toBe(2);
   });
 
+  it("emits the retirement stamp as null, so the hash outlives the belief", () => {
+    expect(toCanonicalForm(retired).t_expired).toBeNull();
+    expect(toCanonicalForm(retired)).toEqual(toCanonicalForm(memoryEntry));
+    expect(retired.tExpired).not.toBeNull();
+  });
+
   it("leaves storage-only fields out of the hash input", () => {
     const form: Record<string, unknown> = { ...toCanonicalForm(retired) };
     for (const field of [

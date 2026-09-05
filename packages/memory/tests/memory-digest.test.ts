@@ -120,15 +120,28 @@ describe("entry hash field discipline", () => {
     expect(form).toContain('"t_expired":null');
   });
 
-  it("distinguishes a retired entry from a live one", () => {
+  it("hashes the integer tier, not the wire label", () => {
+    expect(canonicalize(toCanonicalForm(CONSTRAINT))).toContain('"tier":3');
+  });
+});
+
+/** Retirement is a fact about us, not about the claim: the hash has to
+ *  outlive the belief or a cart goes stale on the hold-to-buy button. */
+describe("a belief retired after the fact", () => {
+  it("hashes exactly as it hashed while live", () => {
     const retired: MemoryEntry = {
       ...CONSTRAINT,
       tExpired: "2026-09-01T00:00:00.000Z",
+      supersededBy: "mem_00000000-0000-4000-8000-0000000000fe",
     };
-    expect(entryHashOf(retired)).not.toBe(entryHashOf(CONSTRAINT));
+    expect(entryHashOf(retired)).toBe(entryHashOf(CONSTRAINT));
   });
 
-  it("hashes the integer tier, not the wire label", () => {
-    expect(canonicalize(toCanonicalForm(CONSTRAINT))).toContain('"tier":3');
+  it("leaves the digest it was signed into unmoved", () => {
+    const retired: MemoryEntry = {
+      ...QUOTE,
+      tExpired: "2026-09-01T00:00:00.000Z",
+    };
+    expect(computeDigest([CONSTRAINT, retired, TASTE])).toBe(GOLDEN_DIGEST);
   });
 });

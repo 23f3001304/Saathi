@@ -2339,7 +2339,7 @@ entryCanonicalForm(e) = {                       // FIXED field list, order irrel
   "t_valid":        e.tValid,
   "t_invalid":      e.tInvalid     ?? null,
   "t_created":      e.tCreated,
-  "t_expired":      e.tExpired     ?? null
+  "t_expired":      null                        // ALWAYS null: the retirement stamp is not hash input (rule 6)
 }
 
 entry_hash    = sha256Hex( canonicalize(entryCanonicalForm(e)) )        // RFC 8785 JCS
@@ -2353,6 +2353,7 @@ Canonicalization rules, stated because a hash spec with an ambiguity is not a ha
 3. **Sort is byte-wise ascending over the lowercase hex `entry_hash` strings**, joined with `\n`. Sorting the hashes (not the ids, not the entries) is what makes the digest order-independent: the agent may list its justifying memories in any order and the gateway recomputes the same value.
 4. **Version is a signed field.** `memory_digest_alg: "covenant-md-1"` travels inside the Cart Mandate; `MemoryDigestCheck` rejects an unknown algorithm rather than guessing. A schema change bumps to `covenant-md-2` and old mandates still verify under the old rule.
 5. The digest is computed by `ReadGate` at retrieval time and again by `MemoryDigestCheck` at verification time, from the same fixed field list — two independent computations over the store, which is what makes post-signing tampering detectable.
+6. **The retirement stamp is never hash input.** `t_expired` keeps its place in the fixed field list and is always hashed as `null`. Why: §5.2's immutability trigger lets `t_expired` change after a row is written while forbidding `entry_hash` to change, so hashing the live value hashes a moving field, and the stored hash and the recomputed one drift apart the moment a belief is superseded. A cart left on the hold-to-buy button while the shopper keeps talking has its constraints superseded by the next covenant they sign; every belief it named still says what it said, and it was refused as though a memory had been swapped. Retirement is a fact about us, not about the claim; world-time validity (`t_invalid`) is part of the claim and stays hashed. Signing over a belief already retired when the cart was issued is still refused, by predicate 4 as `MEMORY_ENTRY_EXPIRED` — a rule this makes reachable, since any expiry used to break predicate 2 first. The algorithm id does not move: no digest a read gate ever minted changes value, because retrieval returns live rows only.
 
 ### 9.5 The LLM contradiction fallback (R6)
 
@@ -2750,7 +2751,7 @@ Every judgment call this document makes where `ARCHITECTURE.md` was silent or am
 | 38 | §8.5 | The headline reason code is the first failure in **pipeline order**, not in evaluation order. |
 | 39 | §9.1 | `AuthorityClaimRule` (R4) is a labeller for the audit lane, not the defence — the tier rules already block the write. |
 | 40 | §9.3 | Constraints never decay; `constraint-evaluation` sets `w = 1.0` unconditionally. |
-| 41 | §9.4 | Digest canonicalization emits absent fields as `null` (never omits them) and versions the algorithm as `covenant-md-1`. |
+| 41 | §9.4 | Digest canonicalization emits absent fields as `null` (never omits them), never hashes the `t_expired` retirement stamp, and versions the algorithm as `covenant-md-1`. |
 | 42 | §9.5 | The LLM judge is a one-way ratchet: it may reject, never approve, and it is off the `verify-cart` latency path. |
 | 43 | §9.6 | Reconciliation drift degrades selectively — `memory` drift blocks cart construction; fold drift only marks `/recs` stale. |
 | 44 | §10.1 | Webhook, poller, cool-off maturity and reconciliation are separate traces joined by span links and `covenant.txn_id`. |

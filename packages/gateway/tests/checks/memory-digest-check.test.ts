@@ -129,3 +129,22 @@ describe("MemoryDigestCheck — bi-temporal and tenant scope", () => {
     ).toBe("MEMORY_TENANT_MISMATCH");
   });
 });
+
+describe("MemoryDigestCheck — a belief retired after the cart was issued", () => {
+  it("passes: nothing the cart named moved, only our belief in it", () => {
+    // The shopper left the cart on the hold-to-buy button and kept talking;
+    // signing the next covenant superseded a constraint this cart had signed
+    // over. It still says what it said, so the digest still holds.
+    const live = [GOLDEN_ENTRIES[0]!, PREFERENCE_ENTRY];
+    const retired = [
+      GOLDEN_ENTRIES[0]!,
+      { ...PREFERENCE_ENTRY, tExpired: "2026-08-31T10:30:00.000Z" },
+    ];
+    const base = withEntries(retired);
+    const verdict = check.run({
+      ...base,
+      cart: { ...base.cart, memory_digest: computeDigest(live) },
+    });
+    expect(verdict.outcome).toBe("pass");
+  });
+});
